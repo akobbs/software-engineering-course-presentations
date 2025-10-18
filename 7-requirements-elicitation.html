@@ -1,0 +1,613 @@
+<!DOCTYPE html><html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Техніки збору вимог 🎯</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"><style>* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #editor-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #editor-container.hidden {
+            display: none;
+        }
+
+        #editor-header {
+            background: #2d3748;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #editor-header h2 {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        #editor-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #4a5568;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2d3748;
+        }
+
+        #markdown-input {
+            flex: 1;
+            padding: 2rem;
+            background: #1a202c;
+            color: #e2e8f0;
+            border: none;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+        }
+
+        #markdown-input:focus {
+            outline: none;
+        }
+
+        .slide-container {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .slide {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 3rem;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .slide::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .slide::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .slide h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .slide h2 {
+            color: #764ba2;
+            font-size: 2rem;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .slide h3 {
+            color: #4a5568;
+            font-size: 1.5rem;
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        .slide p {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .slide ul, .slide ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .slide li {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide pre {
+            background: #282c34;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+
+        .slide pre code {
+            background: transparent;
+            color: #abb2bf;
+        }
+
+        .slide code {
+            font-family: 'Courier New', Consolas, Monaco, monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .slide p code {
+            background: #edf2f7;
+            color: #e53e3e;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .slide blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            color: #4a5568;
+        }
+
+        .slide img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .slide table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .slide th, .slide td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .slide th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .slide tr:nth-child(even) {
+            background: #f7fafc;
+        }
+
+        .note {
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .note strong {
+            color: #c53030;
+        }
+
+        .warning {
+            background: #fffaf0;
+            border-left: 4px solid #f6ad55;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .warning strong {
+            color: #c05621;
+        }
+
+        .info {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .info strong {
+            color: #2c5282;
+        }
+
+        .success {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .success strong {
+            color: #22543d;
+        }
+
+        .danger {
+            background: #fff5f5;
+            border-left: 4px solid #f56565;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .danger strong {
+            color: #742a2a;
+        }
+
+        .tip {
+            background: #fefcbf;
+            border-left: 4px solid #ecc94b;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .tip strong {
+            color: #744210;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: white;
+            transition: width 0.3s;
+        }
+
+        .slide-number {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            color: #667eea;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #sidebar {
+            position: fixed;
+            right: -320px;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+            transition: right 0.3s ease;
+            z-index: 200;
+            padding: 1rem;
+        }
+
+        #sidebar.open {
+            right: 0;
+        }
+
+        #sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+
+        #sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #667eea;
+        }
+
+        #sidebar-header h3 {
+            color: #667eea;
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        #sidebar-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #4a5568;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        #sidebar-close:hover {
+            color: #667eea;
+        }
+
+        .slide-thumbnail {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+
+        .slide-thumbnail:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+            transform: translateX(-4px);
+        }
+
+        .slide-thumbnail.active {
+            border-color: #667eea;
+            background: #f7faff;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .slide-thumbnail-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide-thumbnail-content {
+            font-size: 0.85rem;
+            color: #2d3748;
+            line-height: 1.4;
+            max-height: 4.2rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slide-thumbnail-content::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 50%;
+            height: 1.4rem;
+            background: linear-gradient(to right, transparent, white);
+        }
+
+        .slide-thumbnail.active .slide-thumbnail-content::after {
+            background: linear-gradient(to right, transparent, #f7faff);
+        }
+
+        .slide-thumbnail-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 0.25rem;
+        }
+
+        #sidebar-toggle {
+            position: fixed;
+            right: 1rem;
+            top: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 8px;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 150;
+        }
+
+        #sidebar-toggle:hover {
+            background: white;
+            transform: scale(1.05);
+        }
+
+        .mermaid {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            overflow: visible; /* щоб не обрізати тіні / розширені ноди */
+        }
+
+        /* Запобігаємо обрізанню останньої літери в нодах Mermaid через зміну font-weight після розрахунку розміру */
+        .mermaid svg { overflow: visible !important; }
+        /* перестраховка проти обрізання foreignObject (на випадок інших діаграм) */
+        .mermaid svg foreignObject { overflow: visible !important; }
+
+        .plantuml-diagram {
+            max-width: 100%;
+            height: auto;
+            margin: 1.5rem auto;
+            display: block;
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #help-overlay {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            transition: opacity 0.3s;
+        }
+
+        #help-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #help-overlay kbd {
+            background: #2d3748;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.85em;
+        }
+
+        .mermaid-error {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            padding: 1rem;
+            border-radius: 6px;
+            color: #742a2a;
+            margin: 1.5rem 0;
+        }
+
+        .mermaid-error pre {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+        }
+
+        /* Повноекранний режим - зберігаємо оригінальний фон */
+        #presentation-container:fullscreen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-webkit-full-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-moz-full-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-ms-fullscreen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+#presentation-container:fullscreen,#presentation-container:-webkit-full-screen,#presentation-container:-moz-full-screen,#presentation-container:-ms-fullscreen{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)!important;}</style></head><body><div id="presentation-container"><div class="progress"><div class="progress-bar" id="progress-bar"></div></div><button id="sidebar-toggle" onclick="toggleSidebar()" title="Навігація слайдами (S)">☰</button><div id="sidebar"><div id="sidebar-header"><h3>📑 Слайди</h3><button id="sidebar-close" onclick="toggleSidebar()">✕</button></div><div id="sidebar-content"></div></div><div class="slide-container"><div class="slide" id="current-slide"></div></div><div class="controls"><button class="control-btn" onclick="previousSlide()" title="Попередній (←)">←</button><button class="control-btn" onclick="nextSlide()" title="Наступний (→)">→</button><button class="control-btn" onclick="toggleFullscreen()" title="Повноекранний режим (F)">⛶</button><button class="control-btn" onclick="toggleHelp()" title="Допомога (?)">?</button></div><div class="slide-number" id="slide-number">1 / 24</div><div id="help-overlay" class="hidden"><strong>Гарячі клавіші:</strong><br><kbd>←</kbd> <kbd>→</kbd> Навігація<br><kbd>F</kbd> Повноекранний режим<br><kbd>S</kbd> Sidebar<br><kbd>?</kbd> Допомога<br><kbd>Esc</kbd> Закрити</div></div><script>const slides=["<h1>Техніки збору вимог 🎯</h1>\n<h2>Requirements Elicitation Techniques</h2>\n<p><strong>Лектор:</strong> Кобилянський Антон</p>\n","<h1>План лекції 📋</h1>\n<ol>\n<li>🎯 Вступ: що таке збір вимог та чому це важливо</li>\n<li>🛠️ Основні техніки збору вимог</li>\n<li>🎤 Інтерв'ю (Interviews)</li>\n<li>📊 Анкетування (Questionnaires)</li>\n<li>🎨 Воркшопи (Workshops)</li>\n<li>👀 Спостереження (Observation)</li>\n<li>💻 Прототипування (Prototyping) та макети (Mockups)</li>\n<li>🗺️ Карта подорожі користувача (User Journey Mapping)</li>\n<li>🏗️ Моделювання предметної області (Domain Modeling)</li>\n<li>🎯 Методи пріоритезації вимог</li>\n<li>🤝 Вирішення конфліктів між зацікавленими сторонами</li>\n<li>📝 Документування результатів та найкращі практики</li>\n</ol>\n","<h1>Що таке збір вимог? 🤔</h1>\n<p><strong>Requirements Elicitation (збір вимог)</strong> — це систематичний процес виявлення, збору та документування потреб зацікавлених сторін для створення успішного продукту.</p>\n<h3>Чому це важливо?</h3>\n<ul>\n<li>📊 <strong>56%</strong> проєктів провалюються через погані вимоги</li>\n<li>💰 Виправлення помилок на етапі розробки коштує в <strong>10 разів</strong> дорожче</li>\n<li>🚀 Виправлення після релізу — в <strong>100 разів</strong> дорожче</li>\n</ul>\n<p><strong>Правило:</strong> Чим раніше знайдемо проблему, тим дешевше її виправити!</p>\n","<h1>Основні техніки збору вимог 🛠️</h1>\n<h3>1️⃣ Інтерв'ю (Interviews)</h3>\n<p>Структурована бесіда зі зацікавленими сторонами для глибокого розуміння їхніх потреб.</p>\n<p><strong>Типи:</strong></p>\n<ul>\n<li><strong>Structured (структуровані)</strong> — заздалегідь підготовлені питання</li>\n<li><strong>Unstructured (неструктуровані)</strong> — вільна розмова</li>\n<li><strong>Semi-structured (напівструктуровані)</strong> — комбінація обох підходів ✨</li>\n</ul>\n","<h1>Інтерв'ю: найкращі практики 💡</h1>\n<h3>Підготовка</h3>\n<ul>\n<li>📝 Складіть список питань заздалегідь</li>\n<li>🎯 Визначте мету інтерв'ю</li>\n<li>⏰ Плануйте 45-60 хвилин</li>\n</ul>\n<h3>Під час інтерв'ю</h3>\n<ul>\n<li>👂 <strong>Слухайте більше, ніж говорите</strong> (правило 80/20)</li>\n<li>❓ Використовуйте відкриті питання: \"Як ви зараз...?\", \"Що би ви хотіли...?\"</li>\n<li>🚫 Уникайте навідних питань: \"Ви ж хочете цю функцію, так?\"</li>\n</ul>\n<h3>Після</h3>\n<ul>\n<li>📋 Задокументуйте результати протягом 24 годин</li>\n<li>✅ Отримайте підтвердження від учасника</li>\n</ul>\n","<h1>Анкетування (Questionnaires) 📊</h1>\n<p>Ефективний спосіб зібрати інформацію від великої кількості людей одночасно.</p>\n<h3>Коли використовувати?</h3>\n<ul>\n<li>👥 Велика кількість зацікавлених сторін (50+)</li>\n<li>🌍 Географічно розподілена аудиторія</li>\n<li>📈 Потрібна статистика та кількісні дані</li>\n</ul>\n<h3>Поради</h3>\n<ul>\n<li>✏️ Комбінуйте закриті (так/ні, шкали) та відкриті питання</li>\n<li>📱 Використовуйте сучасні інструменти: Google Forms, Typeform, SurveyMonkey</li>\n<li>⚡ Тримайте анкету короткою (10-15 хвилин максимум)</li>\n</ul>\n","<h1>Воркшопи (Workshops) 🎨</h1>\n<p>Інтерактивні групові сесії для спільної роботи над вимогами.</p>\n<h3>Формати</h3>\n<ul>\n<li><strong>Brainstorming (мозковий штурм)</strong> 💭 — генерація ідей без критики</li>\n<li><strong>Focus Groups (фокус-групи)</strong> 👨‍👩‍👧‍👦 — обговорення конкретних тем</li>\n<li><strong>JAD Sessions (сесії спільного проєктування)</strong> — Joint Application Design — спільне проєктування рішень</li>\n</ul>\n<h3>Переваги</h3>\n<ul>\n<li>🤝 Залучення всіх зацікавлених сторін одночасно</li>\n<li>⚡ Швидке вирішення конфліктів</li>\n<li>🎯 Досягнення консенсусу в реальному часі</li>\n</ul>\n<p><strong>Правило:</strong> 2 години воркшопу = 10 індивідуальних зустрічей!</p>\n","<h1>Спостереження (Observation) 👀</h1>\n<p>Вивчення того, як користувачі працюють у реальному середовищі.</p>\n<h3>Типи</h3>\n<ul>\n<li><strong>Passive (пасивне)</strong> — спостереження без втручання</li>\n<li><strong>Active (активне)</strong> — участь у процесі (shadowing — супроводження)</li>\n<li><strong>Ethnographic (етнографічне)</strong> — глибоке занурення в контекст користувача</li>\n</ul>\n<h3>Приклад</h3>\n<p><strong>Проєкт:</strong> Система управління складом для великого дистриб'ютора.</p>\n<p>Команда провела 3 дні на складі, спостерігаючи за працівниками. Виявили, що <strong>80% часу</strong> працівники шукають товар вручну, бо система не показує точне місцезнаходження. Це стало ключовою вимогою!</p>\n","<h1>Прототипування (Prototyping) 🎨</h1>\n<p>Створення ранніх версій продукту для валідації (перевірки) ідей.</p>\n<h3>Види прототипів</h3>\n<table>\n<thead>\n<tr>\n<th>Тип</th>\n<th>Деталізація</th>\n<th>Час створення</th>\n<th>Коли використовувати</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Paper sketches (паперові ескізи)</strong> ✏️</td>\n<td>Низька</td>\n<td>Хвилини</td>\n<td>Початкові ідеї</td>\n</tr>\n<tr>\n<td><strong>Wireframes (каркаси)</strong> 📐</td>\n<td>Середня</td>\n<td>Години</td>\n<td>Структура інтерфейсу</td>\n</tr>\n<tr>\n<td><strong>Interactive mockups (інтерактивні макети)</strong> 🖱️</td>\n<td>Висока</td>\n<td>Дні</td>\n<td>Тестування UX (користувацького досвіду)</td>\n</tr>\n<tr>\n<td><strong>Working prototype (робочий прототип)</strong> 💻</td>\n<td>Дуже висока</td>\n<td>Тижні</td>\n<td>Технічна валідація</td>\n</tr>\n</tbody></table>\n<p><strong>Правило:</strong> Створюйте прототип з мінімальною деталізацією, достатньою для отримання зворотного зв'язку (feedback)!</p>\n","<h1>Макети (Mockups): інструменти та підходи 🎯</h1>\n<h3>Популярні інструменти</h3>\n<ul>\n<li><strong>Figma</strong> — колаборативний (спільний) дизайн, безкоштовний для малих команд</li>\n<li><strong>Balsamiq</strong> — швидкі low-fidelity (низькодеталізовані) mockups</li>\n<li><strong>Adobe XD</strong> — професійний дизайн та прототипування</li>\n<li><strong>Sketch</strong> — стандарт індустрії для Mac</li>\n</ul>\n<h3>Що включати?</h3>\n<ul>\n<li>🎨 Візуальну ієрархію та структуру</li>\n<li>🔘 Основні UI (інтерфейсні) елементи</li>\n<li>➡️ Навігаційні flows (потоки)</li>\n<li>📝 Реалістичний контент (не Lorem Ipsum!)</li>\n</ul>\n","<h1>Карта подорожі користувача 🗺️</h1>\n<h2>User Journey Mapping</h2>\n<p>Візуалізація шляху користувача через продукт або послугу.</p>\n<h3>Структура карти подорожі</h3>\n<p><strong>Основні елементи:</strong></p>\n<ul>\n<li>🎭 <strong>Етапи</strong> — ключові стадії взаємодії (усвідомлення, дослідження, покупка, використання, підтримка)</li>\n<li>🎯 <strong>Дії користувача</strong> — що конкретно робить на кожному етапі</li>\n<li>💭 <strong>Думки</strong> — що думає в цей момент</li>\n<li>😊😐😞 <strong>Емоції</strong> — як почувається (позитивні/нейтральні/негативні)</li>\n<li>⚠️ <strong>Проблеми (Pain points)</strong> — з чим стикається</li>\n<li>💡 <strong>Можливості</strong> — що можна покращити</li>\n</ul>\n<h3>Приклад: етап \"Покупка\" в інтернет-магазині</h3>\n<table>\n<thead>\n<tr>\n<th>Елемент</th>\n<th>Опис</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🎯 <strong>Дії</strong></td>\n<td>Додає товар у кошик, заповнює форму доставки, вводить дані карти</td>\n</tr>\n<tr>\n<td>💭 <strong>Думки</strong></td>\n<td>\"Чи можу я довіряти цьому сайту? Чи точно прийде товар?\"</td>\n</tr>\n<tr>\n<td>😐➡️😞 <strong>Емоції</strong></td>\n<td>Почав нейтрально, але нервує через довгу форму</td>\n</tr>\n<tr>\n<td>⚠️ <strong>Проблеми</strong></td>\n<td>Форма вимагає 15 полів, незрозуміло чи безпечна оплата</td>\n</tr>\n<tr>\n<td>💡 <strong>Рішення</strong></td>\n<td>Спростити форму до 5 полів, додати бейджі безпеки</td>\n</tr>\n</tbody></table>\n<h3>Приклад</h3>\n<p><strong>Проєкт:</strong> Мобільний додаток для замовлення їжі (подібний до Glovo).</p>\n<p>Journey map показав, що користувачі <strong>в 70% випадків</strong> відмовляються від замовлення на етапі оплати через складну форму. Спрощення форми збільшило конверсію на <strong>35%</strong>! 🚀</p>\n","<h1>Моделювання предметної області 🏗️</h1>\n<h2>Domain Modeling</h2>\n<p>Створення моделі предметної області для розуміння бізнес-сутностей та їх зв'язків.</p>\n<h3>Основні елементи</h3>\n<ul>\n<li><strong>Entities (сутності)</strong> — ключові об'єкти системи</li>\n<li><strong>Attributes (атрибути)</strong> — властивості сутностей</li>\n<li><strong>Relationships (зв'язки)</strong> — як сутності пов'язані між собою</li>\n<li><strong>Business Rules (бізнес-правила)</strong> — обмеження та логіка</li>\n</ul>\n<h3>Приклад: E-commerce система</h3>\n\n<div class=\"mermaid\" data-source=\"graph LR\n    A[👤 Користувач] --&gt;|робить| B[🛒 Замовлення]\n    B --&gt;|містить| C[📦 Товари]\n    C --&gt;|належить до| D[🏷️ Категорія]\n    B --&gt;|має| E[💳 Платіж]\n    A --&gt;|має| F[📍 Адреса доставки]\"><svg id=\"exp-1760767578905-11-0\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" class=\"flowchart\" style=\"max-width: 1018.25px;\" viewBox=\"0 0 1018.25 211\" role=\"graphics-document document\" aria-roledescription=\"flowchart-v2\"><style>#exp-1760767578905-11-0{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#exp-1760767578905-11-0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#exp-1760767578905-11-0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#exp-1760767578905-11-0 .error-icon{fill:#552222;}#exp-1760767578905-11-0 .error-text{fill:#552222;stroke:#552222;}#exp-1760767578905-11-0 .edge-thickness-normal{stroke-width:1px;}#exp-1760767578905-11-0 .edge-thickness-thick{stroke-width:3.5px;}#exp-1760767578905-11-0 .edge-pattern-solid{stroke-dasharray:0;}#exp-1760767578905-11-0 .edge-thickness-invisible{stroke-width:0;fill:none;}#exp-1760767578905-11-0 .edge-pattern-dashed{stroke-dasharray:3;}#exp-1760767578905-11-0 .edge-pattern-dotted{stroke-dasharray:2;}#exp-1760767578905-11-0 .marker{fill:#333333;stroke:#333333;}#exp-1760767578905-11-0 .marker.cross{stroke:#333333;}#exp-1760767578905-11-0 svg{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;}#exp-1760767578905-11-0 p{margin:0;}#exp-1760767578905-11-0 .label{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;color:#333;}#exp-1760767578905-11-0 .cluster-label text{fill:#333;}#exp-1760767578905-11-0 .cluster-label span{color:#333;}#exp-1760767578905-11-0 .cluster-label span p{background-color:transparent;}#exp-1760767578905-11-0 .label text,#exp-1760767578905-11-0 span{fill:#333;color:#333;}#exp-1760767578905-11-0 .node rect,#exp-1760767578905-11-0 .node circle,#exp-1760767578905-11-0 .node ellipse,#exp-1760767578905-11-0 .node polygon,#exp-1760767578905-11-0 .node path{fill:#ECECFF;stroke:#667eea;stroke-width:1px;}#exp-1760767578905-11-0 .rough-node .label text,#exp-1760767578905-11-0 .node .label text,#exp-1760767578905-11-0 .image-shape .label,#exp-1760767578905-11-0 .icon-shape .label{text-anchor:middle;}#exp-1760767578905-11-0 .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#exp-1760767578905-11-0 .rough-node .label,#exp-1760767578905-11-0 .node .label,#exp-1760767578905-11-0 .image-shape .label,#exp-1760767578905-11-0 .icon-shape .label{text-align:center;}#exp-1760767578905-11-0 .node.clickable{cursor:pointer;}#exp-1760767578905-11-0 .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#exp-1760767578905-11-0 .arrowheadPath{fill:#333333;}#exp-1760767578905-11-0 .edgePath .path{stroke:#333333;stroke-width:2.0px;}#exp-1760767578905-11-0 .flowchart-link{stroke:#333333;fill:none;}#exp-1760767578905-11-0 .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1760767578905-11-0 .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#exp-1760767578905-11-0 .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1760767578905-11-0 .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#exp-1760767578905-11-0 .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#exp-1760767578905-11-0 .cluster text{fill:#333;}#exp-1760767578905-11-0 .cluster span{color:#333;}#exp-1760767578905-11-0 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#exp-1760767578905-11-0 .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#exp-1760767578905-11-0 rect.text{fill:none;stroke-width:0;}#exp-1760767578905-11-0 .icon-shape,#exp-1760767578905-11-0 .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1760767578905-11-0 .icon-shape p,#exp-1760767578905-11-0 .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#exp-1760767578905-11-0 .icon-shape rect,#exp-1760767578905-11-0 .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1760767578905-11-0 .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#exp-1760767578905-11-0 .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#exp-1760767578905-11-0 :root{--mermaid-font-family:\"trebuchet ms\",verdana,arial,sans-serif;}</style><g><marker id=\"exp-1760767578905-11-0_flowchart-v2-pointEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 0 L 10 5 L 0 10 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1760767578905-11-0_flowchart-v2-pointStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"4.5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 5 L 10 10 L 10 0 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1760767578905-11-0_flowchart-v2-circleEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"11\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1760767578905-11-0_flowchart-v2-circleStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-1\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1760767578905-11-0_flowchart-v2-crossEnd\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"12\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1760767578905-11-0_flowchart-v2-crossStart\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"-1\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><g class=\"root\"><g class=\"clusters\"></g><g class=\"edgePaths\"><path d=\"M154.023,106L165.421,101.833C176.82,97.667,199.617,89.333,222.448,85.167C245.279,81,268.143,81,279.576,81L291.008,81\" id=\"L_A_B_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_A_B_0\" data-points=\"W3sieCI6MTU0LjAyMjc5OTc0NDg5Nzk1LCJ5IjoxMDZ9LHsieCI6MjIyLjQxNDA2MjUsInkiOjgxfSx7IngiOjI5NS4wMDc4MTI1LCJ5Ijo4MX1d\" marker-end=\"url(#exp-1760767578905-11-0_flowchart-v2-pointEnd)\"></path><path d=\"M453.837,57L467.143,52.833C480.449,48.667,507.06,40.333,528.929,36.167C550.797,32,567.922,32,576.484,32L585.047,32\" id=\"L_B_C_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_B_C_0\" data-points=\"W3sieCI6NDUzLjgzNjg5NDEzMjY1MzEsInkiOjU3fSx7IngiOjUzMy42NzE4NzUsInkiOjMyfSx7IngiOjU4OS4wNDY4NzUsInkiOjMyfV0=\" marker-end=\"url(#exp-1760767578905-11-0_flowchart-v2-pointEnd)\"></path><path d=\"M715.531,32L728.01,32C740.49,32,765.448,32,789.74,32C814.031,32,837.656,32,849.469,32L861.281,32\" id=\"L_C_D_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_C_D_0\" data-points=\"W3sieCI6NzE1LjUzMTI1LCJ5IjozMn0seyJ4Ijo3OTAuNDA2MjUsInkiOjMyfSx7IngiOjg2NS4yODEyNSwieSI6MzJ9XQ==\" marker-end=\"url(#exp-1760767578905-11-0_flowchart-v2-pointEnd)\"></path><path d=\"M453.837,105L467.143,109.167C480.449,113.333,507.06,121.667,529.039,125.833C551.018,130,568.365,130,577.038,130L585.711,130\" id=\"L_B_E_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_B_E_0\" data-points=\"W3sieCI6NDUzLjgzNjg5NDEzMjY1MzEsInkiOjEwNX0seyJ4Ijo1MzMuNjcxODc1LCJ5IjoxMzB9LHsieCI6NTg5LjcxMDkzNzUsInkiOjEzMH1d\" marker-end=\"url(#exp-1760767578905-11-0_flowchart-v2-pointEnd)\"></path><path d=\"M154.023,154L165.421,158.167C176.82,162.333,199.617,170.667,219.295,174.833C238.974,179,255.534,179,263.814,179L272.094,179\" id=\"L_A_F_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_A_F_0\" data-points=\"W3sieCI6MTU0LjAyMjc5OTc0NDg5Nzk1LCJ5IjoxNTR9LHsieCI6MjIyLjQxNDA2MjUsInkiOjE3OX0seyJ4IjoyNzYuMDkzNzUsInkiOjE3OX1d\" marker-end=\"url(#exp-1760767578905-11-0_flowchart-v2-pointEnd)\"></path></g><g class=\"edgeLabels\"><g class=\"edgeLabel\" transform=\"translate(222.4140625, 81)\"><g class=\"label\" data-id=\"L_A_B_0\" transform=\"translate(-28.6796875, -11)\"><g><rect class=\"background\" style=\"\" x=\"-2\" y=\"-1\" width=\"57.359375\" height=\"22\"></rect><text y=\"-10.1\" style=\"\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"><tspan font-style=\"normal\" class=\"text-inner-tspan\" font-weight=\"normal\">робить</tspan></tspan></text></g></g></g><g class=\"edgeLabel\" transform=\"translate(533.671875, 32)\"><g class=\"label\" data-id=\"L_B_C_0\" transform=\"translate(-30.375, -11)\"><g><rect class=\"background\" style=\"\" x=\"-2\" y=\"-1\" width=\"60.75\" height=\"22\"></rect><text y=\"-10.1\" style=\"\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"><tspan font-style=\"normal\" class=\"text-inner-tspan\" font-weight=\"normal\">містить</tspan></tspan></text></g></g></g><g class=\"edgeLabel\" transform=\"translate(790.40625, 32)\"><g class=\"label\" data-id=\"L_C_D_0\" transform=\"translate(-49.875, -11)\"><g><rect class=\"background\" style=\"\" x=\"-2\" y=\"-1\" width=\"99.75\" height=\"22\"></rect><text y=\"-10.1\" style=\"\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"><tspan font-style=\"normal\" class=\"text-inner-tspan\" font-weight=\"normal\">належить</tspan><tspan font-style=\"normal\" class=\"text-inner-tspan\" font-weight=\"normal\"> до</tspan></tspan></text></g></g></g><g class=\"edgeLabel\" transform=\"translate(533.671875, 130)\"><g class=\"label\" data-id=\"L_B_E_0\" transform=\"translate(-16.6015625, -11)\"><g><rect class=\"background\" style=\"\" x=\"-2\" y=\"-1\" width=\"33.203125\" height=\"22\"></rect><text y=\"-10.1\" style=\"\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"><tspan font-style=\"normal\" class=\"text-inner-tspan\" font-weight=\"normal\">має</tspan></tspan></text></g></g></g><g class=\"edgeLabel\" transform=\"translate(222.4140625, 179)\"><g class=\"label\" data-id=\"L_A_F_0\" transform=\"translate(-16.6015625, -11)\"><g><rect class=\"background\" style=\"\" x=\"-2\" y=\"-1\" width=\"33.203125\" height=\"22\"></rect><text y=\"-10.1\" style=\"\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"><tspan font-style=\"normal\" class=\"text-inner-tspan\" font-weight=\"normal\">має</tspan></tspan></text></g></g></g></g><g class=\"nodes\"><g class=\"node default  \" id=\"flowchart-A-0\" transform=\"translate(88.3671875, 130)\"><rect class=\"basic label-container\" style=\"\" x=\"-80.3671875\" y=\"-24\" width=\"160.734375\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-56.3671875, -12)\"><rect></rect><foreignObject width=\"112.734375\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>👤 Користувач</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-B-1\" transform=\"translate(377.1953125, 81)\"><rect class=\"basic label-container\" style=\"\" x=\"-82.1875\" y=\"-24\" width=\"164.375\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-58.1875, -12)\"><rect></rect><foreignObject width=\"116.375\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🛒 Замовлення</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-C-3\" transform=\"translate(652.2890625, 32)\"><rect class=\"basic label-container\" style=\"\" x=\"-63.2421875\" y=\"-24\" width=\"126.484375\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-39.2421875, -12)\"><rect></rect><foreignObject width=\"78.484375\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>📦 Товари</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-D-5\" transform=\"translate(937.765625, 32)\"><rect class=\"basic label-container\" style=\"\" x=\"-72.484375\" y=\"-24\" width=\"144.96875\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-48.484375, -12)\"><rect></rect><foreignObject width=\"96.96875\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🏷️ Категорія</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-E-7\" transform=\"translate(652.2890625, 130)\"><rect class=\"basic label-container\" style=\"\" x=\"-62.578125\" y=\"-24\" width=\"125.15625\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-38.578125, -12)\"><rect></rect><foreignObject width=\"77.15625\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>💳 Платіж</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-F-9\" transform=\"translate(377.1953125, 179)\"><rect class=\"basic label-container\" style=\"\" x=\"-101.1015625\" y=\"-24\" width=\"202.203125\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-77.1015625, -12)\"><rect></rect><foreignObject width=\"154.203125\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>📍 Адреса доставки</p></span></div></foreignObject></g></g></g></g></g></svg></div>\n","<h1>Пріоритезація вимог 🎯</h1>\n<h2>Must/Should/Could/Won't</h2>\n<p>Техніка класифікації вимог за важливістю для успіху проєкту.</p>\n<h3>Категорії</h3>\n<ul>\n<li><p>🔴 <strong>Must Have (має бути)</strong> — без цього продукт не працює</p>\n<ul>\n<li><em>Приклад:</em> Можливість додати товар у кошик</li>\n</ul>\n</li>\n<li><p>🟠 <strong>Should Have (повинно бути)</strong> — дуже бажано, але не критично</p>\n<ul>\n<li><em>Приклад:</em> Фільтри для пошуку товарів</li>\n</ul>\n</li>\n<li><p>🟡 <strong>Could Have (може бути)</strong> — nice to have (приємна додаткова функція), якщо є час</p>\n<ul>\n<li><em>Приклад:</em> Список бажань</li>\n</ul>\n</li>\n<li><p>⚪ <strong>Won't Have (не буде зараз)</strong> — не включаємо в цей реліз</p>\n<ul>\n<li><em>Приклад:</em> AR (доповнена реальність) примірка товарів</li>\n</ul>\n</li>\n</ul>\n","<h1>Пріоритезація: практичні поради 💡</h1>\n<h3>Як використовувати?</h3>\n<ol>\n<li><strong>Збір вимог</strong> — складіть повний список</li>\n<li><strong>Класифікація</strong> — розподіліть по категоріях разом зі зацікавленими сторонами</li>\n<li><strong>Правило 60/20/20</strong> 📊<ul>\n<li>Must Have: ~60% бюджету/часу</li>\n<li>Should Have: ~20%</li>\n<li>Could Have: ~20%</li>\n</ul>\n</li>\n</ol>\n<h3>Типові помилки ⚠️</h3>\n<ul>\n<li>❌ Все в категорії Must Have</li>\n<li>❌ Класифікація без зацікавлених сторін</li>\n<li>❌ Ігнорування технічних обмежень</li>\n</ul>\n<p><strong>Порада:</strong> Якщо &gt;70% вимог Must Have — повертайтесь до аналізу!</p>\n","<h1>Модель Кано 🎨</h1>\n<h2>Kano Model</h2>\n<p>Модель класифікації вимог на основі впливу на задоволеність користувачів.</p>\n<h3>Типи вимог</h3>\n<p>📈 <strong>Basic (базові)</strong> — очікуються за замовчуванням</p>\n<ul>\n<li><em>Якщо є:</em> нейтральна реакція</li>\n<li><em>Якщо немає:</em> розчарування</li>\n<li><em>Приклад:</em> Безпека даних в банківському додатку</li>\n</ul>\n<p>⚡ <strong>Performance (продуктивність)</strong> — чим більше, тим краще</p>\n<ul>\n<li>Лінійний зв'язок з задоволеністю</li>\n<li><em>Приклад:</em> Швидкість завантаження сторінки</li>\n</ul>\n<p>🌟 <strong>Excitement (захоплення)</strong> — несподівані функції, що вражають</p>\n<ul>\n<li><em>Якщо є:</em> велике задоволення</li>\n<li><em>Якщо немає:</em> не очікували, не розчаровані</li>\n<li><em>Приклад:</em> Face ID (розпізнавання обличчя) в першому iPhone X</li>\n</ul>\n","<h1>Застосування моделі Кано 🎯</h1>\n<h3>Як використовувати?</h3>\n<ol>\n<li><p><strong>Анкетування</strong> 📋</p>\n<ul>\n<li>Functional question (функціональне питання): \"Як ви почуватиметесь, якщо ця функція буде?\"</li>\n<li>Dysfunctional question (дисфункціональне питання): \"Як ви почуватиметесь, якщо цієї функції не буде?\"</li>\n</ul>\n</li>\n<li><p><strong>Аналіз відповідей</strong></p>\n<ul>\n<li>Визначте категорію кожної вимоги</li>\n<li>Порахуйте статистику</li>\n</ul>\n</li>\n<li><p><strong>Прийняття рішень</strong> 🎨</p>\n<ul>\n<li><strong>Basic</strong> — обов'язково включаємо</li>\n<li><strong>Performance</strong> — оптимізуємо максимально</li>\n<li><strong>Excitement</strong> — додаємо, якщо є ресурси</li>\n</ul>\n</li>\n</ol>\n<h3>Важливо! ⏰</h3>\n<p>Вимоги мігрують між категоріями з часом. Те, що було Excitement у 2020, може бути Basic у 2025!</p>\n","<h1>Вирішення конфліктів 🤝</h1>\n<h2>між зацікавленими сторонами</h2>\n<h3>Типові конфлікти</h3>\n<ul>\n<li>💼 <strong>Бізнес vs Технічна команда</strong> — \"хочу все і зараз\" vs \"це неможливо\"</li>\n<li>👥 <strong>Різні групи користувачів</strong> — новачки vs експерти</li>\n<li>💰 <strong>Бюджет vs Scope</strong> — обмежені ресурси, необмежені побажання</li>\n</ul>\n<h3>Техніки вирішення</h3>\n<h4>1️⃣ Модерація воркшопів</h4>\n<p>Нейтральний модератор (BA/PM — бізнес-аналітик/менеджер проєкту) допомагає досягти консенсусу</p>\n<h4>2️⃣ Дані та метрики 📊</h4>\n<ul>\n<li>Проведіть A/B тестування</li>\n<li>Покажіть статистику використання</li>\n<li>Аналізуйте зворотний зв'язок (feedback) користувачів</li>\n</ul>\n<h4>3️⃣ Прототипування 🎨</h4>\n<p>Створіть два варіанти та дайте спробувати</p>\n","<h1>Стратегії розв'язання конфліктів 🎯</h1>\n<h3>Аналіз компромісів (Trade-off analysis)</h3>\n<p><strong>Приклад:</strong> Конфлікт між швидкістю розробки та якістю.</p>\n<table>\n<thead>\n<tr>\n<th>Критерій</th>\n<th>Варіант А</th>\n<th>Варіант Б</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>Час розробки</td>\n<td>2 тижні ⚡</td>\n<td>6 тижнів 🐌</td>\n</tr>\n<tr>\n<td>Масштабованість</td>\n<td>Низька ⚠️</td>\n<td>Висока ✅</td>\n</tr>\n<tr>\n<td>Вартість підтримки</td>\n<td>Висока 💸</td>\n<td>Низька 💰</td>\n</tr>\n<tr>\n<td>Ризик</td>\n<td>Високий 🔴</td>\n<td>Низький 🟢</td>\n</tr>\n</tbody></table>\n<h3>Ескалація (Escalation)</h3>\n<p>Коли не можете вирішити самі:</p>\n<ol>\n<li>📝 Задокументуйте проблему та варіанти</li>\n<li>📊 Підготуйте аналіз впливу</li>\n<li>⬆️ Передайте на вищий рівень (sponsor — спонсор проєкту, steering committee — керівний комітет)</li>\n</ol>\n<p><strong>Правило:</strong> Ескалація — це не провал, це інструмент! 🛠️</p>\n","<h1>Документування результатів 📝</h1>\n<h3>Що фіксувати?</h3>\n<ul>\n<li>✅ Зібрані вимоги</li>\n<li>👥 Хто був джерелом інформації</li>\n<li>📅 Коли інформація отримана</li>\n<li>🎯 Контекст та передумови</li>\n<li>❓ Відкриті питання</li>\n<li>⚠️ Припущення (assumptions) та ризики</li>\n</ul>\n<h3>Формати</h3>\n<ul>\n<li><strong>User Stories (користувацькі історії)</strong> для Agile команд</li>\n<li><strong>Use Cases (сценарії використання)</strong> для складних систем</li>\n<li><strong>BRD</strong> (Business Requirements Document — документ бізнес-вимог) для формальних проєктів</li>\n<li><strong>Vision документ</strong> для стартапів</li>\n</ul>\n","<h1>Найкращі практики 🌟</h1>\n<h2>Best Practices від експерта</h2>\n<h3>✅ DO (робіть)</h3>\n<ul>\n<li>👥 Залучайте різні типи зацікавлених сторін</li>\n<li>🔄 Комбінуйте кілька технік</li>\n<li>✅ Валідуйте (перевіряйте) зібрані вимоги</li>\n<li>📊 Використовуйте візуалізацію</li>\n<li>🎯 Фокусуйтесь на проблемі, а не на рішенні</li>\n</ul>\n<h3>❌ DON'T (не робіть)</h3>\n<ul>\n<li>🚫 Не покладайтесь лише на одну техніку</li>\n<li>📝 Не збирайте вимоги \"на папері\" без контексту</li>\n<li>💭 Не припускайте — перевіряйте!</li>\n<li>🤐 Не ігноруйте тихих зацікавлених сторін</li>\n<li>⏰ Не відкладайте документування</li>\n</ul>\n","<h1>Підсумки 🎯</h1>\n<h3>Ключові takeaways</h3>\n<ol>\n<li><p>🎨 <strong>Різні техніки для різних ситуацій</strong> — немає \"одного правильного підходу\"</p>\n</li>\n<li><p>👥 <strong>Зацікавлені сторони — джерело правди</strong> — працюйте з ними, а не від них</p>\n</li>\n<li><p>⚡ <strong>Раннє виявлення = менші витрати</strong> — інвестуйте час на початку</p>\n</li>\n<li><p>🔄 <strong>Ітеративний (повторюваний) процес</strong> — повертайтесь і уточнюйте</p>\n</li>\n<li><p>📊 <strong>Дані vs емоції</strong> — використовуйте факти для вирішення конфліктів</p>\n</li>\n<li><p>🎯 <strong>Пріоритизація обов'язкова</strong> — не можна зробити все одразу</p>\n</li>\n</ol>\n<p><strong>Пам'ятайте:</strong> Якісний збір вимог — фундамент успішного проєкту! 🚀</p>\n","<h1>Контрольні питання ❓</h1>\n<ol>\n<li><p><strong>Які типи інтерв'ю ви знаєте?</strong> 🎤</p>\n</li>\n<li><p><strong>Коли краще використовувати анкетування замість інтерв'ю?</strong> 📊</p>\n</li>\n<li><p><strong>Що означають категорії Must/Should/Could/Won't?</strong> 🎯</p>\n</li>\n<li><p><strong>Що таке User Journey Map?</strong> 🗺️</p>\n</li>\n<li><p><strong>Які три типи вимог є в моделі Кано?</strong> 📈</p>\n</li>\n<li><p><strong>Навіщо потрібна пріоритизація вимог?</strong> 💡</p>\n</li>\n</ol>\n","<h1>Дякую за увагу! 🙏</h1>\n<h2>Питання? 💬</h2>\n<p><strong>Лектор:</strong> Кобилянський Антон</p>\n","<h1>Глосарій термінів 📚</h1>\n<p><strong>A/B Testing (A/B тестування)</strong> — метод порівняння двох варіантів для визначення кращого</p>\n<p><strong>Assumptions (припущення)</strong> — твердження, які приймаються як істинні без доказів на момент планування</p>\n<p><strong>BA</strong> (Business Analyst, бізнес-аналітик) — фахівець з аналізу та документування вимог</p>\n<p><strong>Brainstorming (мозковий штурм)</strong> — техніка генерації ідей у групі без критики</p>\n<p><strong>BRD</strong> (Business Requirements Document, документ бізнес-вимог) — формальний опис вимог до продукту</p>\n<p><strong>Domain Modeling (моделювання предметної області)</strong> — створення моделі бізнес-сутностей та їх зв'язків</p>\n<p><strong>Elicitation (збір вимог)</strong> — процес виявлення та збору вимог від зацікавлених сторін</p>\n<p><strong>Escalation (ескалація)</strong> — передача проблеми на вищий рівень управління для вирішення</p>\n<p><strong>Ethnographic Research (етнографічне дослідження)</strong> — глибоке вивчення користувачів у їх природному середовищі</p>\n<p><strong>Facilitation (фасилітація)</strong> — процес модерування групових сесій для досягнення мети</p>\n<p><strong>Feedback (зворотний зв'язок)</strong> — інформація про реакцію користувачів на продукт або ідею</p>\n<p><strong>Focus Group (фокус-група)</strong> — невелика група людей для обговорення конкретної теми</p>\n<p><strong>JAD</strong> (Joint Application Design, спільне проєктування застосунку) — техніка воркшопів для визначення вимог</p>\n<p><strong>Journey Map (карта подорожі користувача)</strong> — візуалізація досвіду взаємодії з продуктом</p>\n<p><strong>Kano Model (модель Кано)</strong> — метод класифікації вимог за впливом на задоволеність користувачів</p>\n<p><strong>Low-fidelity (низькодеталізований)</strong> — простий, схематичний прототип або макет</p>\n<p><strong>Mockup (макет)</strong> — статичне візуальне представлення майбутнього інтерфейсу</p>\n<p><strong>PM</strong> (Project Manager, менеджер проєкту) — відповідальний за планування та виконання проєкту</p>\n<p><strong>Prototype (прототип)</strong> — рання робоча версія продукту для тестування ідей</p>\n<p><strong>Shadowing (супроводження)</strong> — метод спостереження, коли дослідник супроводжує користувача протягом дня</p>\n<p><strong>Stakeholder (зацікавлена сторона)</strong> — будь-яка особа або група, що впливає на проєкт або отримує від нього вплив</p>\n<p><strong>Steering Committee (керівний комітет)</strong> — група керівників, що приймають ключові рішення по проєкту</p>\n<p><strong>Trade-off (компроміс)</strong> — баланс між конфліктуючими вимогами або обмеженнями</p>\n<p><strong>UI</strong> (User Interface, користувацький інтерфейс) — засоби взаємодії користувача з системою</p>\n<p><strong>Use Case (сценарій використання)</strong> — опис взаємодії користувача з системою для досягнення мети</p>\n<p><strong>User Story (користувацька історія)</strong> — короткий опис функції з точки зору користувача</p>\n<p><strong>UX</strong> (User Experience, користувацький досвід)** — загальні враження від взаємодії з продуктом</p>\n<p><strong>Validation (валідація)</strong> — перевірка правильності та повноти зібраних вимог</p>\n<p><strong>Vision Document (документ бачення)</strong> — опис стратегічних цілей та напрямку розвитку продукту</p>\n<p><strong>Wireframe (каркас)</strong> — схематичне зображення структури інтерфейсу без деталізації дизайну</p>\n"];let currentSlideIndex=0;
+function showSlide(i){if(i<0||i>=slides.length)return;currentSlideIndex=i;const el=document.getElementById("current-slide");el.innerHTML=slides[i];el.scrollTop=0;document.getElementById("progress-bar").style.width=((i+1)/slides.length*100)+"%";document.getElementById("slide-number").textContent=(i+1)+" / "+slides.length;updateSidebarActive();}
+function nextSlide(){if(currentSlideIndex<slides.length-1)showSlide(currentSlideIndex+1);}
+function previousSlide(){if(currentSlideIndex>0)showSlide(currentSlideIndex-1);}
+function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open");}
+function toggleHelp(){document.getElementById("help-overlay").classList.toggle("hidden");}
+function toggleFullscreen(){if(!document.fullscreenElement){const pc=document.getElementById("presentation-container");if(pc.requestFullscreen)pc.requestFullscreen();else if(pc.webkitRequestFullscreen)pc.webkitRequestFullscreen();else if(pc.msRequestFullscreen)pc.msRequestFullscreen();else if(pc.mozRequestFullScreen)pc.mozRequestFullScreen();}else{if(document.exitFullscreen)document.exitFullscreen();else if(document.webkitExitFullscreen)document.webkitExitFullscreen();else if(document.msExitFullscreen)document.msExitFullscreen();else if(document.mozCancelFullScreen)document.mozCancelFullScreen();}}
+function generateSidebar(){const sc=document.getElementById("sidebar-content");sc.innerHTML="";slides.forEach((html,idx)=>{const t=document.createElement("div");t.className="slide-thumbnail";if(idx===0)t.classList.add("active");const tmp=document.createElement("div");tmp.innerHTML=html;const title=tmp.querySelector("h1,h2");const titleText=title?title.textContent:("Слайд "+(idx+1));const textContent=tmp.textContent.replace(/s+/g," ").trim();const preview=textContent.substring(0,100)+(textContent.length>100?"...":"");t.innerHTML="<div class=\"slide-thumbnail-number\">"+(idx+1)+"</div><div class=\"slide-thumbnail-title\">"+titleText+"</div><div class=\"slide-thumbnail-content\">"+preview+"</div>";t.onclick=()=>{showSlide(idx);if(window.innerWidth<1024)toggleSidebar();};sc.appendChild(t);});}
+function updateSidebarActive(){document.querySelectorAll(".slide-thumbnail").forEach((th,idx)=>{if(idx===currentSlideIndex){th.classList.add("active");th.scrollIntoView({behavior:"smooth",block:"nearest"});}else th.classList.remove("active");});}
+document.addEventListener("keydown",e=>{switch(e.key){case"ArrowLeft":previousSlide();break;case"ArrowRight":case" ":e.preventDefault();nextSlide();break;case"f":case"F":toggleFullscreen();break;case"s":case"S":toggleSidebar();break;case"?":toggleHelp();break;case"Escape":const sb=document.getElementById("sidebar");const ho=document.getElementById("help-overlay");if(sb.classList.contains("open"))toggleSidebar();else if(!ho.classList.contains("hidden"))ho.classList.add("hidden");break;}});
+generateSidebar();showSlide(0);</script></body></html>
