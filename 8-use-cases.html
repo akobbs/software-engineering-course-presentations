@@ -1,0 +1,613 @@
+<!DOCTYPE html><html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>🎯 Use Cases: Моделювання вимог через сценарії використання</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"><style>* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #editor-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #editor-container.hidden {
+            display: none;
+        }
+
+        #editor-header {
+            background: #2d3748;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #editor-header h2 {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        #editor-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #4a5568;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2d3748;
+        }
+
+        #markdown-input {
+            flex: 1;
+            padding: 2rem;
+            background: #1a202c;
+            color: #e2e8f0;
+            border: none;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+        }
+
+        #markdown-input:focus {
+            outline: none;
+        }
+
+        .slide-container {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .slide {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 3rem;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .slide::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .slide::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .slide h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .slide h2 {
+            color: #764ba2;
+            font-size: 2rem;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .slide h3 {
+            color: #4a5568;
+            font-size: 1.5rem;
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        .slide p {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .slide ul, .slide ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .slide li {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide pre {
+            background: #282c34;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+
+        .slide pre code {
+            background: transparent;
+            color: #abb2bf;
+        }
+
+        .slide code {
+            font-family: 'Courier New', Consolas, Monaco, monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .slide p code {
+            background: #edf2f7;
+            color: #e53e3e;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .slide blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            color: #4a5568;
+        }
+
+        .slide img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .slide table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .slide th, .slide td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .slide th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .slide tr:nth-child(even) {
+            background: #f7fafc;
+        }
+
+        .note {
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .note strong {
+            color: #c53030;
+        }
+
+        .warning {
+            background: #fffaf0;
+            border-left: 4px solid #f6ad55;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .warning strong {
+            color: #c05621;
+        }
+
+        .info {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .info strong {
+            color: #2c5282;
+        }
+
+        .success {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .success strong {
+            color: #22543d;
+        }
+
+        .danger {
+            background: #fff5f5;
+            border-left: 4px solid #f56565;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .danger strong {
+            color: #742a2a;
+        }
+
+        .tip {
+            background: #fefcbf;
+            border-left: 4px solid #ecc94b;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .tip strong {
+            color: #744210;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: white;
+            transition: width 0.3s;
+        }
+
+        .slide-number {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            color: #667eea;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #sidebar {
+            position: fixed;
+            right: -320px;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+            transition: right 0.3s ease;
+            z-index: 200;
+            padding: 1rem;
+        }
+
+        #sidebar.open {
+            right: 0;
+        }
+
+        #sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+
+        #sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #667eea;
+        }
+
+        #sidebar-header h3 {
+            color: #667eea;
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        #sidebar-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #4a5568;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        #sidebar-close:hover {
+            color: #667eea;
+        }
+
+        .slide-thumbnail {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+
+        .slide-thumbnail:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+            transform: translateX(-4px);
+        }
+
+        .slide-thumbnail.active {
+            border-color: #667eea;
+            background: #f7faff;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .slide-thumbnail-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide-thumbnail-content {
+            font-size: 0.85rem;
+            color: #2d3748;
+            line-height: 1.4;
+            max-height: 4.2rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slide-thumbnail-content::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 50%;
+            height: 1.4rem;
+            background: linear-gradient(to right, transparent, white);
+        }
+
+        .slide-thumbnail.active .slide-thumbnail-content::after {
+            background: linear-gradient(to right, transparent, #f7faff);
+        }
+
+        .slide-thumbnail-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 0.25rem;
+        }
+
+        #sidebar-toggle {
+            position: fixed;
+            right: 1rem;
+            top: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 8px;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 150;
+        }
+
+        #sidebar-toggle:hover {
+            background: white;
+            transform: scale(1.05);
+        }
+
+        .mermaid {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            overflow: visible; /* щоб не обрізати тіні / розширені ноди */
+        }
+
+        /* Запобігаємо обрізанню останньої літери в нодах Mermaid через зміну font-weight після розрахунку розміру */
+        .mermaid svg { overflow: visible !important; }
+        /* перестраховка проти обрізання foreignObject (на випадок інших діаграм) */
+        .mermaid svg foreignObject { overflow: visible !important; }
+
+        .plantuml-diagram {
+            max-width: 100%;
+            height: auto;
+            margin: 1.5rem auto;
+            display: block;
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #help-overlay {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            transition: opacity 0.3s;
+        }
+
+        #help-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #help-overlay kbd {
+            background: #2d3748;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.85em;
+        }
+
+        .mermaid-error {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            padding: 1rem;
+            border-radius: 6px;
+            color: #742a2a;
+            margin: 1.5rem 0;
+        }
+
+        .mermaid-error pre {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+        }
+
+        /* Повноекранний режим - зберігаємо оригінальний фон */
+        #presentation-container:fullscreen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-webkit-full-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-moz-full-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-ms-fullscreen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+#presentation-container:fullscreen,#presentation-container:-webkit-full-screen,#presentation-container:-moz-full-screen,#presentation-container:-ms-fullscreen{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)!important;}</style></head><body><div id="presentation-container"><div class="progress"><div class="progress-bar" id="progress-bar"></div></div><button id="sidebar-toggle" onclick="toggleSidebar()" title="Навігація слайдами (S)">☰</button><div id="sidebar"><div id="sidebar-header"><h3>📑 Слайди</h3><button id="sidebar-close" onclick="toggleSidebar()">✕</button></div><div id="sidebar-content"></div></div><div class="slide-container"><div class="slide" id="current-slide"></div></div><div class="controls"><button class="control-btn" onclick="previousSlide()" title="Попередній (←)">←</button><button class="control-btn" onclick="nextSlide()" title="Наступний (→)">→</button><button class="control-btn" onclick="toggleFullscreen()" title="Повноекранний режим (F)">⛶</button><button class="control-btn" onclick="toggleHelp()" title="Допомога (?)">?</button></div><div class="slide-number" id="slide-number">1 / 31</div><div id="help-overlay" class="hidden"><strong>Гарячі клавіші:</strong><br><kbd>←</kbd> <kbd>→</kbd> Навігація<br><kbd>F</kbd> Повноекранний режим<br><kbd>S</kbd> Sidebar<br><kbd>?</kbd> Допомога<br><kbd>Esc</kbd> Закрити</div></div><script>const slides=["<h1>🎯 Use Cases: Моделювання вимог через сценарії використання</h1>\n<p><strong>Курс:</strong> Основи інженерії програмного забезпечення<br><strong>Лектор:</strong> Кобилянський Антон</p>\n","<h2>📋 План лекції</h2>\n<ol>\n<li>🔍 Що таке Use Cases та навіщо вони потрібні</li>\n<li>📐 Структура та елементи Use Case</li>\n<li>🎭 Актори та їх роль у системі</li>\n<li>📊 Use Case діаграми (UML)</li>\n<li>📝 Написання Use Case специфікацій</li>\n<li>💼 Реальні приклади з індустрії</li>\n<li>⚠️ Типові помилки та best practices</li>\n<li>🎓 Висновки та контрольні питання</li>\n</ol>\n","<h1>🔍 Що таке Use Cases?</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Use Case</strong> (UC, сценарій використання) — це опис послідовності дій між користувачем (актором) та системою для досягнення конкретної мети.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Use Cases описують ЩО робить система з точки зору користувача, а не ЯК вона це робить технічно.</p>\n<h2>🎯 Навіщо потрібні Use Cases?</h2>\n<ul>\n<li>✅ Зрозуміла мова для всіх стейкхолдерів</li>\n<li>✅ Фокус на потребах користувача</li>\n<li>✅ Основа для тестування системи</li>\n<li>✅ Допомагають оцінити обсяг роботи</li>\n<li>✅ Документація поведінки системи</li>\n</ul>\n","<h1>📚 Історична довідка</h1>\n<div class=\"note\"><strong>📝 Виникнення концепції</strong> <p>Use Cases вперше запропонував <strong>Івар Якобсон</strong> (Ivar Jacobson) у 1986 році в компанії Ericsson. Пізніше концепція стала частиною <strong>UML</strong> (Unified Modeling Language) у 1997 році.</p>\n</div>\n\n\n\n<p><strong>Цікавий факт:</strong> 🎭 Термін \"Use Case\" походить з театру — як \"випадок використання\" сцени для певної вистави.</p>\n\n<div class=\"mermaid\" data-source=\"timeline\n    title Еволюція Use Cases\n    1986 : Івар Якобсон створює концепцію в Ericsson\n    1992 : Публікація книги &quot;Object-Oriented Software Engineering&quot;\n    1997 : Включення Use Cases до UML стандарту\n    2000-ті : Інтеграція з Agile (User Stories, Scrum)\n    2020-ті : Гібридні підходи та AI-асистовані інструменти\"><svg id=\"exp-1761109558224-3-0\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 1390px;\" viewBox=\"100 -63 1390 529.4312744140625\" role=\"graphics-document document\" aria-roledescription=\"timeline\"><style>#exp-1761109558224-3-0{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#exp-1761109558224-3-0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#exp-1761109558224-3-0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#exp-1761109558224-3-0 .error-icon{fill:#552222;}#exp-1761109558224-3-0 .error-text{fill:#552222;stroke:#552222;}#exp-1761109558224-3-0 .edge-thickness-normal{stroke-width:1px;}#exp-1761109558224-3-0 .edge-thickness-thick{stroke-width:3.5px;}#exp-1761109558224-3-0 .edge-pattern-solid{stroke-dasharray:0;}#exp-1761109558224-3-0 .edge-thickness-invisible{stroke-width:0;fill:none;}#exp-1761109558224-3-0 .edge-pattern-dashed{stroke-dasharray:3;}#exp-1761109558224-3-0 .edge-pattern-dotted{stroke-dasharray:2;}#exp-1761109558224-3-0 .marker{fill:#333333;stroke:#333333;}#exp-1761109558224-3-0 .marker.cross{stroke:#333333;}#exp-1761109558224-3-0 svg{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;}#exp-1761109558224-3-0 p{margin:0;}#exp-1761109558224-3-0 .edge{stroke-width:3;}#exp-1761109558224-3-0 .section--1 rect,#exp-1761109558224-3-0 .section--1 path,#exp-1761109558224-3-0 .section--1 circle,#exp-1761109558224-3-0 .section--1 path{fill:hsl(240, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .section--1 text{fill:#ffffff;}#exp-1761109558224-3-0 .node-icon--1{font-size:40px;color:#ffffff;}#exp-1761109558224-3-0 .section-edge--1{stroke:hsl(240, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .edge-depth--1{stroke-width:17;}#exp-1761109558224-3-0 .section--1 line{stroke:hsl(60, 100%, 86.2745098039%);stroke-width:3;}#exp-1761109558224-3-0 .lineWrapper line{stroke:#ffffff;}#exp-1761109558224-3-0 .disabled,#exp-1761109558224-3-0 .disabled circle,#exp-1761109558224-3-0 .disabled text{fill:lightgray;}#exp-1761109558224-3-0 .disabled text{fill:#efefef;}#exp-1761109558224-3-0 .section-0 rect,#exp-1761109558224-3-0 .section-0 path,#exp-1761109558224-3-0 .section-0 circle,#exp-1761109558224-3-0 .section-0 path{fill:hsl(60, 100%, 73.5294117647%);}#exp-1761109558224-3-0 .section-0 text{fill:black;}#exp-1761109558224-3-0 .node-icon-0{font-size:40px;color:black;}#exp-1761109558224-3-0 .section-edge-0{stroke:hsl(60, 100%, 73.5294117647%);}#exp-1761109558224-3-0 .edge-depth-0{stroke-width:14;}#exp-1761109558224-3-0 .section-0 line{stroke:hsl(240, 100%, 83.5294117647%);stroke-width:3;}#exp-1761109558224-3-0 .lineWrapper line{stroke:black;}#exp-1761109558224-3-0 .disabled,#exp-1761109558224-3-0 .disabled circle,#exp-1761109558224-3-0 .disabled text{fill:lightgray;}#exp-1761109558224-3-0 .disabled text{fill:#efefef;}#exp-1761109558224-3-0 .section-1 rect,#exp-1761109558224-3-0 .section-1 path,#exp-1761109558224-3-0 .section-1 circle,#exp-1761109558224-3-0 .section-1 path{fill:hsl(80, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .section-1 text{fill:black;}#exp-1761109558224-3-0 .node-icon-1{font-size:40px;color:black;}#exp-1761109558224-3-0 .section-edge-1{stroke:hsl(80, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .edge-depth-1{stroke-width:11;}#exp-1761109558224-3-0 .section-1 line{stroke:hsl(260, 100%, 86.2745098039%);stroke-width:3;}#exp-1761109558224-3-0 .lineWrapper line{stroke:black;}#exp-1761109558224-3-0 .disabled,#exp-1761109558224-3-0 .disabled circle,#exp-1761109558224-3-0 .disabled text{fill:lightgray;}#exp-1761109558224-3-0 .disabled text{fill:#efefef;}#exp-1761109558224-3-0 .section-2 rect,#exp-1761109558224-3-0 .section-2 path,#exp-1761109558224-3-0 .section-2 circle,#exp-1761109558224-3-0 .section-2 path{fill:hsl(270, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .section-2 text{fill:#ffffff;}#exp-1761109558224-3-0 .node-icon-2{font-size:40px;color:#ffffff;}#exp-1761109558224-3-0 .section-edge-2{stroke:hsl(270, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .edge-depth-2{stroke-width:8;}#exp-1761109558224-3-0 .section-2 line{stroke:hsl(90, 100%, 86.2745098039%);stroke-width:3;}#exp-1761109558224-3-0 .lineWrapper line{stroke:#ffffff;}#exp-1761109558224-3-0 .disabled,#exp-1761109558224-3-0 .disabled circle,#exp-1761109558224-3-0 .disabled text{fill:lightgray;}#exp-1761109558224-3-0 .disabled text{fill:#efefef;}#exp-1761109558224-3-0 .section-3 rect,#exp-1761109558224-3-0 .section-3 path,#exp-1761109558224-3-0 .section-3 circle,#exp-1761109558224-3-0 .section-3 path{fill:hsl(300, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .section-3 text{fill:black;}#exp-1761109558224-3-0 .node-icon-3{font-size:40px;color:black;}#exp-1761109558224-3-0 .section-edge-3{stroke:hsl(300, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .edge-depth-3{stroke-width:5;}#exp-1761109558224-3-0 .section-3 line{stroke:hsl(120, 100%, 86.2745098039%);stroke-width:3;}#exp-1761109558224-3-0 .lineWrapper line{stroke:black;}#exp-1761109558224-3-0 .disabled,#exp-1761109558224-3-0 .disabled circle,#exp-1761109558224-3-0 .disabled text{fill:lightgray;}#exp-1761109558224-3-0 .disabled text{fill:#efefef;}#exp-1761109558224-3-0 .section-4 rect,#exp-1761109558224-3-0 .section-4 path,#exp-1761109558224-3-0 .section-4 circle,#exp-1761109558224-3-0 .section-4 path{fill:hsl(330, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .section-4 text{fill:black;}#exp-1761109558224-3-0 .node-icon-4{font-size:40px;color:black;}#exp-1761109558224-3-0 .section-edge-4{stroke:hsl(330, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .edge-depth-4{stroke-width:2;}#exp-1761109558224-3-0 .section-4 line{stroke:hsl(150, 100%, 86.2745098039%);stroke-width:3;}#exp-1761109558224-3-0 .lineWrapper line{stroke:black;}#exp-1761109558224-3-0 .disabled,#exp-1761109558224-3-0 .disabled circle,#exp-1761109558224-3-0 .disabled text{fill:lightgray;}#exp-1761109558224-3-0 .disabled text{fill:#efefef;}#exp-1761109558224-3-0 .section-5 rect,#exp-1761109558224-3-0 .section-5 path,#exp-1761109558224-3-0 .section-5 circle,#exp-1761109558224-3-0 .section-5 path{fill:hsl(0, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .section-5 text{fill:black;}#exp-1761109558224-3-0 .node-icon-5{font-size:40px;color:black;}#exp-1761109558224-3-0 .section-edge-5{stroke:hsl(0, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .edge-depth-5{stroke-width:-1;}#exp-1761109558224-3-0 .section-5 line{stroke:hsl(180, 100%, 86.2745098039%);stroke-width:3;}#exp-1761109558224-3-0 .lineWrapper line{stroke:black;}#exp-1761109558224-3-0 .disabled,#exp-1761109558224-3-0 .disabled circle,#exp-1761109558224-3-0 .disabled text{fill:lightgray;}#exp-1761109558224-3-0 .disabled text{fill:#efefef;}#exp-1761109558224-3-0 .section-6 rect,#exp-1761109558224-3-0 .section-6 path,#exp-1761109558224-3-0 .section-6 circle,#exp-1761109558224-3-0 .section-6 path{fill:hsl(30, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .section-6 text{fill:black;}#exp-1761109558224-3-0 .node-icon-6{font-size:40px;color:black;}#exp-1761109558224-3-0 .section-edge-6{stroke:hsl(30, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .edge-depth-6{stroke-width:-4;}#exp-1761109558224-3-0 .section-6 line{stroke:hsl(210, 100%, 86.2745098039%);stroke-width:3;}#exp-1761109558224-3-0 .lineWrapper line{stroke:black;}#exp-1761109558224-3-0 .disabled,#exp-1761109558224-3-0 .disabled circle,#exp-1761109558224-3-0 .disabled text{fill:lightgray;}#exp-1761109558224-3-0 .disabled text{fill:#efefef;}#exp-1761109558224-3-0 .section-7 rect,#exp-1761109558224-3-0 .section-7 path,#exp-1761109558224-3-0 .section-7 circle,#exp-1761109558224-3-0 .section-7 path{fill:hsl(90, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .section-7 text{fill:black;}#exp-1761109558224-3-0 .node-icon-7{font-size:40px;color:black;}#exp-1761109558224-3-0 .section-edge-7{stroke:hsl(90, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .edge-depth-7{stroke-width:-7;}#exp-1761109558224-3-0 .section-7 line{stroke:hsl(270, 100%, 86.2745098039%);stroke-width:3;}#exp-1761109558224-3-0 .lineWrapper line{stroke:black;}#exp-1761109558224-3-0 .disabled,#exp-1761109558224-3-0 .disabled circle,#exp-1761109558224-3-0 .disabled text{fill:lightgray;}#exp-1761109558224-3-0 .disabled text{fill:#efefef;}#exp-1761109558224-3-0 .section-8 rect,#exp-1761109558224-3-0 .section-8 path,#exp-1761109558224-3-0 .section-8 circle,#exp-1761109558224-3-0 .section-8 path{fill:hsl(150, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .section-8 text{fill:black;}#exp-1761109558224-3-0 .node-icon-8{font-size:40px;color:black;}#exp-1761109558224-3-0 .section-edge-8{stroke:hsl(150, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .edge-depth-8{stroke-width:-10;}#exp-1761109558224-3-0 .section-8 line{stroke:hsl(330, 100%, 86.2745098039%);stroke-width:3;}#exp-1761109558224-3-0 .lineWrapper line{stroke:black;}#exp-1761109558224-3-0 .disabled,#exp-1761109558224-3-0 .disabled circle,#exp-1761109558224-3-0 .disabled text{fill:lightgray;}#exp-1761109558224-3-0 .disabled text{fill:#efefef;}#exp-1761109558224-3-0 .section-9 rect,#exp-1761109558224-3-0 .section-9 path,#exp-1761109558224-3-0 .section-9 circle,#exp-1761109558224-3-0 .section-9 path{fill:hsl(180, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .section-9 text{fill:black;}#exp-1761109558224-3-0 .node-icon-9{font-size:40px;color:black;}#exp-1761109558224-3-0 .section-edge-9{stroke:hsl(180, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .edge-depth-9{stroke-width:-13;}#exp-1761109558224-3-0 .section-9 line{stroke:hsl(0, 100%, 86.2745098039%);stroke-width:3;}#exp-1761109558224-3-0 .lineWrapper line{stroke:black;}#exp-1761109558224-3-0 .disabled,#exp-1761109558224-3-0 .disabled circle,#exp-1761109558224-3-0 .disabled text{fill:lightgray;}#exp-1761109558224-3-0 .disabled text{fill:#efefef;}#exp-1761109558224-3-0 .section-10 rect,#exp-1761109558224-3-0 .section-10 path,#exp-1761109558224-3-0 .section-10 circle,#exp-1761109558224-3-0 .section-10 path{fill:hsl(210, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .section-10 text{fill:black;}#exp-1761109558224-3-0 .node-icon-10{font-size:40px;color:black;}#exp-1761109558224-3-0 .section-edge-10{stroke:hsl(210, 100%, 76.2745098039%);}#exp-1761109558224-3-0 .edge-depth-10{stroke-width:-16;}#exp-1761109558224-3-0 .section-10 line{stroke:hsl(30, 100%, 86.2745098039%);stroke-width:3;}#exp-1761109558224-3-0 .lineWrapper line{stroke:black;}#exp-1761109558224-3-0 .disabled,#exp-1761109558224-3-0 .disabled circle,#exp-1761109558224-3-0 .disabled text{fill:lightgray;}#exp-1761109558224-3-0 .disabled text{fill:#efefef;}#exp-1761109558224-3-0 .section-root rect,#exp-1761109558224-3-0 .section-root path,#exp-1761109558224-3-0 .section-root circle{fill:hsl(240, 100%, 46.2745098039%);}#exp-1761109558224-3-0 .section-root text{fill:#ffffff;}#exp-1761109558224-3-0 .icon-container{height:100%;display:flex;justify-content:center;align-items:center;}#exp-1761109558224-3-0 .edge{fill:none;}#exp-1761109558224-3-0 .eventWrapper{filter:brightness(120%);}#exp-1761109558224-3-0 :root{--mermaid-font-family:\"trebuchet ms\",verdana,arial,sans-serif;}</style><g></g><g></g><defs><marker id=\"arrowhead\" refX=\"5\" refY=\"2\" markerWidth=\"6\" markerHeight=\"4\" orient=\"auto\"><path d=\"M 0,0 V 4 L6,2 Z\"></path></marker></defs><g class=\"taskWrapper\" transform=\"translate(200, 50)\"><g class=\"timeline-node section--1\"><g><path id=\"node-undefined\" class=\"node-bkg node-undefined\" d=\"M0 61.815625 v-56.815625 q0,-5 5,-5 h180 q5,0 5,5 v61.815625 H0 Z\"></path><line class=\"node-line--1\" x1=\"0\" y1=\"66.815625\" x2=\"190\" y2=\"66.815625\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">1986</tspan></text></g></g></g><g class=\"lineWrapper\"><line x1=\"295\" y1=\"116.815625\" x2=\"295\" y2=\"416.4312454223633\" stroke-width=\"2\" stroke=\"black\" marker-end=\"url(#arrowhead)\" stroke-dasharray=\"5,5\"></line></g><g class=\"eventWrapper\" transform=\"translate(200, 250)\"><g class=\"timeline-node section--1\"><g><path id=\"node-undefined\" class=\"node-bkg node-undefined\" d=\"M0 77.01562194824218 v-72.01562194824218 q0,-5 5,-5 h180 q5,0 5,5 v77.01562194824218 H0 Z\"></path><line class=\"node-line--1\" x1=\"0\" y1=\"82.01562194824218\" x2=\"190\" y2=\"82.01562194824218\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">Івар   Якобсон</tspan><tspan x=\"0\" dy=\"1.1em\">створює   концепцію</tspan><tspan x=\"0\" dy=\"1.1em\">в   Ericsson</tspan></text></g></g></g><g class=\"taskWrapper\" transform=\"translate(400, 50)\"><g class=\"timeline-node section-0\"><g><path id=\"node-undefined\" class=\"node-bkg node-undefined\" d=\"M0 61.815625 v-56.815625 q0,-5 5,-5 h180 q5,0 5,5 v61.815625 H0 Z\"></path><line class=\"node-line-0\" x1=\"0\" y1=\"66.815625\" x2=\"190\" y2=\"66.815625\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">1992</tspan></text></g></g></g><g class=\"lineWrapper\"><line x1=\"495\" y1=\"116.815625\" x2=\"495\" y2=\"416.4312454223633\" stroke-width=\"2\" stroke=\"black\" marker-end=\"url(#arrowhead)\" stroke-dasharray=\"5,5\"></line></g><g class=\"eventWrapper\" transform=\"translate(400, 250)\"><g class=\"timeline-node section-0\"><g><path id=\"node-undefined\" class=\"node-bkg node-undefined\" d=\"M0 94.61562042236328 v-89.61562042236328 q0,-5 5,-5 h180 q5,0 5,5 v94.61562042236328 H0 Z\"></path><line class=\"node-line-0\" x1=\"0\" y1=\"99.61562042236328\" x2=\"190\" y2=\"99.61562042236328\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">Публікація   книги</tspan><tspan x=\"0\" dy=\"1.1em\">\"Object-Oriented</tspan><tspan x=\"0\" dy=\"1.1em\">Software</tspan><tspan x=\"0\" dy=\"1.1em\">Engineering\"</tspan></text></g></g></g><g class=\"taskWrapper\" transform=\"translate(600, 50)\"><g class=\"timeline-node section-1\"><g><path id=\"node-undefined\" class=\"node-bkg node-undefined\" d=\"M0 61.815625 v-56.815625 q0,-5 5,-5 h180 q5,0 5,5 v61.815625 H0 Z\"></path><line class=\"node-line-1\" x1=\"0\" y1=\"66.815625\" x2=\"190\" y2=\"66.815625\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">1997</tspan></text></g></g></g><g class=\"lineWrapper\"><line x1=\"695\" y1=\"116.815625\" x2=\"695\" y2=\"416.4312454223633\" stroke-width=\"2\" stroke=\"black\" marker-end=\"url(#arrowhead)\" stroke-dasharray=\"5,5\"></line></g><g class=\"eventWrapper\" transform=\"translate(600, 250)\"><g class=\"timeline-node section-1\"><g><path id=\"node-undefined\" class=\"node-bkg node-undefined\" d=\"M0 77.01562194824218 v-72.01562194824218 q0,-5 5,-5 h180 q5,0 5,5 v77.01562194824218 H0 Z\"></path><line class=\"node-line-1\" x1=\"0\" y1=\"82.01562194824218\" x2=\"190\" y2=\"82.01562194824218\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">Включення   Use</tspan><tspan x=\"0\" dy=\"1.1em\">Cases   до   UML</tspan><tspan x=\"0\" dy=\"1.1em\">стандарту</tspan></text></g></g></g><g class=\"taskWrapper\" transform=\"translate(800, 50)\"><g class=\"timeline-node section-2\"><g><path id=\"node-undefined\" class=\"node-bkg node-undefined\" d=\"M0 61.815625 v-56.815625 q0,-5 5,-5 h180 q5,0 5,5 v61.815625 H0 Z\"></path><line class=\"node-line-2\" x1=\"0\" y1=\"66.815625\" x2=\"190\" y2=\"66.815625\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">2000-ті</tspan></text></g></g></g><g class=\"lineWrapper\"><line x1=\"895\" y1=\"116.815625\" x2=\"895\" y2=\"416.4312454223633\" stroke-width=\"2\" stroke=\"black\" marker-end=\"url(#arrowhead)\" stroke-dasharray=\"5,5\"></line></g><g class=\"eventWrapper\" transform=\"translate(800, 250)\"><g class=\"timeline-node section-2\"><g><path id=\"node-undefined\" class=\"node-bkg node-undefined\" d=\"M0 77.01562194824218 v-72.01562194824218 q0,-5 5,-5 h180 q5,0 5,5 v77.01562194824218 H0 Z\"></path><line class=\"node-line-2\" x1=\"0\" y1=\"82.01562194824218\" x2=\"190\" y2=\"82.01562194824218\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">Інтеграція   з   Agile</tspan><tspan x=\"0\" dy=\"1.1em\">(User   Stories,</tspan><tspan x=\"0\" dy=\"1.1em\">Scrum)</tspan></text></g></g></g><g class=\"taskWrapper\" transform=\"translate(1000, 50)\"><g class=\"timeline-node section-3\"><g><path id=\"node-undefined\" class=\"node-bkg node-undefined\" d=\"M0 61.815625 v-56.815625 q0,-5 5,-5 h180 q5,0 5,5 v61.815625 H0 Z\"></path><line class=\"node-line-3\" x1=\"0\" y1=\"66.815625\" x2=\"190\" y2=\"66.815625\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">2020-ті</tspan></text></g></g></g><g class=\"lineWrapper\"><line x1=\"1095\" y1=\"116.815625\" x2=\"1095\" y2=\"416.4312454223633\" stroke-width=\"2\" stroke=\"black\" marker-end=\"url(#arrowhead)\" stroke-dasharray=\"5,5\"></line></g><g class=\"eventWrapper\" transform=\"translate(1000, 250)\"><g class=\"timeline-node section-3\"><g><path id=\"node-undefined\" class=\"node-bkg node-undefined\" d=\"M0 77.01562194824218 v-72.01562194824218 q0,-5 5,-5 h180 q5,0 5,5 v77.01562194824218 H0 Z\"></path><line class=\"node-line-3\" x1=\"0\" y1=\"82.01562194824218\" x2=\"190\" y2=\"82.01562194824218\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">Гібридні   підходи   та</tspan><tspan x=\"0\" dy=\"1.1em\">AI-асистовані</tspan><tspan x=\"0\" dy=\"1.1em\">інструменти</tspan></text></g></g></g><text x=\"345\" font-size=\"4ex\" font-weight=\"bold\" y=\"20\">Еволюція Use Cases</text><g class=\"lineWrapper\"><line x1=\"150\" y1=\"166.815625\" x2=\"1440\" y2=\"166.815625\" stroke-width=\"4\" stroke=\"black\" marker-end=\"url(#arrowhead)\"></line></g></svg></div>\n","<h1>🎭 Актори (Actors)</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Актор</strong> — це роль користувача або зовнішньої системи, яка взаємодіє з нашою системою.</p>\n</div>\n\n\n\n<h2>Типи акторів</h2>\n<table>\n<thead>\n<tr>\n<th>Тип актора</th>\n<th>Опис</th>\n<th>Приклад 👤</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Первинний</strong></td>\n<td>Ініціює взаємодію з системою</td>\n<td>Клієнт інтернет-магазину 🛒</td>\n</tr>\n<tr>\n<td><strong>Вторинний</strong></td>\n<td>Надає підтримку системі</td>\n<td>Платіжна система 💳</td>\n</tr>\n<tr>\n<td><strong>Офстейдж</strong></td>\n<td>Має інтерес, але не взаємодіє безпосередньо</td>\n<td>Менеджер магазину 📊</td>\n</tr>\n</tbody></table>\n<div class=\"tip\"><strong>💡 Порада</strong> <p>Актор — це завжди <strong>роль</strong>, а не конкретна людина! Один користувач може виконувати різні ролі.</p>\n</div>\n\n","<h1>🎭 Приклади акторів</h1>\n\n<img src=\"https://www.plantuml.com/plantuml/svg/TLDTQzim57tNhn3TSw5hqzAzZ2OXUIiCkhxrHKlKrDIMYgmmmXWa3Uofh6oK34ff_uARVgNDdDyW_QCUoLh8dCt6nj8zvznxpvLtKisKxYOnIOyZSS8KIoXhQQdsT2_cb7tcgKpuGl0JQnrtbEoATbt6Kj4tpQgxotJwXL1SjILqix7Ps2nYKhMvckzlrRPgvEk2JZVbBPRo_oarjfkLvlQoKgNwRgrQWHA9-Q6cMb8LTOuqRKUAjtGa1I55XIlcqapjo5wOt9wkK9RIUXnneHV2cHsOYUqNGPOUHLpDerVcmUHuxisZUGYONIPOPm7pmsJ0l9YP-Gsj8adru-uyVcEcRj-Ee96Rx43uV0Dx2bqmFFu3woMeQg-NQfuGuffWeeFPpEL17uDqXaGPBIiKxltnqgL4iGZUeVTpT3u4T78Wp2sqfaxF3dpQ_VhR4lFQt88v0t9IS51utrVmXFUB_GOllmVkUedx2_cyNRPlXsRiclPPdr3vA1YpNzzOOkNsF23lpCmRDKQcOS3xAHT3ewkhxttDOKnXlKx2IC9wWy3-y5qX102_-DjZXFwnIuJKF9mbULWAkhhDJvGwWoKJD9hZ_KozBtwpG636E2-PlN1ZSdDmtMDWX8isTVg4xE0Jl-Ch\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n","<h1>📐 Структура Use Case</h1>\n<div class=\"info\"><strong>ℹ️ Основні елементи</strong> <p>Кожен Use Case складається з:</p>\n<ul>\n<li><strong>Назви</strong> (дієслово + іменник)</li>\n<li><strong>Актора</strong> (хто виконує)</li>\n<li><strong>Передумов</strong> (preconditions)</li>\n<li><strong>Основного сценарію</strong> (main flow)</li>\n<li><strong>Альтернативних сценаріїв</strong> (alternative flows)</li>\n<li><strong>Результату</strong> (postconditions)</li>\n</ul>\n</div>\n\n","<h1>📝 Шаблон Use Case специфікації</h1>\n<h2>UC-01: Оформлення замовлення 🛍️</h2>\n<p><strong>Актор:</strong> Клієнт<br><strong>Мета:</strong> Придбати товари з кошика</p>\n<div class=\"info\"><strong>ℹ️ Передумови</strong> <ul>\n<li>Клієнт авторизований в системі</li>\n<li>У кошику є мінімум 1 товар</li>\n<li>Товари доступні на складі</li>\n</ul>\n</div>\n\n\n\n<p><strong>Основний сценарій:</strong></p>\n<ol>\n<li>Клієнт натискає \"Оформити замовлення\"</li>\n<li>Система показує форму з адресою доставки</li>\n<li>Клієнт вводить або обирає адресу</li>\n<li>Система показує способи оплати</li>\n<li>Клієнт обирає спосіб оплати</li>\n<li>Система розраховує вартість доставки</li>\n<li>Клієнт підтверджує замовлення</li>\n<li>Система створює замовлення та показує номер</li>\n</ol>\n<div class=\"success\"><strong>✅ Результат</strong> <p>Замовлення створено, клієнт отримав підтвердження на email та SMS</p>\n</div>\n\n","<h1>🔀 Альтернативні сценарії</h1>\n<div class=\"warning\"><strong>⚠️ Важливо!</strong> <p>Альтернативні сценарії описують виключення та помилки. Вони часто займають 70-80% тексту специфікації!</p>\n</div>\n\n\n\n<p><strong>Альтернативний сценарій 3a: Адреса не заповнена</strong> ⚠️</p>\n<ol>\n<li>Система виявляє порожнє поле адреси</li>\n<li>Система показує помилку \"Введіть адресу доставки\"</li>\n<li>Повернення до кроку 3 основного сценарію</li>\n</ol>\n<p><strong>Альтернативний сценарій 2a: Товар закінчився</strong> 📦</p>\n<ol>\n<li>Система виявляє відсутність товару на складі</li>\n<li>Система видаляє товар з кошика</li>\n<li>Система показує повідомлення про недоступність товару</li>\n<li>Повернення до кроку 1 або завершення UC</li>\n</ol>\n<div class=\"tip\"><strong>💡 Порада</strong> <p>Для кожного кроку основного сценарію подумайте: \"Що може піти не так?\" — це ваші альтернативні сценарії!</p>\n</div>\n\n","<h1>📊 Use Case діаграма (UML)</h1>\n\n<img src=\"https://www.plantuml.com/plantuml/svg/ZLHDRzD04BtlhrY5Sn1DdL9G5TL4zHa9zTQBQs-3LNiNsHkX2Y7b0m6t8XJba4Fv2w5D6fCl_iBiFs9slGd15L9jER9dtdlpPdQKuqpwgMmdCSak8_xEJ_s4-e4KwHjv5JFglsUPIDXEyjmFBbkfQFEmAMAHqYUUg-yodNuW5AzN3z2UvvpKYvn8GvPku-xpsW7vkAFJpbZWP-n_IYU7dkCTFbHot1VFN0ULICmk99M2fb7hhQHXbB90He8JKZYim0WMQgW6i5Az2lKpscnd4hjDju1lC86b6Y9WgBggfpemLZrOguw1ks4IyIts1onq5j7ti8Bn6LTTo3KBfh24iM6yzgyInYKXsehFMpZX2dpMzM6AuYlyxLKr6kxmcK4EguhjVpCDNKXZfmXPg6lazf6Tdt6O6tDZjB66ErFkjBbNuWumDp6udEfEu1O_EaYUm9gYmbfznQ9pQ_UqMIlnRzGdtJvQp6tL6LPS6g45UbgXdslBtIzpuNSneaTmdH9tf7jMVMFNSF-QDngvvTKVEQiPtEAHzhOylNbaS_oqMcsOsPK2jN9Wd-13d-fNXxwaHqSH3-9so1eDeYCQP4ySi-WsDnFksBL0_-XdG8ZP8ojP_-VhW10k9BCRB2wsKuMHaT6Z_8A3o-4NfehCHBTAuISkuiniL5Vr2UCXrKfMxrn8x4CBRZRIKByNowtNpehYSET5S4VY65_n7-CF\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n<div class=\"note\"><strong>📝 Пояснення стрілок</strong> <ul>\n<li><strong>Суцільна лінія →</strong> від актора до UC = актор ініціює взаємодію</li>\n<li><strong>Суцільна лінія →</strong> від UC до актора = UC використовує сервіси вторинного актора</li>\n<li><strong>Пунктирна «include»</strong> → UC обов'язково включає інший UC</li>\n<li><strong>Пунктирна «extend»</strong> → UC може розширювати інший UC</li>\n</ul>\n</div>\n\n","<h1>🔗 Відношення між Use Cases</h1>\n<h2>Include (включення) 📥</h2>\n<div class=\"info\"><strong>ℹ️ Include</strong> <p>Використовується для <strong>обов'язкової</strong> спільної функціональності, яка повторюється в декількох UC.</p>\n</div>\n\n\n\n\n<img src=\"https://www.plantuml.com/plantuml/svg/RP7FJW8n4CRlynGJF7WpYXpG4C9Av0syULbs2sxORKstUp8cAlwv6F7a4Ly1GS8AmZDCtyYfYmaXjfUPplVzPjesKkDhaoKnfBr8NlhQJx3j1xskLfaCcofM6dTQdjiRYYmLWPyAl0BaTRAjFwssAgrgKLCw57fzNl6EzhqAN0F4ecFGADHHzy9W66aHc4X9W3zoYORsdbRsXhufjtUKdqkQqOYp5OrfGLDQqj8EIkYdUDOysF2zqvHTKvhGmWvOqo_SzitUSiH4Zbvm6sQVrwZo1kgLneM5SgUtZsmTy23puim1RPy98_j4exN_483dmRswY_4OQxL81d4MYdgT2-N_2o2L4TXMngW4LUSNurwFXlJXPjpbcynSMswMqnVIdFklQ5w8FjrDaNFMsWSsWv0XEYH0WqF-tHy0\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n<p><strong>Приклад:</strong> Багато UC потребують авторизації → виносимо її в окремий UC</p>\n","<h1>🔗 Відношення між Use Cases (2)</h1>\n<h2>Extend (розширення) 📤</h2>\n<div class=\"info\"><strong>ℹ️ Extend</strong> <p>Використовується для <strong>опціональної</strong> функціональності, яка може бути додана до базового UC.</p>\n</div>\n\n\n\n\n<img src=\"https://www.plantuml.com/plantuml/svg/RLB1Ji904BtlLqpqRXGue2449F87tBmKMB01kcIx92R61D631nAZCHvD_0D4QakLyWkpV-JijYIDeJrqzysyUUzDMlEL8zLaD6J-mFN6ZdH6q7OwWxuK4w_R44CXuR1PDs-kO-BpZkDpk650p_d__ejoizGifpKXkrncUAb-UbmliLl6XhodG0cGRlzAGTULlADSuJ6scto0x_e14pt5Nupq3ADB3qDSq2t19VvWW1lSwAS3S7neDKvol1UCCBRCIDyHSv6njuGabazLN6NCGexvQl2q7t2RNQRwdgHYAnkOCMGY9cn9txo58cCq3OwgnWwSGQN2hnNtkjKguSMzEFE4uhI5COYU3M4MXiyqEBHo4Qu91klv6uEql4pZaRBrOCnIp3dW9-qaj3qsQAWVgJ8rYz9pHe9Wr3BDjb1AZ5BPGZhtGyyewnkjDiO5u9h21wH6o6hlK1CTg2anoZl72NuHq6haz6fqfD_h3m00\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n<p><strong>Приклад:</strong> Промокод — це додаткова опція, яку клієнт може використати або ні</p>\n<div class=\"tip\"><strong>💡 Запам'ятайте</strong> <p><strong>Extend</strong>: стрілка від розширюючого UC → до базового UC (опціональне додавання функціональності)</p>\n</div>\n\n","<h1>💼 Реальний приклад: Netflix 🎬</h1>\n<div class=\"success\"><strong>✅ Netflix (2007-2012)</strong> <p>Netflix — це стрімінговий сервіс для перегляду фільмів та серіалів онлайн. Компанія почала як DVD-прокат поштою, а потім перейшла до онлайн-стрімінгу.</p>\n<p>При переході на стрімінг у 2007 році Netflix активно використовував Use Cases для проєктування нового користувацького досвіду.</p>\n</div>\n\n\n\n<h2>Основні Use Cases Netflix</h2>\n<table>\n<thead>\n<tr>\n<th>ID</th>\n<th>Use Case</th>\n<th>Актор</th>\n<th>Пріоритет</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>UC-01</td>\n<td>🔍 Пошук контенту</td>\n<td>Користувач</td>\n<td>🔴 Високий</td>\n</tr>\n<tr>\n<td>UC-02</td>\n<td>▶️ Відтворення відео</td>\n<td>Користувач</td>\n<td>🔴 Високий</td>\n</tr>\n<tr>\n<td>UC-03</td>\n<td>⏸️ Пауза та продовження</td>\n<td>Користувач</td>\n<td>🟡 Середній</td>\n</tr>\n<tr>\n<td>UC-04</td>\n<td>⭐ Оцінка контенту</td>\n<td>Користувач</td>\n<td>🟡 Середній</td>\n</tr>\n<tr>\n<td>UC-05</td>\n<td>📋 Керування профілями</td>\n<td>Власник акаунту</td>\n<td>🟢 Низький</td>\n</tr>\n</tbody></table>\n","<h1>💼 Netflix: Деталізований Use Case</h1>\n<h2>UC-02: Відтворення відео ▶️</h2>\n<p><strong>Актор:</strong> Користувач<br><strong>Мета:</strong> Почати перегляд фільму або епізоду серіалу</p>\n<div class=\"info\"><strong>ℹ️ Передумови</strong> <ul>\n<li>Користувач авторизований</li>\n<li>Користувач обрав профіль</li>\n<li>Контент доступний у регіоні користувача</li>\n</ul>\n</div>\n\n\n\n<p><strong>Основний сценарій:</strong></p>\n<ol>\n<li>Користувач обирає контент</li>\n<li>Система показує деталі контенту</li>\n<li>Користувач натискає \"Відтворити\"</li>\n<li>Система перевіряє якість з'єднання</li>\n<li>Система починає відтворення з оптимальною якістю</li>\n<li>Система зберігає позицію перегляду кожні 10 секунд</li>\n</ol>\n<p><strong>Альтернативний сценарій 4a: Низька швидкість інтернету</strong> 🌐</p>\n<ol>\n<li>Система виявляє швидкість &lt; 3 Mbps</li>\n<li>Система автоматично знижує якість до SD</li>\n<li>Система показує повідомлення про зниження якості</li>\n<li>Продовження з кроку 5 основного сценарію</li>\n</ol>\n","<h1>🎯 Рівні деталізації Use Cases</h1>\n\n<div class=\"mermaid\" data-source=\"graph TD\n    A[📋 Brief UC&lt;br/&gt;Одне речення] --&gt; B[📄 Casual UC&lt;br/&gt;Кілька параграфів]\n    B --&gt; C[📖 Fully Dressed UC&lt;br/&gt;Повна специфікація]\n\n    style A fill:#E5F5E5,stroke:#66BB6A\n    style B fill:#FFF4E5,stroke:#FFA726\n    style C fill:#FFE5E5,stroke:#FF6B6B\"><svg id=\"exp-1761109558233-14-0\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" class=\"flowchart\" style=\"max-width: 215.09375px;\" viewBox=\"0 0 215.09375 332\" role=\"graphics-document document\" aria-roledescription=\"flowchart-v2\"><style>#exp-1761109558233-14-0{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#exp-1761109558233-14-0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#exp-1761109558233-14-0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#exp-1761109558233-14-0 .error-icon{fill:#552222;}#exp-1761109558233-14-0 .error-text{fill:#552222;stroke:#552222;}#exp-1761109558233-14-0 .edge-thickness-normal{stroke-width:1px;}#exp-1761109558233-14-0 .edge-thickness-thick{stroke-width:3.5px;}#exp-1761109558233-14-0 .edge-pattern-solid{stroke-dasharray:0;}#exp-1761109558233-14-0 .edge-thickness-invisible{stroke-width:0;fill:none;}#exp-1761109558233-14-0 .edge-pattern-dashed{stroke-dasharray:3;}#exp-1761109558233-14-0 .edge-pattern-dotted{stroke-dasharray:2;}#exp-1761109558233-14-0 .marker{fill:#333333;stroke:#333333;}#exp-1761109558233-14-0 .marker.cross{stroke:#333333;}#exp-1761109558233-14-0 svg{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;}#exp-1761109558233-14-0 p{margin:0;}#exp-1761109558233-14-0 .label{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;color:#333;}#exp-1761109558233-14-0 .cluster-label text{fill:#333;}#exp-1761109558233-14-0 .cluster-label span{color:#333;}#exp-1761109558233-14-0 .cluster-label span p{background-color:transparent;}#exp-1761109558233-14-0 .label text,#exp-1761109558233-14-0 span{fill:#333;color:#333;}#exp-1761109558233-14-0 .node rect,#exp-1761109558233-14-0 .node circle,#exp-1761109558233-14-0 .node ellipse,#exp-1761109558233-14-0 .node polygon,#exp-1761109558233-14-0 .node path{fill:#ECECFF;stroke:#667eea;stroke-width:1px;}#exp-1761109558233-14-0 .rough-node .label text,#exp-1761109558233-14-0 .node .label text,#exp-1761109558233-14-0 .image-shape .label,#exp-1761109558233-14-0 .icon-shape .label{text-anchor:middle;}#exp-1761109558233-14-0 .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#exp-1761109558233-14-0 .rough-node .label,#exp-1761109558233-14-0 .node .label,#exp-1761109558233-14-0 .image-shape .label,#exp-1761109558233-14-0 .icon-shape .label{text-align:center;}#exp-1761109558233-14-0 .node.clickable{cursor:pointer;}#exp-1761109558233-14-0 .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#exp-1761109558233-14-0 .arrowheadPath{fill:#333333;}#exp-1761109558233-14-0 .edgePath .path{stroke:#333333;stroke-width:2.0px;}#exp-1761109558233-14-0 .flowchart-link{stroke:#333333;fill:none;}#exp-1761109558233-14-0 .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1761109558233-14-0 .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#exp-1761109558233-14-0 .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1761109558233-14-0 .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#exp-1761109558233-14-0 .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#exp-1761109558233-14-0 .cluster text{fill:#333;}#exp-1761109558233-14-0 .cluster span{color:#333;}#exp-1761109558233-14-0 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#exp-1761109558233-14-0 .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#exp-1761109558233-14-0 rect.text{fill:none;stroke-width:0;}#exp-1761109558233-14-0 .icon-shape,#exp-1761109558233-14-0 .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1761109558233-14-0 .icon-shape p,#exp-1761109558233-14-0 .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#exp-1761109558233-14-0 .icon-shape rect,#exp-1761109558233-14-0 .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1761109558233-14-0 .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#exp-1761109558233-14-0 .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#exp-1761109558233-14-0 :root{--mermaid-font-family:\"trebuchet ms\",verdana,arial,sans-serif;}</style><g><marker id=\"exp-1761109558233-14-0_flowchart-v2-pointEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 0 L 10 5 L 0 10 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1761109558233-14-0_flowchart-v2-pointStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"4.5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 5 L 10 10 L 10 0 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1761109558233-14-0_flowchart-v2-circleEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"11\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1761109558233-14-0_flowchart-v2-circleStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-1\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1761109558233-14-0_flowchart-v2-crossEnd\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"12\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1761109558233-14-0_flowchart-v2-crossStart\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"-1\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><g class=\"root\"><g class=\"clusters\"></g><g class=\"edgePaths\"><path d=\"M107.547,80L107.547,84.167C107.547,88.333,107.547,96.667,107.547,104.333C107.547,112,107.547,119,107.547,122.5L107.547,126\" id=\"L_A_B_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_A_B_0\" data-points=\"W3sieCI6MTA3LjU0Njg3NSwieSI6ODB9LHsieCI6MTA3LjU0Njg3NSwieSI6MTA1fSx7IngiOjEwNy41NDY4NzUsInkiOjEzMH1d\" marker-end=\"url(#exp-1761109558233-14-0_flowchart-v2-pointEnd)\"></path><path d=\"M107.547,202L107.547,206.167C107.547,210.333,107.547,218.667,107.547,226.333C107.547,234,107.547,241,107.547,244.5L107.547,248\" id=\"L_B_C_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_B_C_0\" data-points=\"W3sieCI6MTA3LjU0Njg3NSwieSI6MjAyfSx7IngiOjEwNy41NDY4NzUsInkiOjIyN30seyJ4IjoxMDcuNTQ2ODc1LCJ5IjoyNTJ9XQ==\" marker-end=\"url(#exp-1761109558233-14-0_flowchart-v2-pointEnd)\"></path></g><g class=\"edgeLabels\"><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_A_B_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_B_C_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g></g><g class=\"nodes\"><g class=\"node default  \" id=\"flowchart-A-0\" transform=\"translate(107.546875, 44)\"><rect class=\"basic label-container\" style=\"fill:#E5F5E5 !important;stroke:#66BB6A !important\" x=\"-77.3828125\" y=\"-36\" width=\"154.765625\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-53.3828125, -24)\"><rect></rect><foreignObject width=\"106.765625\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>📋 Brief UC<br>Одне речення</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-B-1\" transform=\"translate(107.546875, 166)\"><rect class=\"basic label-container\" style=\"fill:#FFF4E5 !important;stroke:#FFA726 !important\" x=\"-92.53125\" y=\"-36\" width=\"185.0625\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-68.53125, -24)\"><rect></rect><foreignObject width=\"137.0625\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>📄 Casual UC<br>Кілька параграфів</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-C-3\" transform=\"translate(107.546875, 288)\"><rect class=\"basic label-container\" style=\"fill:#FFE5E5 !important;stroke:#FF6B6B !important\" x=\"-99.546875\" y=\"-36\" width=\"199.09375\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-75.546875, -24)\"><rect></rect><foreignObject width=\"151.09375\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>📖 Fully Dressed UC<br>Повна специфікація</p></span></div></foreignObject></g></g></g></g></g></svg></div>\n<div class=\"tip\"><strong>💡 Коли використовувати кожен рівень?</strong> <ul>\n<li><strong>Brief</strong> — для brainstorming та початкового аналізу 💭</li>\n<li><strong>Casual</strong> — для презентацій стейкхолдерам 👥</li>\n<li><strong>Fully Dressed</strong> — для критичних UC та розробки 💻</li>\n</ul>\n</div>\n\n","<h1>✍️ Правила написання Use Cases</h1>\n<div class=\"tip\"><strong>💡 Best Practices</strong> <ol>\n<li><strong>Назва</strong> — завжди дієслово + об'єкт: \"Створити замовлення\" ✅, не \"Замовлення\" ❌</li>\n<li><strong>Перспектива</strong> — пишіть з точки зору актора, а не системи</li>\n<li><strong>Рівень абстракції</strong> — один UC = одна ціль користувача</li>\n<li><strong>Розмір</strong> — 3-10 кроків в основному сценарії</li>\n<li><strong>Мова</strong> — проста, без технічного жаргону</li>\n<li><strong>Нумерація</strong> — використовуйте для кроків (1, 2, 3...) та альтернатив (3a, 3b...)</li>\n</ol>\n</div>\n\n","<h1>✍️ Приклади правильного формулювання</h1>\n<table>\n<thead>\n<tr>\n<th>❌ Погано</th>\n<th>✅ Добре</th>\n<th>💡 Чому?</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>Введення даних</td>\n<td>Зареєструватися в системі</td>\n<td>Ціль, а не процес</td>\n</tr>\n<tr>\n<td>Клік на кнопку</td>\n<td>Підтвердити замовлення</td>\n<td>Намір, а не дія</td>\n</tr>\n<tr>\n<td>Валідація форми</td>\n<td>Перевірити коректність email</td>\n<td>Зрозуміла мета</td>\n</tr>\n<tr>\n<td>Показати повідомлення</td>\n<td>Отримати підтвердження оплати</td>\n<td>Бізнес-результат</td>\n</tr>\n</tbody></table>\n<div class=\"warning\"><strong>⚠️ Типова помилка</strong> <p>Не описуйте UI елементи (\"натиснути червону кнопку\") або технічні процеси (\"валідація\"), описуйте ціль користувача (\"зареєструватися\", \"оплатити\").</p>\n</div>\n\n","<h1>🔍 Use Cases vs User Stories</h1>\n<table>\n<thead>\n<tr>\n<th>Характеристика</th>\n<th>🎯 Use Cases</th>\n<th>📝 User Stories</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Обсяг</strong></td>\n<td>Детальний опис процесу</td>\n<td>Короткий опис потреби</td>\n</tr>\n<tr>\n<td><strong>Фокус</strong></td>\n<td>Всі можливі сценарії</td>\n<td>Цінність для користувача</td>\n</tr>\n<tr>\n<td><strong>Структура</strong></td>\n<td>Формальна, стандартизована</td>\n<td>Гнучка, вільна форма</td>\n</tr>\n<tr>\n<td><strong>Деталізація</strong></td>\n<td>Високий рівень деталей</td>\n<td>Мінімальні деталі</td>\n</tr>\n<tr>\n<td><strong>Використання</strong></td>\n<td>Складні системи, документація</td>\n<td>Agile проєкти, швидка розробка</td>\n</tr>\n<tr>\n<td><strong>Розмір</strong></td>\n<td>1-3 сторінки тексту</td>\n<td>1-2 речення</td>\n</tr>\n<tr>\n<td><strong>Тестування</strong></td>\n<td>Основа для тест-кейсів</td>\n<td>Основа для acceptance criteria</td>\n</tr>\n</tbody></table>\n<div class=\"note\"><strong>📝 Коли що використовувати?</strong> <ul>\n<li><strong>Use Cases</strong> → складні системи, багато інтеграцій, потрібна детальна документація 📚</li>\n<li><strong>User Stories</strong> → Agile проєкти, швидка розробка, часті зміни вимог 🚀</li>\n<li><strong>Разом</strong> → User Story описує ЩО потрібно, Use Case — ЯК це працює детально 🤝</li>\n</ul>\n</div>\n\n\n\n<p><strong>Приклад комбінації:</strong></p>\n<p><strong>User Story:</strong> \"Як клієнт, я хочу оформити замовлення онлайн, щоб не витрачати час на похід до магазину\"</p>\n<p><strong>Use Case UC-03:</strong> Детальний опис процесу оформлення з усіма кроками, альтернативами та виключеннями (2 сторінки тексту)</p>\n","<h1>⚠️ Типові помилки при створенні Use Cases</h1>\n<div class=\"danger\"><strong>🚫 Помилка #1: Занадто технічний опис</strong> <p>❌ \"Система виконує SQL запит до бази даних та повертає JSON\"<br>✅ \"Система показує список доступних товарів\"</p>\n</div>\n\n\n\n\n\n<div class=\"danger\"><strong>🚫 Помилка #2: Змішування рівнів абстракції</strong> <p>❌ В одному UC: \"Авторизуватись, додати товар, оплатити, отримати email\"<br>✅ Розділити на 4 окремі UC</p>\n</div>\n\n\n\n\n\n<div class=\"danger\"><strong>🚫 Помилка #3: Відсутність альтернативних сценаріїв</strong> <p>Описали тільки \"щасливий шлях\" (happy path), забули про помилки та виключення 😢</p>\n</div>\n\n","<h1>⚠️ Ще помилки</h1>\n<div class=\"danger\"><strong>🚫 Помилка #4: Занадто загальна назва</strong> <p>❌ \"Використання системи\", \"Робота з даними\"<br>✅ \"Створити нове замовлення\", \"Експортувати звіт у PDF\"</p>\n</div>\n\n\n\n\n\n<div class=\"danger\"><strong>🚫 Помилка #5: Плутанина актор ↔ система</strong> <p>❌ \"Актор: Система; Дія: оброблює платіж\"<br>✅ \"Актор: Клієнт; Дія: ініціює платіж\"</p>\n</div>\n\n\n\n\n\n<div class=\"tip\"><strong>💡 Золоте правило</strong> <p>Якщо Use Case не можна протестувати — він написаний неправильно! 🧪</p>\n</div>\n\n","<h1>🎯 Як визначити Use Cases для проєкту</h1>\n\n<div class=\"mermaid\" data-source=\"graph TD\n    A[1️⃣ Визначити&lt;br/&gt;акторів] --&gt; B[2️⃣ Знайти їхні&lt;br/&gt;цілі]\n    B --&gt; C[3️⃣ Створити UC&lt;br/&gt;для кожної цілі]\n    C --&gt; D[4️⃣ Деталізувати&lt;br/&gt;критичні UC]\n    D --&gt; E[5️⃣ Провести review&lt;br/&gt;зі стейкхолдерами]\n    E --&gt; F[6️⃣ Пріоритизувати&lt;br/&gt;UC]\n\n    style A fill:#E5F5E5,stroke:#66BB6A\n    style B fill:#E5F5E5,stroke:#66BB6A\n    style C fill:#E8F4F8,stroke:#4A90A4\n    style D fill:#E8F4F8,stroke:#4A90A4\n    style E fill:#FFF4E5,stroke:#FFA726\n    style F fill:#FFE5E5,stroke:#FF6B6B\"><svg id=\"exp-1761109558242-20-0\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" class=\"flowchart\" style=\"max-width: 212.859375px;\" viewBox=\"0 0 212.859375 698\" role=\"graphics-document document\" aria-roledescription=\"flowchart-v2\"><style>#exp-1761109558242-20-0{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#exp-1761109558242-20-0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#exp-1761109558242-20-0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#exp-1761109558242-20-0 .error-icon{fill:#552222;}#exp-1761109558242-20-0 .error-text{fill:#552222;stroke:#552222;}#exp-1761109558242-20-0 .edge-thickness-normal{stroke-width:1px;}#exp-1761109558242-20-0 .edge-thickness-thick{stroke-width:3.5px;}#exp-1761109558242-20-0 .edge-pattern-solid{stroke-dasharray:0;}#exp-1761109558242-20-0 .edge-thickness-invisible{stroke-width:0;fill:none;}#exp-1761109558242-20-0 .edge-pattern-dashed{stroke-dasharray:3;}#exp-1761109558242-20-0 .edge-pattern-dotted{stroke-dasharray:2;}#exp-1761109558242-20-0 .marker{fill:#333333;stroke:#333333;}#exp-1761109558242-20-0 .marker.cross{stroke:#333333;}#exp-1761109558242-20-0 svg{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;}#exp-1761109558242-20-0 p{margin:0;}#exp-1761109558242-20-0 .label{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;color:#333;}#exp-1761109558242-20-0 .cluster-label text{fill:#333;}#exp-1761109558242-20-0 .cluster-label span{color:#333;}#exp-1761109558242-20-0 .cluster-label span p{background-color:transparent;}#exp-1761109558242-20-0 .label text,#exp-1761109558242-20-0 span{fill:#333;color:#333;}#exp-1761109558242-20-0 .node rect,#exp-1761109558242-20-0 .node circle,#exp-1761109558242-20-0 .node ellipse,#exp-1761109558242-20-0 .node polygon,#exp-1761109558242-20-0 .node path{fill:#ECECFF;stroke:#667eea;stroke-width:1px;}#exp-1761109558242-20-0 .rough-node .label text,#exp-1761109558242-20-0 .node .label text,#exp-1761109558242-20-0 .image-shape .label,#exp-1761109558242-20-0 .icon-shape .label{text-anchor:middle;}#exp-1761109558242-20-0 .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#exp-1761109558242-20-0 .rough-node .label,#exp-1761109558242-20-0 .node .label,#exp-1761109558242-20-0 .image-shape .label,#exp-1761109558242-20-0 .icon-shape .label{text-align:center;}#exp-1761109558242-20-0 .node.clickable{cursor:pointer;}#exp-1761109558242-20-0 .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#exp-1761109558242-20-0 .arrowheadPath{fill:#333333;}#exp-1761109558242-20-0 .edgePath .path{stroke:#333333;stroke-width:2.0px;}#exp-1761109558242-20-0 .flowchart-link{stroke:#333333;fill:none;}#exp-1761109558242-20-0 .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1761109558242-20-0 .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#exp-1761109558242-20-0 .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1761109558242-20-0 .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#exp-1761109558242-20-0 .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#exp-1761109558242-20-0 .cluster text{fill:#333;}#exp-1761109558242-20-0 .cluster span{color:#333;}#exp-1761109558242-20-0 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#exp-1761109558242-20-0 .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#exp-1761109558242-20-0 rect.text{fill:none;stroke-width:0;}#exp-1761109558242-20-0 .icon-shape,#exp-1761109558242-20-0 .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1761109558242-20-0 .icon-shape p,#exp-1761109558242-20-0 .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#exp-1761109558242-20-0 .icon-shape rect,#exp-1761109558242-20-0 .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1761109558242-20-0 .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#exp-1761109558242-20-0 .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#exp-1761109558242-20-0 :root{--mermaid-font-family:\"trebuchet ms\",verdana,arial,sans-serif;}</style><g><marker id=\"exp-1761109558242-20-0_flowchart-v2-pointEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 0 L 10 5 L 0 10 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1761109558242-20-0_flowchart-v2-pointStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"4.5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 5 L 10 10 L 10 0 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1761109558242-20-0_flowchart-v2-circleEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"11\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1761109558242-20-0_flowchart-v2-circleStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-1\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1761109558242-20-0_flowchart-v2-crossEnd\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"12\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1761109558242-20-0_flowchart-v2-crossStart\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"-1\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><g class=\"root\"><g class=\"clusters\"></g><g class=\"edgePaths\"><path d=\"M106.43,80L106.43,84.167C106.43,88.333,106.43,96.667,106.43,104.333C106.43,112,106.43,119,106.43,122.5L106.43,126\" id=\"L_A_B_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_A_B_0\" data-points=\"W3sieCI6MTA2LjQyOTY4NzUsInkiOjgwfSx7IngiOjEwNi40Mjk2ODc1LCJ5IjoxMDV9LHsieCI6MTA2LjQyOTY4NzUsInkiOjEzMH1d\" marker-end=\"url(#exp-1761109558242-20-0_flowchart-v2-pointEnd)\"></path><path d=\"M106.43,202L106.43,206.167C106.43,210.333,106.43,218.667,106.43,226.333C106.43,234,106.43,241,106.43,244.5L106.43,248\" id=\"L_B_C_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_B_C_0\" data-points=\"W3sieCI6MTA2LjQyOTY4NzUsInkiOjIwMn0seyJ4IjoxMDYuNDI5Njg3NSwieSI6MjI3fSx7IngiOjEwNi40Mjk2ODc1LCJ5IjoyNTJ9XQ==\" marker-end=\"url(#exp-1761109558242-20-0_flowchart-v2-pointEnd)\"></path><path d=\"M106.43,324L106.43,328.167C106.43,332.333,106.43,340.667,106.43,348.333C106.43,356,106.43,363,106.43,366.5L106.43,370\" id=\"L_C_D_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_C_D_0\" data-points=\"W3sieCI6MTA2LjQyOTY4NzUsInkiOjMyNH0seyJ4IjoxMDYuNDI5Njg3NSwieSI6MzQ5fSx7IngiOjEwNi40Mjk2ODc1LCJ5IjozNzR9XQ==\" marker-end=\"url(#exp-1761109558242-20-0_flowchart-v2-pointEnd)\"></path><path d=\"M106.43,446L106.43,450.167C106.43,454.333,106.43,462.667,106.43,470.333C106.43,478,106.43,485,106.43,488.5L106.43,492\" id=\"L_D_E_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_D_E_0\" data-points=\"W3sieCI6MTA2LjQyOTY4NzUsInkiOjQ0Nn0seyJ4IjoxMDYuNDI5Njg3NSwieSI6NDcxfSx7IngiOjEwNi40Mjk2ODc1LCJ5Ijo0OTZ9XQ==\" marker-end=\"url(#exp-1761109558242-20-0_flowchart-v2-pointEnd)\"></path><path d=\"M106.43,568L106.43,572.167C106.43,576.333,106.43,584.667,106.43,592.333C106.43,600,106.43,607,106.43,610.5L106.43,614\" id=\"L_E_F_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_E_F_0\" data-points=\"W3sieCI6MTA2LjQyOTY4NzUsInkiOjU2OH0seyJ4IjoxMDYuNDI5Njg3NSwieSI6NTkzfSx7IngiOjEwNi40Mjk2ODc1LCJ5Ijo2MTh9XQ==\" marker-end=\"url(#exp-1761109558242-20-0_flowchart-v2-pointEnd)\"></path></g><g class=\"edgeLabels\"><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_A_B_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_B_C_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_C_D_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_D_E_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_E_F_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g></g><g class=\"nodes\"><g class=\"node default  \" id=\"flowchart-A-0\" transform=\"translate(106.4296875, 44)\"><rect class=\"basic label-container\" style=\"fill:#E5F5E5 !important;stroke:#66BB6A !important\" x=\"-76.609375\" y=\"-36\" width=\"153.21875\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-52.609375, -24)\"><rect></rect><foreignObject width=\"105.21875\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>1️⃣ Визначити<br>акторів</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-B-1\" transform=\"translate(106.4296875, 166)\"><rect class=\"basic label-container\" style=\"fill:#E5F5E5 !important;stroke:#66BB6A !important\" x=\"-77.6796875\" y=\"-36\" width=\"155.359375\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-53.6796875, -24)\"><rect></rect><foreignObject width=\"107.359375\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>2️⃣ Знайти їхні<br>цілі</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-C-3\" transform=\"translate(106.4296875, 288)\"><rect class=\"basic label-container\" style=\"fill:#E8F4F8 !important;stroke:#4A90A4 !important\" x=\"-85.75\" y=\"-36\" width=\"171.5\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-61.75, -24)\"><rect></rect><foreignObject width=\"123.5\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>3️⃣ Створити UC<br>для кожної цілі</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-D-5\" transform=\"translate(106.4296875, 410)\"><rect class=\"basic label-container\" style=\"fill:#E8F4F8 !important;stroke:#4A90A4 !important\" x=\"-85.8671875\" y=\"-36\" width=\"171.734375\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-61.8671875, -24)\"><rect></rect><foreignObject width=\"123.734375\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>4️⃣ Деталізувати<br>критичні UC</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-E-7\" transform=\"translate(106.4296875, 532)\"><rect class=\"basic label-container\" style=\"fill:#FFF4E5 !important;stroke:#FFA726 !important\" x=\"-98.4296875\" y=\"-36\" width=\"196.859375\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-74.4296875, -24)\"><rect></rect><foreignObject width=\"148.859375\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>5️⃣ Провести review<br>зі стейкхолдерами</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-F-9\" transform=\"translate(106.4296875, 654)\"><rect class=\"basic label-container\" style=\"fill:#FFE5E5 !important;stroke:#FF6B6B !important\" x=\"-96.5625\" y=\"-36\" width=\"193.125\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-72.5625, -24)\"><rect></rect><foreignObject width=\"145.125\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>6️⃣ Пріоритизувати<br>UC</p></span></div></foreignObject></g></g></g></g></g></svg></div>\n<div class=\"tip\"><strong>💡 Практична порада</strong> <p>Починайте з питання: <strong>\"Чому користувач прийшов до нашої системи?\"</strong> Кожна відповідь — це потенційний Use Case! 🎯</p>\n</div>\n\n","<h1>📊 Пріоритизація Use Cases</h1>\n<table>\n<thead>\n<tr>\n<th>Критерій</th>\n<th>Вага</th>\n<th>Приклад оцінки</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🎯 Бізнес-цінність</td>\n<td>40%</td>\n<td>Висока (9/10)</td>\n</tr>\n<tr>\n<td>⚡ Частота використання</td>\n<td>30%</td>\n<td>Щодня</td>\n</tr>\n<tr>\n<td>🔴 Критичність</td>\n<td>20%</td>\n<td>Система не працює без цього</td>\n</tr>\n<tr>\n<td>💰 Складність розробки</td>\n<td>10%</td>\n<td>Середня (20 днів)</td>\n</tr>\n</tbody></table>\n<div class=\"success\"><strong>✅ Пріоритет = HIGH</strong> <p>Якщо UC має високу бізнес-цінність + часто використовується + критичний → розробляємо першим! 🚀</p>\n</div>\n\n","<h1>🛠️ Інструменти для роботи з Use Cases</h1>\n<h2>Популярні інструменти 💻</h2>\n<table>\n<thead>\n<tr>\n<th>Інструмент</th>\n<th>Призначення</th>\n<th>Коли використовувати</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Visual Paradigm</strong> 🎨</td>\n<td>UML діаграми + специфікації</td>\n<td>Великі проєкти</td>\n</tr>\n<tr>\n<td><strong>Enterprise Architect</strong> 🏢</td>\n<td>Повний CASE-інструмент</td>\n<td>Корпоративні системи</td>\n</tr>\n<tr>\n<td><strong>Draw.io</strong> ✏️</td>\n<td>Безкоштовні діаграми</td>\n<td>Малі проєкти</td>\n</tr>\n<tr>\n<td><strong>Miro / Figma</strong> 🎯</td>\n<td>Колаборативне моделювання</td>\n<td>Віддалені команди</td>\n</tr>\n<tr>\n<td><strong>Confluence</strong> 📚</td>\n<td>Документування UC</td>\n<td>Agile команди</td>\n</tr>\n</tbody></table>\n<div class=\"tip\"><strong>💡 Рекомендація для початку</strong> <p>Почніть з <strong>простого Google Docs</strong> або <strong>Notion</strong> — головне не інструмент, а зміст! 📝</p>\n</div>\n\n","<h1>🎯 Комплексний приклад: Система бронювання готелю</h1>\n\n<img src=\"https://www.plantuml.com/plantuml/svg/XLJDJjj04BxlKwpeeQq4g0qEeH52f8ZqMgdg0vXaeHQnNTcEMbHL8j2V2mAaeY1nQCKRcE2KG4Zo2hDlr9dPJJ1GskIGx7u_EpFxsSjnuaP9qs-8UDCBthkHwqktbeJHcsIheQJxGSMXhtBWcblRt8Z2Pb1V2HjX91zLA_IzAvUVXCJFotliQjLPBHeiZEegcknNIeLvyJddqunLpOtLGqwh2rMdkd3VoQcyU5Pnq4aqr7eYar16tiQxHDQzIDKIBmo4ACCFtTOjlQFtojADvQkcYXFSFOGChdKR1XRTXbJlm51lCwjIzxq0MR-WJ_l8-mq3IALkGO_eq8LhI9dwsjtoLO2MgxxhDOZHHRCEsJBEsq9GGMwmWNEUWjEyYOGpv0-na7teG8h73FI1X7EiXHXzlJzbn_84oo7lBe9zVO2yNQJq94g6w4HGxoaT-NRbkHKSe-4j-pi2IozO-Y7MpKE07bpetR40Ypsmp3dB_0aZCnf4sV8lJLY9OoMdS8M2retjlqH5ApgXAlEIcrvJ_1ttEs_fHuXcOsesMLpXFxmHYKKFyOBwQ7W-qPOeFnmBEJEpnCFBhmgtLaKXE1jsEIy4CkJiB2tcP5akBdf1hT6igwMb7EBSGueFQ10gMQZ0aFgOgA1k48TFjO535AVIezxelZXGrEMkFkAJYMeYMQQffP1HUFdIZd0G6EaC5HqUPORnxfhvSst_qPffydolSNEi546OAFi4XkkJMC49rqT9-OxC7bmYP92CSamnQCC5GbrAXy1s9JbPlxKmIKBV69hqOVZEg8J7-0nScBkbnuZD3A63HctzLI8qCbdHt_2CoxlU_DPWvzBOUSJC8NVTrtkKjp9ZE841Dvro1g-cfNbhu6vBVw5Jfet7o7H3v_4DwMDSPhcZb_4lleN_0000\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n","<h1>🎯 Пояснення комплексного прикладу</h1>\n<div class=\"info\"><strong>ℹ️ Що показано на діаграмі?</strong> <p><strong>Актори:</strong></p>\n<ul>\n<li>👤 <strong>Гість</strong> — первинний актор, користувач який бронює номери</li>\n<li>👨‍💼 <strong>Адміністратор</strong> — управління номерним фондом готелю</li>\n<li>💳 <strong>Платіжна система</strong> — вторинний актор для обробки платежів</li>\n<li>📧 <strong>Email сервіс</strong> — вторинний актор для відправки повідомлень</li>\n</ul>\n<p><strong>Відношення Include (обов'язкові):</strong></p>\n<ul>\n<li><strong>\"Забронювати номер\"</strong> → <strong>\"Авторизуватися\"</strong>: гість обов'язково має бути авторизований для бронювання</li>\n<li><strong>\"Забронювати номер\"</strong> → <strong>\"Оплатити бронювання\"</strong>: оплата є обов'язковою частиною процесу бронювання</li>\n<li><strong>\"Скасувати бронювання\"</strong> → <strong>\"Авторизуватися\"</strong>: тільки авторизований власник може скасувати своє бронювання</li>\n</ul>\n<p><strong>Відношення Extend (опціональні):</strong></p>\n<ul>\n<li><strong>\"Додати додаткові послуги\"</strong> → <strong>\"Забронювати номер\"</strong>: гість може (але не зобов'язаний) додати додаткові послуги: сніданок, трансфер з аеропорту, пізній виїзд, екскурсії</li>\n</ul>\n<p><strong>Use Cases без додаткових відношень:</strong></p>\n<ul>\n<li><strong>\"Переглянути номери\"</strong> — доступно без авторизації для всіх відвідувачів сайту</li>\n<li><strong>\"Керувати номерами\"</strong> — адміністратор додає/редагує номери (вже авторизований в адмін-панелі)</li>\n</ul>\n<p><strong>Взаємодія з зовнішніми системами:</strong></p>\n<ul>\n<li><strong>\"Оплатити бронювання\"</strong> звертається до Платіжної системи для проведення транзакції</li>\n<li><strong>\"Забронювати номер\"</strong> та <strong>\"Скасувати бронювання\"</strong> надсилають email-повідомлення через Email сервіс</li>\n</ul>\n</div>\n\n\n\n\n\n<div class=\"tip\"><strong>💡 Чому така структура?</strong> <p>Перегляд номерів доступний без реєстрації (для залучення клієнтів), але бронювання та скасування потребують авторизації. Оплата — невід'ємна частина бронювання (include), а додаткові послуги — опціональні (extend). Це типова архітектура систем бронювання.</p>\n</div>\n\n","<h1>🎓 Ключові висновки</h1>\n<div class=\"success\"><strong>✅ Що потрібно запам'ятати</strong> <ol>\n<li>🎯 <strong>Use Cases описують функціональні вимоги</strong> через взаємодію актора з системою</li>\n<li>🎭 <strong>Актор — це роль</strong>, а не конкретна людина</li>\n<li>📝 <strong>Основний сценарій</strong> — це \"щасливий шлях\", але 70% тексту — це альтернативи</li>\n<li>📊 <strong>Use Case діаграми</strong> показують зв'язки, але деталі — в текстових специфікаціях</li>\n<li>⚠️ <strong>Пишіть з точки зору користувача</strong>, а не системи</li>\n<li>🔗 <strong>Include vs Extend</strong> — обов'язкова vs опціональна функціональність</li>\n<li>🧪 <strong>Кожен UC має бути тестованим</strong> — це критерій якості</li>\n<li>🚀 <strong>Пріоритизуйте UC</strong> за бізнес-цінністю та критичністю</li>\n</ol>\n</div>\n\n","<h1>❓ Контрольні питання</h1>\n<p><strong>1. Що таке Use Case?</strong> 🤔</p>\n<ul>\n<li>Поясніть своїми словами</li>\n<li>Наведіть 3 переваги використання Use Cases</li>\n</ul>\n<p><strong>2. Хто такий актор?</strong> 🎭</p>\n<ul>\n<li>Яка різниця між первинним та вторинним актором?</li>\n<li>Наведіть приклад кожного типу</li>\n</ul>\n<p><strong>3. Include vs Extend</strong> 🔗</p>\n<ul>\n<li>У чому різниця між цими відношеннями?</li>\n<li>Наведіть приклад кожного типу</li>\n</ul>\n<p><strong>4. Що має містити Use Case специфікація?</strong> 📝</p>\n<ul>\n<li>Перелічіть основні елементи</li>\n<li>Навіщо потрібні альтернативні сценарії?</li>\n</ul>\n","<h1>❓ Контрольні питання (продовження)</h1>\n<p><strong>5. Типові помилки</strong> ⚠️</p>\n<ul>\n<li>Назвіть 3 помилки при написанні Use Cases</li>\n<li>Як їх уникнути?</li>\n</ul>\n<p><strong>6. Пріоритизація Use Cases</strong> 📊</p>\n<ul>\n<li>Які критерії використати для визначення пріоритету?</li>\n<li>Що робити, якщо всі UC здаються важливими?</li>\n</ul>\n<p><strong>7. Use Cases vs User Stories</strong> 🔍</p>\n<ul>\n<li>У чому головна різниця?</li>\n<li>Коли краще використовувати кожен підхід?</li>\n</ul>\n","<h1>📖 Глосарій термінів</h1>\n<table>\n<thead>\n<tr>\n<th>Термін</th>\n<th>Англійською</th>\n<th>Визначення</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Актор</strong></td>\n<td>Actor</td>\n<td>Роль користувача або зовнішньої системи, що взаємодіє з системою</td>\n</tr>\n<tr>\n<td><strong>Сценарій використання</strong></td>\n<td>Use Case (UC)</td>\n<td>Опис послідовності дій для досягнення мети користувача</td>\n</tr>\n<tr>\n<td><strong>Основний сценарій</strong></td>\n<td>Main Flow / Happy Path</td>\n<td>Ідеальна послідовність дій без помилок</td>\n</tr>\n<tr>\n<td><strong>Альтернативний сценарій</strong></td>\n<td>Alternative Flow / Exception Flow</td>\n<td>Сценарій обробки помилок або відхилень від основного шляху</td>\n</tr>\n<tr>\n<td><strong>Передумова</strong></td>\n<td>Precondition</td>\n<td>Умова, що має виконуватись перед початком UC</td>\n</tr>\n<tr>\n<td><strong>Результат</strong></td>\n<td>Postcondition</td>\n<td>Стан системи після виконання UC</td>\n</tr>\n<tr>\n<td><strong>Включення</strong></td>\n<td>Include</td>\n<td>Обов'язкове використання одного UC в іншому</td>\n</tr>\n<tr>\n<td><strong>Розширення</strong></td>\n<td>Extend</td>\n<td>Опціональне додавання функціональності до UC</td>\n</tr>\n</tbody></table>\n","<h1>📖 Глосарій термінів (продовження)</h1>\n<table>\n<thead>\n<tr>\n<th>Термін</th>\n<th>Англійською</th>\n<th>Визначення</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Первинний актор</strong></td>\n<td>Primary Actor</td>\n<td>Актор, що ініціює взаємодію та отримує цінність від системи</td>\n</tr>\n<tr>\n<td><strong>Вторинний актор</strong></td>\n<td>Secondary Actor</td>\n<td>Актор, що надає сервіси для виконання UC</td>\n</tr>\n<tr>\n<td><strong>UML</strong></td>\n<td>Unified Modeling Language</td>\n<td>Уніфікована мова моделювання — стандарт візуалізації архітектури систем</td>\n</tr>\n<tr>\n<td><strong>CASE</strong></td>\n<td>Computer-Aided Software Engineering</td>\n<td>Програмна інженерія за допомогою комп'ютерних інструментів</td>\n</tr>\n<tr>\n<td><strong>Стейкхолдер</strong></td>\n<td>Stakeholder</td>\n<td>Зацікавлена сторона — особа чи організація, яка має інтерес у проєкті</td>\n</tr>\n<tr>\n<td><strong>Бізнес-логіка</strong></td>\n<td>Business Logic</td>\n<td>Правила та процеси, що визначають поведінку системи</td>\n</tr>\n<tr>\n<td><strong>Функціональна вимога</strong></td>\n<td>Functional Requirement</td>\n<td>Опис того, що система має робити</td>\n</tr>\n</tbody></table>\n","<h1>🎉 Дякую за увагу!</h1>\n<p><strong>Пам'ятайте:</strong> Добре написані Use Cases — це фундамент успішного проєкту! 🏗️</p>\n<p><strong>Питання?</strong> 🙋‍♂️</p>\n"];let currentSlideIndex=0;
+function showSlide(i){if(i<0||i>=slides.length)return;currentSlideIndex=i;const el=document.getElementById("current-slide");el.innerHTML=slides[i];el.scrollTop=0;document.getElementById("progress-bar").style.width=((i+1)/slides.length*100)+"%";document.getElementById("slide-number").textContent=(i+1)+" / "+slides.length;updateSidebarActive();}
+function nextSlide(){if(currentSlideIndex<slides.length-1)showSlide(currentSlideIndex+1);}
+function previousSlide(){if(currentSlideIndex>0)showSlide(currentSlideIndex-1);}
+function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open");}
+function toggleHelp(){document.getElementById("help-overlay").classList.toggle("hidden");}
+function toggleFullscreen(){if(!document.fullscreenElement){const pc=document.getElementById("presentation-container");if(pc.requestFullscreen)pc.requestFullscreen();else if(pc.webkitRequestFullscreen)pc.webkitRequestFullscreen();else if(pc.msRequestFullscreen)pc.msRequestFullscreen();else if(pc.mozRequestFullScreen)pc.mozRequestFullScreen();}else{if(document.exitFullscreen)document.exitFullscreen();else if(document.webkitExitFullscreen)document.webkitExitFullscreen();else if(document.msExitFullscreen)document.msExitFullscreen();else if(document.mozCancelFullScreen)document.mozCancelFullScreen();}}
+function generateSidebar(){const sc=document.getElementById("sidebar-content");sc.innerHTML="";slides.forEach((html,idx)=>{const t=document.createElement("div");t.className="slide-thumbnail";if(idx===0)t.classList.add("active");const tmp=document.createElement("div");tmp.innerHTML=html;const title=tmp.querySelector("h1,h2");const titleText=title?title.textContent:("Слайд "+(idx+1));const textContent=tmp.textContent.replace(/s+/g," ").trim();const preview=textContent.substring(0,100)+(textContent.length>100?"...":"");t.innerHTML="<div class=\"slide-thumbnail-number\">"+(idx+1)+"</div><div class=\"slide-thumbnail-title\">"+titleText+"</div><div class=\"slide-thumbnail-content\">"+preview+"</div>";t.onclick=()=>{showSlide(idx);if(window.innerWidth<1024)toggleSidebar();};sc.appendChild(t);});}
+function updateSidebarActive(){document.querySelectorAll(".slide-thumbnail").forEach((th,idx)=>{if(idx===currentSlideIndex){th.classList.add("active");th.scrollIntoView({behavior:"smooth",block:"nearest"});}else th.classList.remove("active");});}
+document.addEventListener("keydown",e=>{switch(e.key){case"ArrowLeft":previousSlide();break;case"ArrowRight":case" ":e.preventDefault();nextSlide();break;case"f":case"F":toggleFullscreen();break;case"s":case"S":toggleSidebar();break;case"?":toggleHelp();break;case"Escape":const sb=document.getElementById("sidebar");const ho=document.getElementById("help-overlay");if(sb.classList.contains("open"))toggleSidebar();else if(!ho.classList.contains("hidden"))ho.classList.add("hidden");break;}});
+generateSidebar();showSlide(0);</script></body></html>
