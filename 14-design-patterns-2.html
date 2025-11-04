@@ -1,0 +1,613 @@
+<!DOCTYPE html><html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>🎨 Design Patterns 2: Структурні та поведінкові патерни</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"><style>* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #editor-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #editor-container.hidden {
+            display: none;
+        }
+
+        #editor-header {
+            background: #2d3748;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #editor-header h2 {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        #editor-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #4a5568;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2d3748;
+        }
+
+        #markdown-input {
+            flex: 1;
+            padding: 2rem;
+            background: #1a202c;
+            color: #e2e8f0;
+            border: none;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+        }
+
+        #markdown-input:focus {
+            outline: none;
+        }
+
+        .slide-container {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .slide {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 3rem;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .slide::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .slide::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .slide h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .slide h2 {
+            color: #764ba2;
+            font-size: 2rem;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .slide h3 {
+            color: #4a5568;
+            font-size: 1.5rem;
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        .slide p {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .slide ul, .slide ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .slide li {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide pre {
+            background: #282c34;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+
+        .slide pre code {
+            background: transparent;
+            color: #abb2bf;
+        }
+
+        .slide code {
+            font-family: 'Courier New', Consolas, Monaco, monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .slide p code {
+            background: #edf2f7;
+            color: #e53e3e;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .slide blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            color: #4a5568;
+        }
+
+        .slide img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .slide table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .slide th, .slide td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .slide th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .slide tr:nth-child(even) {
+            background: #f7fafc;
+        }
+
+        .note {
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .note strong {
+            color: #c53030;
+        }
+
+        .warning {
+            background: #fffaf0;
+            border-left: 4px solid #f6ad55;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .warning strong {
+            color: #c05621;
+        }
+
+        .info {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .info strong {
+            color: #2c5282;
+        }
+
+        .success {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .success strong {
+            color: #22543d;
+        }
+
+        .danger {
+            background: #fff5f5;
+            border-left: 4px solid #f56565;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .danger strong {
+            color: #742a2a;
+        }
+
+        .tip {
+            background: #fefcbf;
+            border-left: 4px solid #ecc94b;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .tip strong {
+            color: #744210;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: white;
+            transition: width 0.3s;
+        }
+
+        .slide-number {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            color: #667eea;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #sidebar {
+            position: fixed;
+            right: -320px;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+            transition: right 0.3s ease;
+            z-index: 200;
+            padding: 1rem;
+        }
+
+        #sidebar.open {
+            right: 0;
+        }
+
+        #sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+
+        #sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #667eea;
+        }
+
+        #sidebar-header h3 {
+            color: #667eea;
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        #sidebar-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #4a5568;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        #sidebar-close:hover {
+            color: #667eea;
+        }
+
+        .slide-thumbnail {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+
+        .slide-thumbnail:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+            transform: translateX(-4px);
+        }
+
+        .slide-thumbnail.active {
+            border-color: #667eea;
+            background: #f7faff;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .slide-thumbnail-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide-thumbnail-content {
+            font-size: 0.85rem;
+            color: #2d3748;
+            line-height: 1.4;
+            max-height: 4.2rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slide-thumbnail-content::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 50%;
+            height: 1.4rem;
+            background: linear-gradient(to right, transparent, white);
+        }
+
+        .slide-thumbnail.active .slide-thumbnail-content::after {
+            background: linear-gradient(to right, transparent, #f7faff);
+        }
+
+        .slide-thumbnail-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 0.25rem;
+        }
+
+        #sidebar-toggle {
+            position: fixed;
+            right: 1rem;
+            top: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 8px;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 150;
+        }
+
+        #sidebar-toggle:hover {
+            background: white;
+            transform: scale(1.05);
+        }
+
+        .mermaid {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            overflow: visible; /* щоб не обрізати тіні / розширені ноди */
+        }
+
+        /* Запобігаємо обрізанню останньої літери в нодах Mermaid через зміну font-weight після розрахунку розміру */
+        .mermaid svg { overflow: visible !important; }
+        /* перестраховка проти обрізання foreignObject (на випадок інших діаграм) */
+        .mermaid svg foreignObject { overflow: visible !important; }
+
+        .plantuml-diagram {
+            max-width: 100%;
+            height: auto;
+            margin: 1.5rem auto;
+            display: block;
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #help-overlay {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            transition: opacity 0.3s;
+        }
+
+        #help-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #help-overlay kbd {
+            background: #2d3748;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.85em;
+        }
+
+        .mermaid-error {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            padding: 1rem;
+            border-radius: 6px;
+            color: #742a2a;
+            margin: 1.5rem 0;
+        }
+
+        .mermaid-error pre {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+        }
+
+        /* Повноекранний режим - зберігаємо оригінальний фон */
+        #presentation-container:fullscreen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-webkit-full-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-moz-full-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-ms-fullscreen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+#presentation-container:fullscreen,#presentation-container:-webkit-full-screen,#presentation-container:-moz-full-screen,#presentation-container:-ms-fullscreen{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)!important;}</style></head><body><div id="presentation-container"><div class="progress"><div class="progress-bar" id="progress-bar"></div></div><button id="sidebar-toggle" onclick="toggleSidebar()" title="Навігація слайдами (S)">☰</button><div id="sidebar"><div id="sidebar-header"><h3>📑 Слайди</h3><button id="sidebar-close" onclick="toggleSidebar()">✕</button></div><div id="sidebar-content"></div></div><div class="slide-container"><div class="slide" id="current-slide"></div></div><div class="controls"><button class="control-btn" onclick="previousSlide()" title="Попередній (←)">←</button><button class="control-btn" onclick="nextSlide()" title="Наступний (→)">→</button><button class="control-btn" onclick="toggleFullscreen()" title="Повноекранний режим (F)">⛶</button><button class="control-btn" onclick="toggleHelp()" title="Допомога (?)">?</button></div><div class="slide-number" id="slide-number">1 / 18</div><div id="help-overlay" class="hidden"><strong>Гарячі клавіші:</strong><br><kbd>←</kbd> <kbd>→</kbd> Навігація<br><kbd>F</kbd> Повноекранний режим<br><kbd>S</kbd> Sidebar<br><kbd>?</kbd> Допомога<br><kbd>Esc</kbd> Закрити</div></div><script>const slides=["<h1>🎨 Design Patterns 2: Структурні та поведінкові патерни</h1>\n<p><strong>Курс:</strong> Основи інженерії програмного забезпечення<br><strong>Лектор:</strong> Кобилянський Антон</p>\n","<h2>📋 План лекції</h2>\n<ol>\n<li>🎁 Decorator Pattern (Структурний)</li>\n<li>👀 Observer Pattern (Поведінковий)</li>\n<li>🎯 Strategy Pattern (Поведінковий)</li>\n<li>💡 Ключові висновки</li>\n<li>❓ Контрольні питання</li>\n<li>📖 Глосарій</li>\n</ol>\n","<h1>🎁 Decorator Pattern</h1>\n<h2>🤔 Проблема: Кав'ярня з добавками</h2>\n<p>Уявіть кав'ярню ☕. Є базова кава, і клієнт може додавати різні інгредієнти:</p>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-comment\">// ❌ Погане рішення - окремий клас для кожної комбінації</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Coffee</span> { }\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">CoffeeWithMilk</span> <span class=\"hljs-keyword\">extends</span> <span class=\"hljs-title class_\">Coffee</span> { }\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">CoffeeWithSugar</span> <span class=\"hljs-keyword\">extends</span> <span class=\"hljs-title class_\">Coffee</span> { }\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">CoffeeWithMilkAndSugar</span> <span class=\"hljs-keyword\">extends</span> <span class=\"hljs-title class_\">Coffee</span> { }\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">CoffeeWithMilkSugarAndCaramel</span> <span class=\"hljs-keyword\">extends</span> <span class=\"hljs-title class_\">Coffee</span> { }\n<span class=\"hljs-comment\">// І так далі... 😱</span></code></pre><div class=\"warning\"><strong>⚠️ Комбінаторний вибух</strong> <p><strong>Скільки класів потрібно?</strong></p>\n<p>Припустимо у нас є 4 добавки: Молоко, Цукор, Карамель, Вершки.</p>\n<p>Для кожної добавки є <strong>2 варіанти</strong>:</p>\n<ul>\n<li>✅ <strong>Додати</strong> цю добавку</li>\n<li>❌ <strong>Не додавати</strong> цю добавку</li>\n</ul>\n<p><strong>Приклад з 3 добавками (Молоко, Цукор, Карамель):</strong></p>\n<table>\n<thead>\n<tr>\n<th>№</th>\n<th>Молоко</th>\n<th>Цукор</th>\n<th>Карамель</th>\n<th>Клас</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>1</td>\n<td>❌</td>\n<td>❌</td>\n<td>❌</td>\n<td><code>Coffee</code></td>\n</tr>\n<tr>\n<td>2</td>\n<td>✅</td>\n<td>❌</td>\n<td>❌</td>\n<td><code>CoffeeWithMilk</code></td>\n</tr>\n<tr>\n<td>3</td>\n<td>❌</td>\n<td>✅</td>\n<td>❌</td>\n<td><code>CoffeeWithSugar</code></td>\n</tr>\n<tr>\n<td>4</td>\n<td>❌</td>\n<td>❌</td>\n<td>✅</td>\n<td><code>CoffeeWithCaramel</code></td>\n</tr>\n<tr>\n<td>5</td>\n<td>✅</td>\n<td>✅</td>\n<td>❌</td>\n<td><code>CoffeeWithMilkAndSugar</code></td>\n</tr>\n<tr>\n<td>6</td>\n<td>✅</td>\n<td>❌</td>\n<td>✅</td>\n<td><code>CoffeeWithMilkAndCaramel</code></td>\n</tr>\n<tr>\n<td>7</td>\n<td>❌</td>\n<td>✅</td>\n<td>✅</td>\n<td><code>CoffeeWithSugarAndCaramel</code></td>\n</tr>\n<tr>\n<td>8</td>\n<td>✅</td>\n<td>✅</td>\n<td>✅</td>\n<td><code>CoffeeWithMilkSugarAndCaramel</code></td>\n</tr>\n</tbody></table>\n<p><strong>Разом: 2³ = 8 класів</strong> (для кожної добавки вибираємо: додати чи ні)</p>\n<p><strong>Формула:</strong> <code>2ⁿ</code> де n = кількість добавок</p>\n<table>\n<thead>\n<tr>\n<th>Добавок</th>\n<th>Розрахунок</th>\n<th>Класів</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>3</td>\n<td>2×2×2</td>\n<td><strong>8</strong></td>\n</tr>\n<tr>\n<td>4</td>\n<td>2×2×2×2</td>\n<td><strong>16</strong> 😰</td>\n</tr>\n<tr>\n<td>5</td>\n<td>2×2×2×2×2</td>\n<td><strong>32</strong> 😱</td>\n</tr>\n<tr>\n<td>10</td>\n<td>2¹⁰</td>\n<td><strong>1,024</strong> 💀</td>\n</tr>\n</tbody></table>\n<p><strong>Чому саме 2ⁿ?</strong></p>\n<ul>\n<li>Для 1-ї добавки: 2 варіанти (є/немає)</li>\n<li>Для 2-ї добавки: 2 варіанти × 2 попередні = 4 комбінації</li>\n<li>Для 3-ї добавки: 2 варіанти × 4 попередні = 8 комбінацій</li>\n<li>Для n-ї добавки: <strong>2ⁿ</strong> комбінацій</li>\n</ul>\n<p><strong>Додаткові проблеми:</strong></p>\n<ul>\n<li>🔒 <strong>Негнючкість</strong> — що якщо клієнт хоче <strong>подвійну порцію</strong> молока? Потрібен ще один клас!</li>\n<li>💰 <strong>Складно рахувати ціну</strong> — в кожному класі своя логіка</li>\n<li>🐛 <strong>Важко підтримувати</strong> — зміна ціни молока = правити багато класів</li>\n</ul>\n</div>\n\n\n\n<p><strong>Цікавий факт:</strong> 💡 У Starbucks можна зробити 87,000 комбінацій напоїв!</p>\n","<h2>✅ Рішення: Decorator Pattern</h2>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Decorator (Декоратор)</strong> — структурний патерн, який дозволяє <strong>динамічно додавати функціональність</strong>, обгортаючи об'єкти у спеціальні обгортки.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Замість окремих класів, ми \"обгортаємо\" базову каву декораторами-добавками.</p>\n\n<img src=\"https://www.plantuml.com/plantuml/svg/hLDDJW8n6Dtt55_2HZE118L820jme3jNdA1qEcD3QSdNJbo8YHVm12vSkJDkN7i7l8b7S6PQ0Wpuix2hvhtNzxtNfaFh6BfyeOYTIxrao1OmOtoUeSbr4Xjb41gKqWczs55mnQo5MmB5kgoh9stQfTHp1XE10U-rnnqwgl0Heha9S8V6vuNv7I5IEu4fum9YawP2X04HPCADXUKebquQVNBQXwb3gRCj7HlhIZmn-Ko9qin7dCh5Keb_i6Cpwv1n5wfxnx7W1fahMdZh1l0AxmT-c-DAgldk_6_pvXd3lmZZyXs4-baQUWzMhTRUJUmHjIgaNcsmQZQh_CUPAl5nAcGy84t9-I146oS0PNRjmAH-3C3dq_CZH5rOlttShz-9q0cKkhhQZoxb3oyGdVqctyIf3hn2r3iyC2osnL_u0W00\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n","<h2>💻 Реалізація Decorator</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-comment\">// Базовий інтерфейс</span>\n<span class=\"hljs-keyword\">interface</span> <span class=\"hljs-title class_\">Coffee</span> {\n    String <span class=\"hljs-title function_\">getDescription</span><span class=\"hljs-params\">()</span>;\n    <span class=\"hljs-type\">double</span> <span class=\"hljs-title function_\">getCost</span><span class=\"hljs-params\">()</span>;\n}\n\n<span class=\"hljs-comment\">// Проста чорна кава</span>\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">SimpleCoffee</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">Coffee</span> {\n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> String <span class=\"hljs-title function_\">getDescription</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">return</span> <span class=\"hljs-string\">\"Кава\"</span>;\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-type\">double</span> <span class=\"hljs-title function_\">getCost</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">return</span> <span class=\"hljs-number\">25.0</span>;\n    }\n}\n\n<span class=\"hljs-comment\">// Базовий декоратор</span>\n<span class=\"hljs-keyword\">abstract</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">CoffeeDecorator</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">Coffee</span> {\n    <span class=\"hljs-keyword\">protected</span> Coffee coffee;\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">CoffeeDecorator</span><span class=\"hljs-params\">(Coffee coffee)</span> {\n        <span class=\"hljs-built_in\">this</span>.coffee = coffee;\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> String <span class=\"hljs-title function_\">getDescription</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">return</span> coffee.getDescription();\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-type\">double</span> <span class=\"hljs-title function_\">getCost</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">return</span> coffee.getCost();\n    }\n}\n\n<span class=\"hljs-comment\">// 🥛 Молоко</span>\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Milk</span> <span class=\"hljs-keyword\">extends</span> <span class=\"hljs-title class_\">CoffeeDecorator</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">Milk</span><span class=\"hljs-params\">(Coffee coffee)</span> {\n        <span class=\"hljs-built_in\">super</span>(coffee);\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> String <span class=\"hljs-title function_\">getDescription</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">return</span> coffee.getDescription() + <span class=\"hljs-string\">\" + Молоко\"</span>;\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-type\">double</span> <span class=\"hljs-title function_\">getCost</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">return</span> coffee.getCost() + <span class=\"hljs-number\">5.0</span>;\n    }\n}\n\n<span class=\"hljs-comment\">// 🍬 Цукор</span>\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Sugar</span> <span class=\"hljs-keyword\">extends</span> <span class=\"hljs-title class_\">CoffeeDecorator</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">Sugar</span><span class=\"hljs-params\">(Coffee coffee)</span> {\n        <span class=\"hljs-built_in\">super</span>(coffee);\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> String <span class=\"hljs-title function_\">getDescription</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">return</span> coffee.getDescription() + <span class=\"hljs-string\">\" + Цукор\"</span>;\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-type\">double</span> <span class=\"hljs-title function_\">getCost</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">return</span> coffee.getCost() + <span class=\"hljs-number\">2.0</span>;\n    }\n}\n\n<span class=\"hljs-comment\">// 🍮 Карамель</span>\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Caramel</span> <span class=\"hljs-keyword\">extends</span> <span class=\"hljs-title class_\">CoffeeDecorator</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">Caramel</span><span class=\"hljs-params\">(Coffee coffee)</span> {\n        <span class=\"hljs-built_in\">super</span>(coffee);\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> String <span class=\"hljs-title function_\">getDescription</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">return</span> coffee.getDescription() + <span class=\"hljs-string\">\" + Карамель\"</span>;\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-type\">double</span> <span class=\"hljs-title function_\">getCost</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">return</span> coffee.getCost() + <span class=\"hljs-number\">8.0</span>;\n    }\n}\n\n<span class=\"hljs-comment\">// 🍦 Вершки</span>\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">WhippedCream</span> <span class=\"hljs-keyword\">extends</span> <span class=\"hljs-title class_\">CoffeeDecorator</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">WhippedCream</span><span class=\"hljs-params\">(Coffee coffee)</span> {\n        <span class=\"hljs-built_in\">super</span>(coffee);\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> String <span class=\"hljs-title function_\">getDescription</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">return</span> coffee.getDescription() + <span class=\"hljs-string\">\" + Вершки\"</span>;\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-type\">double</span> <span class=\"hljs-title function_\">getCost</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">return</span> coffee.getCost() + <span class=\"hljs-number\">7.0</span>;\n    }\n}</code></pre>","<h2>🎬 Використання Decorator</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">CoffeeShop</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">static</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">printOrder</span><span class=\"hljs-params\">(Coffee coffee)</span> {\n        System.out.println(coffee.getDescription());\n        System.out.println(<span class=\"hljs-string\">\"Ціна: \"</span> + coffee.getCost() + <span class=\"hljs-string\">\" грн\"</span>);\n        System.out.println();\n    }\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">static</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">main</span><span class=\"hljs-params\">(String[] args)</span> {\n        System.out.println(<span class=\"hljs-string\">\"☕ Ласкаво просимо до кав'ярні!\\n\"</span>);\n        \n        <span class=\"hljs-comment\">// 1️⃣ Проста чорна кава</span>\n        <span class=\"hljs-type\">Coffee</span> <span class=\"hljs-variable\">coffee1</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">SimpleCoffee</span>();\n        printOrder(coffee1);\n        \n        <span class=\"hljs-comment\">// 2️⃣ Кава з молоком</span>\n        <span class=\"hljs-type\">Coffee</span> <span class=\"hljs-variable\">coffee2</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Milk</span>(<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">SimpleCoffee</span>());\n        printOrder(coffee2);\n        \n        <span class=\"hljs-comment\">// 3️⃣ Кава з молоком і цукром</span>\n        <span class=\"hljs-type\">Coffee</span> <span class=\"hljs-variable\">coffee3</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Sugar</span>(\n            <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Milk</span>(\n                <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">SimpleCoffee</span>()\n            )\n        );\n        printOrder(coffee3);\n        \n        <span class=\"hljs-comment\">// 4️⃣ Латте з карамеллю (молоко + карамель)</span>\n        <span class=\"hljs-type\">Coffee</span> <span class=\"hljs-variable\">coffee4</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Caramel</span>(\n            <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Milk</span>(\n                <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">SimpleCoffee</span>()\n            )\n        );\n        printOrder(coffee4);\n        \n        <span class=\"hljs-comment\">// 5️⃣ Делюкс напій (все разом!)</span>\n        <span class=\"hljs-type\">Coffee</span> <span class=\"hljs-variable\">coffee5</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">WhippedCream</span>(\n            <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Caramel</span>(\n                <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Sugar</span>(\n                    <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Milk</span>(\n                        <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">SimpleCoffee</span>()\n                    )\n                )\n            )\n        );\n        printOrder(coffee5);\n        \n        <span class=\"hljs-comment\">// 6️⃣ Подвійне молоко (можна додавати той самий декоратор кілька разів!)</span>\n        <span class=\"hljs-type\">Coffee</span> <span class=\"hljs-variable\">coffee6</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Milk</span>(\n            <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Milk</span>(\n                <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">SimpleCoffee</span>()\n            )\n        );\n        printOrder(coffee6);\n    }\n}</code></pre><p><strong>Результат:</strong></p>\n<pre><code class=\"language-plaintext hljs\" data-highlighted=\"yes\">☕ Ласкаво просимо до кав'ярні!\n\nКава\nЦіна: 25.0 грн\n\nКава + Молоко\nЦіна: 30.0 грн\n\nКава + Молоко + Цукор\nЦіна: 32.0 грн\n\nКава + Молоко + Карамель\nЦіна: 38.0 грн\n\nКава + Молоко + Цукор + Карамель + Вершки\nЦіна: 47.0 грн\n\nКава + Молоко + Молоко\nЦіна: 35.0 грн</code></pre><div class=\"success\"><strong>✅ Переваги</strong> <p>✅ <strong>Гнучкість</strong> — будь-яка комбінація добавок<br>✅ <strong>Прозорість ціни</strong> — кожна добавка додає свою вартість<br>✅ <strong>Легко розширювати</strong> — нова добавка = 1 новий клас<br>✅ <strong>Можна повторювати</strong> — подвійна порція молока!</p>\n</div>\n\n\n\n<p><strong>🌍 Приклади з реального світу:</strong></p>\n<ul>\n<li><strong>☕ Starbucks:</strong> Espresso + Milk + Caramel + Whipped Cream</li>\n<li><strong>🍕 Піца:</strong> Dough + Sauce + Cheese + Toppings</li>\n<li><strong>🌊 Java I/O:</strong> <code>BufferedReader(InputStreamReader(FileInputStream))</code></li>\n<li><strong>🎨 GUI:</strong> JScrollPane(JTextArea) - додає скролбар до текстового поля</li>\n</ul>\n","<h2>🎯 Переваги та приклади</h2>\n<div class=\"success\"><strong>✅ Переваги</strong> <p>✅ <strong>Гнучкість</strong> — будь-яка комбінація декораторів<br>✅ <strong>Динамічність</strong> — додавання функціональності у runtime<br>✅ <strong>Масштабованість</strong> — легко додати новий декоратор<br>✅ <strong>Розширюваність</strong> — не треба змінювати існуючий код</p>\n</div>\n\n\n\n<p><strong>🌍 Приклади з реального світу:</strong></p>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-comment\">// 🌊 Java I/O Streams - класичний приклад Decorator</span>\n<span class=\"hljs-type\">BufferedReader</span> <span class=\"hljs-variable\">reader</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">BufferedReader</span>(    <span class=\"hljs-comment\">// Буферизація</span>\n    <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">InputStreamReader</span>(                      <span class=\"hljs-comment\">// Перетворення байтів</span>\n        <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">FileInputStream</span>(<span class=\"hljs-string\">\"file.txt\"</span>)         <span class=\"hljs-comment\">// Читання з файлу</span>\n    )\n);</code></pre><ul>\n<li><strong>💬 Месенджери:</strong> Шифрування, стиснення, форматування повідомлень (Telegram, WhatsApp)</li>\n<li><strong>🎨 GUI:</strong> Додавання скролбарів, рамок до вікон (<code>JScrollPane</code>)</li>\n<li><strong>🌐 HTTP:</strong> Middleware у Express.js - логування, автентифікація, компресія</li>\n<li><strong>📝 Текстові редактори:</strong> Форматування (жирний, курсив, підкреслення)</li>\n<li><strong>🎮 Ігри:</strong> Покращення зброї/персонажів (базовий меч → +10 сили → +5 швидкості)</li>\n</ul>\n","<h1>👀 Observer Pattern</h1>\n<h2>🤔 Проблема: YouTube підписки</h2>\n<p>Уявіть YouTube канал 📺. Як повідомляти підписників про нові відео?</p>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-comment\">// ❌ Погане рішення - підписники постійно перевіряють</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Subscriber</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">checkForNewVideos</span><span class=\"hljs-params\">(Channel channel)</span> {\n        <span class=\"hljs-keyword\">while</span> (<span class=\"hljs-literal\">true</span>) {\n            <span class=\"hljs-keyword\">if</span> (channel.hasNewVideo()) {\n                System.out.println(<span class=\"hljs-string\">\"Є нове відео!\"</span>);\n            }\n            Thread.sleep(<span class=\"hljs-number\">60000</span>); <span class=\"hljs-comment\">// Перевірка щохвилини</span>\n        }\n    }\n}</code></pre><div class=\"warning\"><strong>⚠️ Проблеми Polling</strong> <ul>\n<li>🔄 <strong>Марнування ресурсів</strong> — перевірки навіть без нових відео</li>\n<li>⏱️ <strong>Затримки</strong> — можна пропустити момент публікації</li>\n<li>📈 <strong>Погана масштабованість</strong> — мільйони підписників = мільйони запитів</li>\n</ul>\n</div>\n\n","<h2>✅ Рішення: Observer Pattern</h2>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Observer (Спостерігач)</strong> — поведінковий патерн, який визначає <strong>залежність один-до-багатьох</strong>: при зміні об'єкта всі залежні автоматично сповіщаються.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Замість опитування, канал сам <strong>повідомляє</strong> підписників про нові відео.</p>\n\n<img src=\"https://www.plantuml.com/plantuml/svg/TP5FImCn4CNl-HG1Brja2uBIjHGfBhidmSEAu35_fZKscocJf23gTxUssRGkDCTvBxzvBrdw82Z4tZA_CMuhIFHS2hLP4qQdQxH8_AfjswQTdJcK5TxpByRtvt7iRghshha_QaWQACshctfMtR8VnemBG2kXW7THVe0A2NNDVPHUaP5GeFH0Ew19KgAxh3aCPlNvdAQ-cFnVCWXvIzng4Q3O6Gruy1xxl65yYHBgT-4SsEGkJvd8p_cJyM4n01yopwBGht-u8fXWuGpQvTiPw4GFSzu5CcvzAT7mC8llwNGKZEK-1_6qW8qAO5dcxemjmUdzF_y2\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n","<h2>💻 Реалізація Observer</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-comment\">// Інтерфейси</span>\n<span class=\"hljs-keyword\">interface</span> <span class=\"hljs-title class_\">Subject</span> {\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">subscribe</span><span class=\"hljs-params\">(Observer observer)</span>;\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">unsubscribe</span><span class=\"hljs-params\">(Observer observer)</span>;\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">notifyObservers</span><span class=\"hljs-params\">(String video)</span>;\n}\n\n<span class=\"hljs-keyword\">interface</span> <span class=\"hljs-title class_\">Observer</span> {\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">update</span><span class=\"hljs-params\">(String video)</span>;\n}\n\n<span class=\"hljs-comment\">// YouTube канал (Subject)</span>\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">YouTubeChannel</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">Subject</span> {\n    <span class=\"hljs-keyword\">private</span> List&lt;Observer&gt; subscribers = <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">ArrayList</span>&lt;&gt;();\n    <span class=\"hljs-keyword\">private</span> String channelName;\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">YouTubeChannel</span><span class=\"hljs-params\">(String name)</span> {\n        <span class=\"hljs-built_in\">this</span>.channelName = name;\n    }\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">subscribe</span><span class=\"hljs-params\">(Observer observer)</span> {\n        subscribers.add(observer);\n    }\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">unsubscribe</span><span class=\"hljs-params\">(Observer observer)</span> {\n        subscribers.remove(observer);\n    }\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">notifyObservers</span><span class=\"hljs-params\">(String video)</span> {\n        <span class=\"hljs-keyword\">for</span> (Observer subscriber : subscribers) {\n            subscriber.update(video);\n        }\n    }\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">uploadVideo</span><span class=\"hljs-params\">(String title)</span> {\n        System.out.println(<span class=\"hljs-string\">\"📹 [\"</span> + channelName + <span class=\"hljs-string\">\"] завантажив: \"</span> + title);\n        notifyObservers(title); <span class=\"hljs-comment\">// Автоматично повідомляємо всіх!</span>\n    }\n}\n\n<span class=\"hljs-comment\">// Підписник (Observer)</span>\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Subscriber</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">Observer</span> {\n    <span class=\"hljs-keyword\">private</span> String name;\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">Subscriber</span><span class=\"hljs-params\">(String name)</span> {\n        <span class=\"hljs-built_in\">this</span>.name = name;\n    }\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">update</span><span class=\"hljs-params\">(String video)</span> {\n        System.out.println(<span class=\"hljs-string\">\"🔔 \"</span> + name + <span class=\"hljs-string\">\" отримав сповіщення: \"</span> + video);\n    }\n}</code></pre>","<h2>🎬 Використання та результат</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">YouTubeApp</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">static</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">main</span><span class=\"hljs-params\">(String[] args)</span> {\n        <span class=\"hljs-comment\">// Створюємо канал</span>\n        <span class=\"hljs-type\">YouTubeChannel</span> <span class=\"hljs-variable\">techChannel</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">YouTubeChannel</span>(<span class=\"hljs-string\">\"TechReviews\"</span>);\n        \n        <span class=\"hljs-comment\">// Підписуємось</span>\n        <span class=\"hljs-type\">Subscriber</span> <span class=\"hljs-variable\">alice</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Subscriber</span>(<span class=\"hljs-string\">\"Alice\"</span>);\n        <span class=\"hljs-type\">Subscriber</span> <span class=\"hljs-variable\">bob</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Subscriber</span>(<span class=\"hljs-string\">\"Bob\"</span>);\n        <span class=\"hljs-type\">Subscriber</span> <span class=\"hljs-variable\">charlie</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Subscriber</span>(<span class=\"hljs-string\">\"Charlie\"</span>);\n        \n        techChannel.subscribe(alice);\n        techChannel.subscribe(bob);\n        techChannel.subscribe(charlie);\n        \n        <span class=\"hljs-comment\">// Завантажуємо відео - автоматично всі отримують сповіщення!</span>\n        techChannel.uploadVideo(<span class=\"hljs-string\">\"iPhone 15 огляд\"</span>);\n        \n        System.out.println();\n        \n        <span class=\"hljs-comment\">// Bob відписався</span>\n        techChannel.unsubscribe(bob);\n        \n        <span class=\"hljs-comment\">// Нове відео - Bob не отримає сповіщення</span>\n        techChannel.uploadVideo(<span class=\"hljs-string\">\"MacBook Air 2024\"</span>);\n    }\n}</code></pre><p><strong>Результат:</strong></p>\n<pre><code class=\"language-plaintext hljs\" data-highlighted=\"yes\">📹 [TechReviews] завантажив: iPhone 15 огляд\n🔔 Alice отримав сповіщення: iPhone 15 огляд\n🔔 Bob отримав сповіщення: iPhone 15 огляд\n🔔 Charlie отримав сповіщення: iPhone 15 огляд\n\n📹 [TechReviews] завантажив: MacBook Air 2024\n🔔 Alice отримав сповіщення: MacBook Air 2024\n🔔 Charlie отримав сповіщення: MacBook Air 2024</code></pre><div class=\"success\"><strong>✅ Переваги</strong> <p>✅ <strong>Автоматичне сповіщення</strong> — не треба перевіряти вручну<br>✅ <strong>Слабка зв'язність</strong> — канал не знає деталей про підписників<br>✅ <strong>Динамічність</strong> — підписка/відписка в runtime<br>✅ <strong>Масштабованість</strong> — легко додавати нових підписників</p>\n</div>\n\n\n\n<p><strong>🌍 Реальні приклади:</strong> YouTube, Instagram, Twitter (соцмережі), Email розсилки, Stock Market Apps, UI Events</p>\n","<h1>🎯 Strategy Pattern</h1>\n<h2>🤔 Проблема: Способи оплати в магазині</h2>\n<p>Уявіть інтернет-магазин 🛒. Клієнт може оплатити покупку різними способами:</p>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-comment\">// ❌ Погане рішення - величезні if-else блоки</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">ShoppingCart</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">checkout</span><span class=\"hljs-params\">(String paymentType, <span class=\"hljs-type\">double</span> amount)</span> {\n        <span class=\"hljs-keyword\">if</span> (paymentType.equals(<span class=\"hljs-string\">\"card\"</span>)) {\n            System.out.println(<span class=\"hljs-string\">\"💳 Обробка картки...\"</span>);\n            System.out.println(<span class=\"hljs-string\">\"Перевірка CVV\"</span>);\n            System.out.println(<span class=\"hljs-string\">\"Списано: \"</span> + amount + <span class=\"hljs-string\">\" грн\"</span>);\n        } <span class=\"hljs-keyword\">else</span> <span class=\"hljs-keyword\">if</span> (paymentType.equals(<span class=\"hljs-string\">\"paypal\"</span>)) {\n            System.out.println(<span class=\"hljs-string\">\"🅿️ Redirect на PayPal...\"</span>);\n            System.out.println(<span class=\"hljs-string\">\"Логін у PayPal акаунт\"</span>);\n            System.out.println(<span class=\"hljs-string\">\"Списано: \"</span> + amount + <span class=\"hljs-string\">\" грн\"</span>);\n        } <span class=\"hljs-keyword\">else</span> <span class=\"hljs-keyword\">if</span> (paymentType.equals(<span class=\"hljs-string\">\"crypto\"</span>)) {\n            System.out.println(<span class=\"hljs-string\">\"₿ Криптовалюта...\"</span>);\n            System.out.println(<span class=\"hljs-string\">\"Генерація Bitcoin адреси\"</span>);\n            System.out.println(<span class=\"hljs-string\">\"Списано: \"</span> + amount + <span class=\"hljs-string\">\" грн\"</span>);\n        } <span class=\"hljs-keyword\">else</span> <span class=\"hljs-keyword\">if</span> (paymentType.equals(<span class=\"hljs-string\">\"cash\"</span>)) {\n            System.out.println(<span class=\"hljs-string\">\"💵 Оплата готівкою при доставці\"</span>);\n            <span class=\"hljs-comment\">// ... багато логіки</span>\n        }\n        <span class=\"hljs-comment\">// Кожен новий спосіб оплати = новий if 😱</span>\n    }\n}</code></pre><div class=\"warning\"><strong>⚠️ Проблеми</strong> <ul>\n<li>🔧 <strong>Складність</strong> — вся логіка в одному методі</li>\n<li>🔒 <strong>Складно розширювати</strong> — новий спосіб = модифікація класу</li>\n<li>📖 <strong>Важко читати</strong> — величезні if-else блоки</li>\n<li>🧪 <strong>Складно тестувати</strong> — треба покривати всі гілки</li>\n<li>📦 <strong>Заплутаність</strong> — клас відповідає за занадто багато речей</li>\n</ul>\n</div>\n\n","<h2>✅ Рішення: Strategy Pattern</h2>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Strategy (Стратегія)</strong> — поведінковий патерн, який визначає <strong>сімейство алгоритмів</strong>, інкапсулює кожен та робить їх взаємозамінними.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Винести кожен спосіб оплати в окремий клас з спільним інтерфейсом.</p>\n\n<img src=\"https://www.plantuml.com/plantuml/svg/bPC_QiCm5CPtdU91buIGJFr3GuTGDvu3EO5gAxQmBHb9BfYs40AT2nsxz0g1Bg6Bhs1VeHTeZr2vKHlRiI7H99w-t_k-zq0JgR1GIHGY6L0MOu4ZkCLEu0cUCDVY8HTmOjlsrBweA9mGImdt2FIvRb5VJi-tRrouHFpNRyvERVI8q1QV-poEAVCi7S3q6aACquWmDLS2A-AbOvZL2x-o0KYY6WyzQIvz8t5yuWGyKJqSwN2gNnfJfeXOO8Sqsnh_GUd_1upXZbDtbzSInALAftKDV0YafJCS7W5O8eqLFmR0qZz8Njit7mxtLjlSoTN3QBG_TRkiDcTNfyfa7PBTB0WnhWW8wlawxQ8b1y3tsyixvA_vkbWMg_mZNoF2N2Yv9bsFLv9FsTVcsTGxiNfaWCzLflsAPRx9C-rOzPleg_v6Fm00\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n","<h2>💻 Реалізація Strategy</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-comment\">// Інтерфейс стратегії оплати</span>\n<span class=\"hljs-keyword\">interface</span> <span class=\"hljs-title class_\">PaymentStrategy</span> {\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">pay</span><span class=\"hljs-params\">(<span class=\"hljs-type\">double</span> amount)</span>;\n}\n\n<span class=\"hljs-comment\">// 💳 Оплата карткою</span>\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">CreditCardPayment</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">PaymentStrategy</span> {\n    <span class=\"hljs-keyword\">private</span> String cardNumber;\n    <span class=\"hljs-keyword\">private</span> String cvv;\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">CreditCardPayment</span><span class=\"hljs-params\">(String cardNumber, String cvv)</span> {\n        <span class=\"hljs-built_in\">this</span>.cardNumber = cardNumber;\n        <span class=\"hljs-built_in\">this</span>.cvv = cvv;\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">pay</span><span class=\"hljs-params\">(<span class=\"hljs-type\">double</span> amount)</span> {\n        System.out.println(<span class=\"hljs-string\">\"💳 Оплата карткою:\"</span>);\n        System.out.println(<span class=\"hljs-string\">\"   Картка: **** **** **** \"</span> + cardNumber.substring(<span class=\"hljs-number\">12</span>));\n        System.out.println(<span class=\"hljs-string\">\"   Перевірка CVV...\"</span>);\n        System.out.println(<span class=\"hljs-string\">\"   ✅ Списано \"</span> + amount + <span class=\"hljs-string\">\" грн\"</span>);\n    }\n}\n\n<span class=\"hljs-comment\">// 🅿️ Оплата через PayPal</span>\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">PayPalPayment</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">PaymentStrategy</span> {\n    <span class=\"hljs-keyword\">private</span> String email;\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">PayPalPayment</span><span class=\"hljs-params\">(String email)</span> {\n        <span class=\"hljs-built_in\">this</span>.email = email;\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">pay</span><span class=\"hljs-params\">(<span class=\"hljs-type\">double</span> amount)</span> {\n        System.out.println(<span class=\"hljs-string\">\"🅿️ Оплата через PayPal:\"</span>);\n        System.out.println(<span class=\"hljs-string\">\"   Email: \"</span> + email);\n        System.out.println(<span class=\"hljs-string\">\"   Redirect на PayPal...\"</span>);\n        System.out.println(<span class=\"hljs-string\">\"   ✅ Оплачено \"</span> + amount + <span class=\"hljs-string\">\" грн\"</span>);\n    }\n}\n\n<span class=\"hljs-comment\">// ₿ Оплата криптовалютою</span>\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">CryptoPayment</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">PaymentStrategy</span> {\n    <span class=\"hljs-keyword\">private</span> String walletAddress;\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">CryptoPayment</span><span class=\"hljs-params\">(String walletAddress)</span> {\n        <span class=\"hljs-built_in\">this</span>.walletAddress = walletAddress;\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">pay</span><span class=\"hljs-params\">(<span class=\"hljs-type\">double</span> amount)</span> {\n        System.out.println(<span class=\"hljs-string\">\"₿ Оплата криптовалютою:\"</span>);\n        System.out.println(<span class=\"hljs-string\">\"   Wallet: \"</span> + walletAddress);\n        System.out.println(<span class=\"hljs-string\">\"   Конвертація: \"</span> + amount + <span class=\"hljs-string\">\" грн = 0.00052 BTC\"</span>);\n        System.out.println(<span class=\"hljs-string\">\"   ✅ Транзакція надіслана\"</span>);\n    }\n}\n\n<span class=\"hljs-comment\">// 💵 Оплата готівкою при доставці</span>\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">CashPayment</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">PaymentStrategy</span> {\n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">pay</span><span class=\"hljs-params\">(<span class=\"hljs-type\">double</span> amount)</span> {\n        System.out.println(<span class=\"hljs-string\">\"💵 Оплата готівкою:\"</span>);\n        System.out.println(<span class=\"hljs-string\">\"   Підготуйте \"</span> + amount + <span class=\"hljs-string\">\" грн\"</span>);\n        System.out.println(<span class=\"hljs-string\">\"   ✅ Оплата при отриманні замовлення\"</span>);\n    }\n}\n\n<span class=\"hljs-comment\">// Кошик (Context)</span>\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">ShoppingCart</span> {\n    <span class=\"hljs-keyword\">private</span> PaymentStrategy paymentStrategy;\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">setPaymentStrategy</span><span class=\"hljs-params\">(PaymentStrategy strategy)</span> {\n        <span class=\"hljs-built_in\">this</span>.paymentStrategy = strategy;\n    }\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">checkout</span><span class=\"hljs-params\">(<span class=\"hljs-type\">double</span> amount)</span> {\n        <span class=\"hljs-keyword\">if</span> (paymentStrategy == <span class=\"hljs-literal\">null</span>) {\n            System.out.println(<span class=\"hljs-string\">\"❌ Оберіть спосіб оплати!\"</span>);\n            <span class=\"hljs-keyword\">return</span>;\n        }\n        System.out.println(<span class=\"hljs-string\">\"🛒 Оформлення замовлення на \"</span> + amount + <span class=\"hljs-string\">\" грн\"</span>);\n        paymentStrategy.pay(amount);  <span class=\"hljs-comment\">// Делегуємо оплату стратегії</span>\n        System.out.println(<span class=\"hljs-string\">\"📦 Замовлення оформлено!\\n\"</span>);\n    }\n}</code></pre>","<h2>🎬 Використання та переваги</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">OnlineStore</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">static</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">main</span><span class=\"hljs-params\">(String[] args)</span> {\n        <span class=\"hljs-type\">ShoppingCart</span> <span class=\"hljs-variable\">cart</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">ShoppingCart</span>();\n        \n        System.out.println(<span class=\"hljs-string\">\"=== Інтернет-магазин ===\\n\"</span>);\n        \n        <span class=\"hljs-comment\">// 1️⃣ Клієнт 1: оплата карткою</span>\n        System.out.println(<span class=\"hljs-string\">\"👤 Клієнт 1:\"</span>);\n        cart.setPaymentStrategy(<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">CreditCardPayment</span>(<span class=\"hljs-string\">\"1234567812345678\"</span>, <span class=\"hljs-string\">\"123\"</span>));\n        cart.checkout(<span class=\"hljs-number\">1500.0</span>);\n        \n        <span class=\"hljs-comment\">// 2️⃣ Клієнт 2: оплата через PayPal</span>\n        System.out.println(<span class=\"hljs-string\">\"👤 Клієнт 2:\"</span>);\n        cart.setPaymentStrategy(<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">PayPalPayment</span>(<span class=\"hljs-string\">\"user@example.com\"</span>));\n        cart.checkout(<span class=\"hljs-number\">850.0</span>);\n        \n        <span class=\"hljs-comment\">// 3️⃣ Клієнт 3: криптовалюта</span>\n        System.out.println(<span class=\"hljs-string\">\"👤 Клієнт 3:\"</span>);\n        cart.setPaymentStrategy(<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">CryptoPayment</span>(<span class=\"hljs-string\">\"1A1zP1eP5QGefi2DMPTfTL\"</span>));\n        cart.checkout(<span class=\"hljs-number\">2300.0</span>);\n        \n        <span class=\"hljs-comment\">// 4️⃣ Клієнт 4: готівка при доставці</span>\n        System.out.println(<span class=\"hljs-string\">\"👤 Клієнт 4:\"</span>);\n        cart.setPaymentStrategy(<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">CashPayment</span>());\n        cart.checkout(<span class=\"hljs-number\">450.0</span>);\n        \n        <span class=\"hljs-comment\">// 5️⃣ Той самий кошик може змінювати спосіб оплати!</span>\n        System.out.println(<span class=\"hljs-string\">\"👤 Клієнт змінив думку:\"</span>);\n        cart.setPaymentStrategy(<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">CreditCardPayment</span>(<span class=\"hljs-string\">\"9876543298765432\"</span>, <span class=\"hljs-string\">\"456\"</span>));\n        cart.checkout(<span class=\"hljs-number\">1200.0</span>);\n    }\n}</code></pre><p><strong>Результат:</strong></p>\n<pre><code class=\"language-plaintext hljs\" data-highlighted=\"yes\">=== Інтернет-магазин ===\n\n👤 Клієнт 1:\n🛒 Оформлення замовлення на 1500.0 грн\n💳 Оплата карткою:\n   Картка: **** **** **** 5678\n   Перевірка CVV...\n   ✅ Списано 1500.0 грн\n📦 Замовлення оформлено!\n\n👤 Клієнт 2:\n🛒 Оформлення замовлення на 850.0 грн\n🅿️ Оплата через PayPal:\n   Email: user@example.com\n   Redirect на PayPal...\n   ✅ Оплачено 850.0 грн\n📦 Замовлення оформлено!\n\n👤 Клієнт 3:\n🛒 Оформлення замовлення на 2300.0 грн\n₿ Оплата криптовалютою:\n   Wallet: 1A1zP1eP5QGefi2DMPTfTL\n   Конвертація: 2300.0 грн = 0.00052 BTC\n   ✅ Транзакція надіслана\n📦 Замовлення оформлено!\n\n👤 Клієнт 4:\n🛒 Оформлення замовлення на 450.0 грн\n💵 Оплата готівкою:\n   Підготуйте 450.0 грн\n   ✅ Оплата при отриманні замовлення\n📦 Замовлення оформлено!</code></pre><div class=\"success\"><strong>✅ Переваги</strong> <p>✅ <strong>Гнучкість</strong> — легко додати новий спосіб оплати (Google Pay, Apple Pay)<br>✅ <strong>Підміна на льоту</strong> — клієнт може змінити спосіб оплати<br>✅ <strong>Легше тестувати</strong> — кожна стратегія тестується окремо<br>✅ <strong>Чіткість</strong> — кожен клас відповідає за один спосіб оплати<br>✅ <strong>Розширюваність</strong> — додаємо нові стратегії без зміни існуючого коду</p>\n</div>\n\n\n\n<p><strong>🌍 Реальні приклади:</strong></p>\n<ul>\n<li><strong>🛒 E-commerce:</strong> Amazon, Rozetka - різні способи оплати</li>\n<li><strong>🚗 Uber:</strong> Оплата карткою, готівкою, Apple Pay</li>\n<li><strong>📊 Сортування:</strong> QuickSort, MergeSort, BubbleSort</li>\n<li><strong>🗜️ Компресія:</strong> ZIP, RAR, 7Z - різні алгоритми стиснення</li>\n</ul>\n","<h1>💡 Ключові висновки</h1>\n<div class=\"success\"><strong>✅ Головні тези</strong> <p><strong>🎁 Decorator</strong> — динамічно додає функціональність через обгортання<br><strong>👀 Observer</strong> — один-до-багатьох: автоматичне сповіщення про зміни<br><strong>🎯 Strategy</strong> — інкапсулює алгоритми, робить їх взаємозамінними</p>\n</div>\n\n\n\n<p><strong>📊 Порівняння патернів:</strong></p>\n<table>\n<thead>\n<tr>\n<th>Аспект</th>\n<th>Decorator</th>\n<th>Observer</th>\n<th>Strategy</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Категорія</strong></td>\n<td>Структурний</td>\n<td>Поведінковий</td>\n<td>Поведінковий</td>\n</tr>\n<tr>\n<td><strong>Призначення</strong></td>\n<td>Додавання функцій</td>\n<td>Сповіщення</td>\n<td>Вибір алгоритму</td>\n</tr>\n<tr>\n<td><strong>Приклад</strong></td>\n<td>I/O Streams</td>\n<td>UI Events</td>\n<td>Payment Methods</td>\n</tr>\n</tbody></table>\n<div class=\"tip\"><strong>💡 Практичні поради</strong> <p>🎨 <strong>Decorator:</strong> не перевантажуй ланцюжок декораторів<br>🔔 <strong>Observer:</strong> не забувай відписувати (memory leaks!)<br>🎯 <strong>Strategy:</strong> комбінуй з Factory для створення стратегій</p>\n</div>\n\n","<h1>❓ Контрольні питання</h1>\n<ol>\n<li><p><strong>🎁 Яку проблему вирішує Decorator Pattern?</strong></p>\n<ul>\n<li>Скільки класів потрібно створити для 4 добавок без використання декоратора?</li>\n<li>Наведіть приклад декоратора з реального життя</li>\n</ul>\n</li>\n<li><p><strong>👀 Як працює Observer Pattern?</strong></p>\n<ul>\n<li>Хто кого повідомляє: Subject чи Observer?</li>\n<li>Наведіть приклад з YouTube або іншого додатку</li>\n</ul>\n</li>\n<li><p><strong>🎯 Чому Strategy Pattern краще за великі if-else блоки?</strong></p>\n<ul>\n<li>Що буде, якщо треба додати новий спосіб оплати?</li>\n</ul>\n</li>\n<li><p><strong>☕ Напишіть код для кави з подвійним молоком та цукром</strong></p>\n<ul>\n<li>Скільки це буде коштувати, якщо базова кава 25 грн, молоко +5 грн, цукор +2 грн?</li>\n</ul>\n</li>\n<li><p><strong>💳 Які способи оплати були в прикладі Strategy?</strong></p>\n<ul>\n<li>Як додати новий спосіб оплати (наприклад, Apple Pay)?</li>\n</ul>\n</li>\n<li><p><strong>📺 Що станеться, якщо YouTube канал завантажить нове відео?</strong></p>\n<ul>\n<li>Хто отримає сповіщення?</li>\n<li>Що треба зробити, щоб перестати отримувати сповіщення?</li>\n</ul>\n</li>\n</ol>\n","<h1>📖 Глосарій</h1>\n<table>\n<thead>\n<tr>\n<th>Термін</th>\n<th>Англійською</th>\n<th>Пояснення</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Декоратор</strong></td>\n<td>Decorator</td>\n<td>Структурний патерн для динамічного додавання функціональності об'єктам</td>\n</tr>\n<tr>\n<td><strong>Обгортка</strong></td>\n<td>Wrapper</td>\n<td>Об'єкт, що обгортає інший об'єкт для розширення його функціональності</td>\n</tr>\n<tr>\n<td><strong>Компонент</strong></td>\n<td>Component</td>\n<td>Базовий об'єкт, який декоруємо</td>\n</tr>\n<tr>\n<td><strong>Конкретний декоратор</strong></td>\n<td>Concrete Decorator</td>\n<td>Клас, що додає специфічну функціональність</td>\n</tr>\n<tr>\n<td><strong>Спостерігач</strong></td>\n<td>Observer</td>\n<td>Поведінковий патерн для сповіщення залежних об'єктів про зміни</td>\n</tr>\n<tr>\n<td><strong>Суб'єкт</strong></td>\n<td>Subject/Publisher</td>\n<td>Об'єкт, за яким спостерігають; надсилає сповіщення</td>\n</tr>\n<tr>\n<td><strong>Підписка</strong></td>\n<td>Subscribe/Attach</td>\n<td>Реєстрація спостерігача для отримання сповіщень</td>\n</tr>\n<tr>\n<td><strong>Відписка</strong></td>\n<td>Unsubscribe/Detach</td>\n<td>Видалення спостерігача зі списку сповіщень</td>\n</tr>\n<tr>\n<td><strong>Сповіщення</strong></td>\n<td>Notify</td>\n<td>Розсилка оновлень всім зареєстрованим спостерігачам</td>\n</tr>\n<tr>\n<td><strong>Push-модель</strong></td>\n<td>Push Model</td>\n<td>Subject надсилає всі дані observers</td>\n</tr>\n<tr>\n<td><strong>Pull-модель</strong></td>\n<td>Pull Model</td>\n<td>Observers самі запитують потрібні дані у Subject</td>\n</tr>\n<tr>\n<td><strong>Стратегія</strong></td>\n<td>Strategy</td>\n<td>Поведінковий патерн для інкапсуляції алгоритмів</td>\n</tr>\n<tr>\n<td><strong>Контекст</strong></td>\n<td>Context</td>\n<td>Клас, що використовує стратегію</td>\n</tr>\n<tr>\n<td><strong>Конкретна стратегія</strong></td>\n<td>Concrete Strategy</td>\n<td>Клас з конкретною реалізацією алгоритму</td>\n</tr>\n<tr>\n<td><strong>Делегування</strong></td>\n<td>Delegation</td>\n<td>Передача відповідальності іншому об'єкту</td>\n</tr>\n<tr>\n<td><strong>Підміна алгоритму</strong></td>\n<td>Algorithm Substitution</td>\n<td>Зміна стратегії в процесі виконання</td>\n</tr>\n<tr>\n<td><strong>Композиція</strong></td>\n<td>Composition</td>\n<td>Створення складних об'єктів через комбінацію простих</td>\n</tr>\n<tr>\n<td><strong>Поліморфізм</strong></td>\n<td>Polymorphism</td>\n<td>Можливість працювати з об'єктами через їх інтерфейс</td>\n</tr>\n<tr>\n<td><strong>Event-driven</strong></td>\n<td>Event-driven Architecture</td>\n<td>Архітектура, базована на подіях та реакціях на них</td>\n</tr>\n</tbody></table>\n"];let currentSlideIndex=0;
+function showSlide(i){if(i<0||i>=slides.length)return;currentSlideIndex=i;const el=document.getElementById("current-slide");el.innerHTML=slides[i];el.scrollTop=0;document.getElementById("progress-bar").style.width=((i+1)/slides.length*100)+"%";document.getElementById("slide-number").textContent=(i+1)+" / "+slides.length;updateSidebarActive();}
+function nextSlide(){if(currentSlideIndex<slides.length-1)showSlide(currentSlideIndex+1);}
+function previousSlide(){if(currentSlideIndex>0)showSlide(currentSlideIndex-1);}
+function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open");}
+function toggleHelp(){document.getElementById("help-overlay").classList.toggle("hidden");}
+function toggleFullscreen(){if(!document.fullscreenElement){const pc=document.getElementById("presentation-container");if(pc.requestFullscreen)pc.requestFullscreen();else if(pc.webkitRequestFullscreen)pc.webkitRequestFullscreen();else if(pc.msRequestFullscreen)pc.msRequestFullscreen();else if(pc.mozRequestFullScreen)pc.mozRequestFullScreen();}else{if(document.exitFullscreen)document.exitFullscreen();else if(document.webkitExitFullscreen)document.webkitExitFullscreen();else if(document.msExitFullscreen)document.msExitFullscreen();else if(document.mozCancelFullScreen)document.mozCancelFullScreen();}}
+function generateSidebar(){const sc=document.getElementById("sidebar-content");sc.innerHTML="";slides.forEach((html,idx)=>{const t=document.createElement("div");t.className="slide-thumbnail";if(idx===0)t.classList.add("active");const tmp=document.createElement("div");tmp.innerHTML=html;const title=tmp.querySelector("h1,h2");const titleText=title?title.textContent:("Слайд "+(idx+1));const textContent=tmp.textContent.replace(/s+/g," ").trim();const preview=textContent.substring(0,100)+(textContent.length>100?"...":"");t.innerHTML="<div class=\"slide-thumbnail-number\">"+(idx+1)+"</div><div class=\"slide-thumbnail-title\">"+titleText+"</div><div class=\"slide-thumbnail-content\">"+preview+"</div>";t.onclick=()=>{showSlide(idx);if(window.innerWidth<1024)toggleSidebar();};sc.appendChild(t);});}
+function updateSidebarActive(){document.querySelectorAll(".slide-thumbnail").forEach((th,idx)=>{if(idx===currentSlideIndex){th.classList.add("active");th.scrollIntoView({behavior:"smooth",block:"nearest"});}else th.classList.remove("active");});}
+document.addEventListener("keydown",e=>{switch(e.key){case"ArrowLeft":previousSlide();break;case"ArrowRight":case" ":e.preventDefault();nextSlide();break;case"f":case"F":toggleFullscreen();break;case"s":case"S":toggleSidebar();break;case"?":toggleHelp();break;case"Escape":const sb=document.getElementById("sidebar");const ho=document.getElementById("help-overlay");if(sb.classList.contains("open"))toggleSidebar();else if(!ho.classList.contains("hidden"))ho.classList.add("hidden");break;}});
+generateSidebar();showSlide(0);</script></body></html>
