@@ -1,0 +1,613 @@
+<!DOCTYPE html><html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>🏗️ SOLID: П&#039;ять принципів об&#039;єктно-орієнтованого дизайну</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"><style>* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #editor-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #editor-container.hidden {
+            display: none;
+        }
+
+        #editor-header {
+            background: #2d3748;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #editor-header h2 {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        #editor-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #4a5568;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2d3748;
+        }
+
+        #markdown-input {
+            flex: 1;
+            padding: 2rem;
+            background: #1a202c;
+            color: #e2e8f0;
+            border: none;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+        }
+
+        #markdown-input:focus {
+            outline: none;
+        }
+
+        .slide-container {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .slide {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 3rem;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .slide::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .slide::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .slide h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .slide h2 {
+            color: #764ba2;
+            font-size: 2rem;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .slide h3 {
+            color: #4a5568;
+            font-size: 1.5rem;
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        .slide p {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .slide ul, .slide ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .slide li {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide pre {
+            background: #282c34;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+
+        .slide pre code {
+            background: transparent;
+            color: #abb2bf;
+        }
+
+        .slide code {
+            font-family: 'Courier New', Consolas, Monaco, monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .slide p code {
+            background: #edf2f7;
+            color: #e53e3e;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .slide blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            color: #4a5568;
+        }
+
+        .slide img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .slide table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .slide th, .slide td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .slide th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .slide tr:nth-child(even) {
+            background: #f7fafc;
+        }
+
+        .note {
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .note strong {
+            color: #c53030;
+        }
+
+        .warning {
+            background: #fffaf0;
+            border-left: 4px solid #f6ad55;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .warning strong {
+            color: #c05621;
+        }
+
+        .info {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .info strong {
+            color: #2c5282;
+        }
+
+        .success {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .success strong {
+            color: #22543d;
+        }
+
+        .danger {
+            background: #fff5f5;
+            border-left: 4px solid #f56565;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .danger strong {
+            color: #742a2a;
+        }
+
+        .tip {
+            background: #fefcbf;
+            border-left: 4px solid #ecc94b;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .tip strong {
+            color: #744210;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: white;
+            transition: width 0.3s;
+        }
+
+        .slide-number {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            color: #667eea;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #sidebar {
+            position: fixed;
+            right: -320px;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+            transition: right 0.3s ease;
+            z-index: 200;
+            padding: 1rem;
+        }
+
+        #sidebar.open {
+            right: 0;
+        }
+
+        #sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+
+        #sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #667eea;
+        }
+
+        #sidebar-header h3 {
+            color: #667eea;
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        #sidebar-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #4a5568;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        #sidebar-close:hover {
+            color: #667eea;
+        }
+
+        .slide-thumbnail {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+
+        .slide-thumbnail:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+            transform: translateX(-4px);
+        }
+
+        .slide-thumbnail.active {
+            border-color: #667eea;
+            background: #f7faff;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .slide-thumbnail-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide-thumbnail-content {
+            font-size: 0.85rem;
+            color: #2d3748;
+            line-height: 1.4;
+            max-height: 4.2rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slide-thumbnail-content::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 50%;
+            height: 1.4rem;
+            background: linear-gradient(to right, transparent, white);
+        }
+
+        .slide-thumbnail.active .slide-thumbnail-content::after {
+            background: linear-gradient(to right, transparent, #f7faff);
+        }
+
+        .slide-thumbnail-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 0.25rem;
+        }
+
+        #sidebar-toggle {
+            position: fixed;
+            right: 1rem;
+            top: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 8px;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 150;
+        }
+
+        #sidebar-toggle:hover {
+            background: white;
+            transform: scale(1.05);
+        }
+
+        .mermaid {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            overflow: visible; /* щоб не обрізати тіні / розширені ноди */
+        }
+
+        /* Запобігаємо обрізанню останньої літери в нодах Mermaid через зміну font-weight після розрахунку розміру */
+        .mermaid svg { overflow: visible !important; }
+        /* перестраховка проти обрізання foreignObject (на випадок інших діаграм) */
+        .mermaid svg foreignObject { overflow: visible !important; }
+
+        .plantuml-diagram {
+            max-width: 100%;
+            height: auto;
+            margin: 1.5rem auto;
+            display: block;
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #help-overlay {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            transition: opacity 0.3s;
+        }
+
+        #help-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #help-overlay kbd {
+            background: #2d3748;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.85em;
+        }
+
+        .mermaid-error {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            padding: 1rem;
+            border-radius: 6px;
+            color: #742a2a;
+            margin: 1.5rem 0;
+        }
+
+        .mermaid-error pre {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+        }
+
+        /* Повноекранний режим - зберігаємо оригінальний фон */
+        #presentation-container:fullscreen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-webkit-full-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-moz-full-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-ms-fullscreen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+#presentation-container:fullscreen,#presentation-container:-webkit-full-screen,#presentation-container:-moz-full-screen,#presentation-container:-ms-fullscreen{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)!important;}</style></head><body><div id="presentation-container"><div class="progress"><div class="progress-bar" id="progress-bar"></div></div><button id="sidebar-toggle" onclick="toggleSidebar()" title="Навігація слайдами (S)">☰</button><div id="sidebar"><div id="sidebar-header"><h3>📑 Слайди</h3><button id="sidebar-close" onclick="toggleSidebar()">✕</button></div><div id="sidebar-content"></div></div><div class="slide-container"><div class="slide" id="current-slide"></div></div><div class="controls"><button class="control-btn" onclick="previousSlide()" title="Попередній (←)">←</button><button class="control-btn" onclick="nextSlide()" title="Наступний (→)">→</button><button class="control-btn" onclick="toggleFullscreen()" title="Повноекранний режим (F)">⛶</button><button class="control-btn" onclick="toggleHelp()" title="Допомога (?)">?</button></div><div class="slide-number" id="slide-number">1 / 26</div><div id="help-overlay" class="hidden"><strong>Гарячі клавіші:</strong><br><kbd>←</kbd> <kbd>→</kbd> Навігація<br><kbd>F</kbd> Повноекранний режим<br><kbd>S</kbd> Sidebar<br><kbd>?</kbd> Допомога<br><kbd>Esc</kbd> Закрити</div></div><script>const slides=["<h1>🏗️ SOLID: П'ять принципів об'єктно-орієнтованого дизайну</h1>\n<p><strong>Курс:</strong> Основи інженерії програмного забезпечення<br><strong>Лектор:</strong> Кобилянський Антон</p>\n","<h2>📋 План лекції</h2>\n<ol>\n<li>🎯 Що таке SOLID і навіщо він потрібен</li>\n<li>🔸 Single Responsibility Principle (SRP)</li>\n<li>🔓 Open/Closed Principle (OCP)</li>\n<li>🔄 Liskov Substitution Principle (LSP)</li>\n<li>🧩 Interface Segregation Principle (ISP)</li>\n<li>⚡ Dependency Inversion Principle (DIP)</li>\n<li>🎓 Глосарій</li>\n<li>❓ Контрольні питання</li>\n</ol>\n","<h1>🎯 Що таке SOLID?</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>SOLID</strong> — п'ять фундаментальних принципів об'єктно-орієнтованого дизайну, які допомагають писати зрозумілий, гнучкий та підтримуваний код.</p>\n</div>\n\n\n\n<p><strong>Автор концепції:</strong> Роберт Мартін (Uncle Bob), 2000-ті роки</p>\n\n<img src=\"https://www.plantuml.com/plantuml/svg/PPFHQjim58RlzHG7SXS8xOR3kflH9ex1OCYOBxjUEB7gYZXIa9MERWooTfHT50PZPB31jaV8IjEjxPoyWlH6Er9DMsPV6EaSw__E-O-yNQX4gkau9yM8yKaYap4Cak4easBAqwx8XOH640IzuCc3BuPYF16SSWLl2E3J-Vz4RolmWgtRd90fbLNSstcwkUEvU22uYjbh2e_QRlyyILF6CtYyITuISa_O1MWsusOJMX1ZFgVmWXQOAzY0vKmT0Rpa0Fgxlj2bNe0-DtDShlMgMYtqZJdJfPcRT-ROd07iGL9038sErsjtkpLKtw7w4yetkhaeQ5e1FZcrQpFJVyonNcteBoXzjwra-zQiNhlZrMGZ9nknOYGE8PuE2iNKL371A_aVLjwMYAgbBLvVssw-sRfnYO4A4Q6xM7VGhY52XmYved8_6LA8QIPfbZo0_4ITtuYPwnkzH4nfFW9kIgGkpSoyn-0LrZ2_WuMs7z_pw_tu3kPJz2cbV7Y4t4CgYtlMAUgVEraKH0w25mvxQVjpdIAjulZGy74SGK183AtT0vQYw5ugNl7MC-YJVYqMaQWM2qbOY_c4SA4eI9OTA13x4EDbqr_HXqlh0EYrdI0wS8hlDTuU7ESCw_rWJind-wcrldHpNcB5fJcvFRBIlrmpVstW0i_Qxgvidg0XO9ba6rVuP_q3\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n","<h1>🔸 Single Responsibility Principle (SRP)</h1>\n<p><strong>Принцип єдиної відповідальності</strong></p>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p>Клас повинен мати лише <strong>одну причину для зміни</strong>. Кожен клас відповідає за одну конкретну функціональність.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Один клас = одна відповідальність = одна причина для змін.</p>\n","<h2>❌ Порушення SRP</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-comment\">// Клас має ТРИ відповідальності</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">User</span> {\n    <span class=\"hljs-keyword\">private</span> String name;\n    <span class=\"hljs-keyword\">private</span> String email;\n    \n    <span class=\"hljs-comment\">// 1. Бізнес-логіка</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">updateEmail</span><span class=\"hljs-params\">(String newEmail)</span> {\n        <span class=\"hljs-built_in\">this</span>.email = newEmail;\n    }\n    \n    <span class=\"hljs-comment\">// 2. Збереження в БД</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">saveToDatabase</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-comment\">// SQL код для збереження</span>\n        System.out.println(<span class=\"hljs-string\">\"Saving to database...\"</span>);\n    }\n    \n    <span class=\"hljs-comment\">// 3. Відправка email</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">sendEmail</span><span class=\"hljs-params\">(String message)</span> {\n        <span class=\"hljs-comment\">// Логіка відправки email</span>\n        System.out.println(<span class=\"hljs-string\">\"Sending email to \"</span> + email);\n    }\n}</code></pre><div class=\"warning\"><strong>⚠️ Проблема: ТРИ причини для зміни</strong> <p><strong>Причина 1:</strong> Зміна бізнес-правил (наприклад, валідація email)<br>→ Потрібно змінити метод <code>updateEmail()</code></p>\n<p><strong>Причина 2:</strong> Зміна способу зберігання (з MySQL на PostgreSQL)<br>→ Потрібно змінити метод <code>saveToDatabase()</code></p>\n<p><strong>Причина 3:</strong> Зміна email-провайдера (з SMTP на SendGrid API)<br>→ Потрібно змінити метод <code>sendEmail()</code></p>\n<p><strong>Результат:</strong> Кожна зміна ризикує зламати інші частини класу. Змінюючи логіку БД, можна випадково зламати відправку email. Складно зрозуміти, за що відповідає клас.</p>\n</div>\n\n","<h2>✅ Відповідність SRP</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-comment\">// Кожен клас має ОДНУ відповідальність</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">User</span> {\n    <span class=\"hljs-keyword\">private</span> String name;\n    <span class=\"hljs-keyword\">private</span> String email;\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">updateEmail</span><span class=\"hljs-params\">(String newEmail)</span> {\n        <span class=\"hljs-built_in\">this</span>.email = newEmail;\n    }\n    \n    <span class=\"hljs-keyword\">public</span> String <span class=\"hljs-title function_\">getEmail</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">return</span> email;\n    }\n}\n\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">UserRepository</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">save</span><span class=\"hljs-params\">(User user)</span> {\n        <span class=\"hljs-comment\">// Тільки логіка збереження</span>\n        System.out.println(<span class=\"hljs-string\">\"Saving user to database...\"</span>);\n    }\n}\n\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">EmailService</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">sendEmail</span><span class=\"hljs-params\">(User user, String message)</span> {\n        <span class=\"hljs-comment\">// Тільки логіка відправки email</span>\n        System.out.println(<span class=\"hljs-string\">\"Sending email to \"</span> + user.getEmail());\n    }\n}</code></pre><div class=\"tip\"><strong>💡 Переваги</strong> <p>✅ Легко змінювати логіку БД без торкання бізнес-логіки<br>✅ Легко тестувати кожен компонент окремо<br>✅ Легко повторно використовувати EmailService для інших сутностей</p>\n</div>\n\n","<h1>🔓 Open/Closed Principle (OCP)</h1>\n<p><strong>Принцип відкритості/закритості</strong></p>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p>Програмні сутності повинні бути <strong>відкриті для розширення</strong>, але <strong>закриті для модифікації</strong>. Нова функціональність додається без зміни існуючого коду.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Розширюй поведінку через успадкування/композицію, не змінюючи оригінальний код.</p>\n","<h2>❌ Порушення OCP</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">PaymentProcessor</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">processPayment</span><span class=\"hljs-params\">(String paymentType, <span class=\"hljs-type\">double</span> amount)</span> {\n        <span class=\"hljs-keyword\">if</span> (paymentType.equals(<span class=\"hljs-string\">\"CREDIT_CARD\"</span>)) {\n            System.out.println(<span class=\"hljs-string\">\"Processing credit card: \"</span> + amount);\n            <span class=\"hljs-comment\">// Логіка для кредитної карти</span>\n        } <span class=\"hljs-keyword\">else</span> <span class=\"hljs-keyword\">if</span> (paymentType.equals(<span class=\"hljs-string\">\"PAYPAL\"</span>)) {\n            System.out.println(<span class=\"hljs-string\">\"Processing PayPal: \"</span> + amount);\n            <span class=\"hljs-comment\">// Логіка для PayPal</span>\n        } <span class=\"hljs-keyword\">else</span> <span class=\"hljs-keyword\">if</span> (paymentType.equals(<span class=\"hljs-string\">\"BITCOIN\"</span>)) {\n            System.out.println(<span class=\"hljs-string\">\"Processing Bitcoin: \"</span> + amount);\n            <span class=\"hljs-comment\">// Логіка для Bitcoin</span>\n        }\n        <span class=\"hljs-comment\">// Кожен новий спосіб оплати = зміна цього методу!</span>\n    }\n}</code></pre><div class=\"warning\"><strong>⚠️ Проблема</strong> <p>Додавання нового способу оплати вимагає модифікації методу processPayment. Ризик зламати існуючу функціональність.</p>\n</div>\n\n","<h2>✅ Відповідність OCP</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-comment\">// Абстракція</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">interface</span> <span class=\"hljs-title class_\">PaymentMethod</span> {\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">pay</span><span class=\"hljs-params\">(<span class=\"hljs-type\">double</span> amount)</span>;\n}\n\n<span class=\"hljs-comment\">// Конкретні реалізації</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">CreditCardPayment</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">PaymentMethod</span> {\n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">pay</span><span class=\"hljs-params\">(<span class=\"hljs-type\">double</span> amount)</span> {\n        System.out.println(<span class=\"hljs-string\">\"Processing credit card: \"</span> + amount);\n    }\n}\n\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">PayPalPayment</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">PaymentMethod</span> {\n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">pay</span><span class=\"hljs-params\">(<span class=\"hljs-type\">double</span> amount)</span> {\n        System.out.println(<span class=\"hljs-string\">\"Processing PayPal: \"</span> + amount);\n    }\n}\n\n<span class=\"hljs-comment\">// Процесор не потребує змін</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">PaymentProcessor</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">processPayment</span><span class=\"hljs-params\">(PaymentMethod method, <span class=\"hljs-type\">double</span> amount)</span> {\n        method.pay(amount);\n    }\n}</code></pre><div class=\"tip\"><strong>💡 Використання</strong> <pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-type\">PaymentProcessor</span> <span class=\"hljs-variable\">processor</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">PaymentProcessor</span>();\nprocessor.processPayment(<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">CreditCardPayment</span>(), <span class=\"hljs-number\">100.0</span>);\nprocessor.processPayment(<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">PayPalPayment</span>(), <span class=\"hljs-number\">200.0</span>);\n<span class=\"hljs-comment\">// Новий спосіб оплати? Просто створіть новий клас!</span></code></pre></div>\n\n","<h2>🎨 OCP + Strategy Pattern</h2>\n<div class=\"info\"><strong>ℹ️ Основна ідея</strong> <p><strong>Strategy Pattern</strong> — шаблон проектування, який дозволяє визначити сімейство алгоритмів та зробити їх взаємозамінними. Ідеально реалізує принцип Open/Closed: нові стратегії додаються без зміни існуючого коду.</p>\n</div>\n\n\n\n\n<img src=\"https://www.plantuml.com/plantuml/svg/bLDTIyCm57tFhmZuCb777WPg4LatBFWW3Fm5MPlDODj8aYf-WOg83-90nlmR8XD5r_s6t7_axLR1heAiJxadvvnxpmrjQCEKIQAGw4CH7p758kg7J6lN62KwYU6xleptnHcdjL-K3lCFUqecST2IeLHqoVEy7MzzteIU4ufVSvwzi-7LlOtPdLG1LpbUTpThRdsAkqh9ao9yIOY83LTTvdFQPgSHZyqUDmSooFki7B7J2ekmaN5e89DEo9STUYn5a6bd4-Mwjf8-rnhTVwGp8B-kH5DVfzXcbVvZtb8y4AR5L93h5XkipSB5TKrXV2dYHOIb7QojRSyjrA69vfeKmQsBQhMSyIzI8SnVXEBKXCJISAf4xy1GsIqz4cQoJp2q8_i9L_O3Rko4Ol45VOhrnBx3FQ9NziscDeM-a_57Y8_i2mpiE6EdMBx2i1WJUHdrsRwKZJCP7Z_W5Xj_ej4T3E4viowj3ytVg7stOsIcy0W3k847k8O-uN50isYaWIVyoxu1\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n","<h1>🔄 Liskov Substitution Principle (LSP)</h1>\n<p><strong>Принцип підстановки Барбари Лісков</strong></p>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p>Об'єкти підкласу повинні <strong>замінювати</strong> об'єкти батьківського класу <strong>без порушення</strong> коректності програми. Підклас зберігає контракт батьківського класу.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Якщо S є підтипом T, то об'єкти типу T можна замінити об'єктами типу S без побічних ефектів.</p>\n","<h2>❌ Порушення LSP</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Rectangle</span> {\n    <span class=\"hljs-keyword\">protected</span> <span class=\"hljs-type\">int</span> width;\n    <span class=\"hljs-keyword\">protected</span> <span class=\"hljs-type\">int</span> height;\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">setWidth</span><span class=\"hljs-params\">(<span class=\"hljs-type\">int</span> width)</span> {\n        <span class=\"hljs-built_in\">this</span>.width = width;\n    }\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">setHeight</span><span class=\"hljs-params\">(<span class=\"hljs-type\">int</span> height)</span> {\n        <span class=\"hljs-built_in\">this</span>.height = height;\n    }\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-type\">int</span> <span class=\"hljs-title function_\">getArea</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">return</span> width * height;\n    }\n}\n\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Square</span> <span class=\"hljs-keyword\">extends</span> <span class=\"hljs-title class_\">Rectangle</span> {\n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">setWidth</span><span class=\"hljs-params\">(<span class=\"hljs-type\">int</span> width)</span> {\n        <span class=\"hljs-built_in\">this</span>.width = width;\n        <span class=\"hljs-built_in\">this</span>.height = width; <span class=\"hljs-comment\">// Порушує очікування!</span>\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">setHeight</span><span class=\"hljs-params\">(<span class=\"hljs-type\">int</span> height)</span> {\n        <span class=\"hljs-built_in\">this</span>.width = height;  <span class=\"hljs-comment\">// Порушує очікування!</span>\n        <span class=\"hljs-built_in\">this</span>.height = height;\n    }\n}</code></pre>","<h2>🐛 Проблема порушення LSP</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">GeometryTest</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">static</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">testRectangle</span><span class=\"hljs-params\">(Rectangle rect)</span> {\n        rect.setWidth(<span class=\"hljs-number\">5</span>);\n        rect.setHeight(<span class=\"hljs-number\">4</span>);\n        \n        <span class=\"hljs-comment\">// Очікуємо, що ширина = 5, висота = 4</span>\n        <span class=\"hljs-type\">int</span> <span class=\"hljs-variable\">expectedArea</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-number\">5</span> * <span class=\"hljs-number\">4</span>; <span class=\"hljs-comment\">// 20</span>\n        <span class=\"hljs-type\">int</span> <span class=\"hljs-variable\">actualArea</span> <span class=\"hljs-operator\">=</span> rect.getArea();\n        \n        System.out.println(<span class=\"hljs-string\">\"Expected: \"</span> + expectedArea);\n        System.out.println(<span class=\"hljs-string\">\"Actual: \"</span> + actualArea);\n        System.out.println(<span class=\"hljs-string\">\"Test passed: \"</span> + (expectedArea == actualArea));\n    }\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">static</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">main</span><span class=\"hljs-params\">(String[] args)</span> {\n        <span class=\"hljs-type\">Rectangle</span> <span class=\"hljs-variable\">rectangle</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Rectangle</span>();\n        testRectangle(rectangle); \n        <span class=\"hljs-comment\">// Expected: 20, Actual: 20, Test passed: true ✅</span>\n        \n        <span class=\"hljs-type\">Rectangle</span> <span class=\"hljs-variable\">square</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Square</span>();\n        testRectangle(square); \n        <span class=\"hljs-comment\">// Expected: 20, Actual: 16, Test passed: false ❌</span>\n    }\n}</code></pre><div class=\"danger\"><strong>🚫 Порушення контракту Rectangle</strong> <p><strong>Контракт Rectangle:</strong> методи <code>setWidth()</code> і <code>setHeight()</code> змінюють НЕЗАЛЕЖНО ширину та висоту.</p>\n<p><strong>Square порушує контракт:</strong> <code>setWidth(5)</code> змінює і ширину, і висоту на 5. Потім <code>setHeight(4)</code> змінює обидва значення на 4.</p>\n<p><strong>Результат:</strong> Замість очікуваних 5×4=20, отримуємо 4×4=16. Square НЕ МОЖНА використовувати замість Rectangle без порушення логіки програми.</p>\n</div>\n\n","<h2>✅ Відповідність LSP</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-comment\">// Спільний інтерфейс</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">interface</span> <span class=\"hljs-title class_\">Shape</span> {\n    <span class=\"hljs-type\">int</span> <span class=\"hljs-title function_\">getArea</span><span class=\"hljs-params\">()</span>;\n}\n\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Rectangle</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">Shape</span> {\n    <span class=\"hljs-keyword\">private</span> <span class=\"hljs-type\">int</span> width;\n    <span class=\"hljs-keyword\">private</span> <span class=\"hljs-type\">int</span> height;\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">Rectangle</span><span class=\"hljs-params\">(<span class=\"hljs-type\">int</span> width, <span class=\"hljs-type\">int</span> height)</span> {\n        <span class=\"hljs-built_in\">this</span>.width = width;\n        <span class=\"hljs-built_in\">this</span>.height = height;\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-type\">int</span> <span class=\"hljs-title function_\">getArea</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">return</span> width * height;\n    }\n}\n\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Square</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">Shape</span> {\n    <span class=\"hljs-keyword\">private</span> <span class=\"hljs-type\">int</span> side;\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">Square</span><span class=\"hljs-params\">(<span class=\"hljs-type\">int</span> side)</span> {\n        <span class=\"hljs-built_in\">this</span>.side = side;\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-type\">int</span> <span class=\"hljs-title function_\">getArea</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">return</span> side * side;\n    }\n}</code></pre><div class=\"tip\"><strong>💡 Рішення</strong> <p>Тепер Square і Rectangle — незалежні реалізації Shape без порушення контракту один одного.</p>\n</div>\n\n","<h1>🧩 Interface Segregation Principle (ISP)</h1>\n<p><strong>Принцип розділення інтерфейсів</strong></p>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p>Клієнти <strong>не повинні залежати</strong> від інтерфейсів, які вони <strong>не використовують</strong>. Краще мати багато специфічних інтерфейсів, ніж один універсальний.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Розділяй великі інтерфейси на маленькі та специфічні, щоб клас реалізовував тільки те, що йому потрібно.</p>\n","<h2>❌ Порушення ISP</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-comment\">// Занадто \"товстий\" інтерфейс</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">interface</span> <span class=\"hljs-title class_\">Document</span> {\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">open</span><span class=\"hljs-params\">()</span>;\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">edit</span><span class=\"hljs-params\">(String content)</span>;\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">save</span><span class=\"hljs-params\">()</span>;\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">addImage</span><span class=\"hljs-params\">(String imagePath)</span>;\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">exportToPDF</span><span class=\"hljs-params\">()</span>;\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">shareWithUsers</span><span class=\"hljs-params\">(List&lt;String&gt; users)</span>;\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">trackChanges</span><span class=\"hljs-params\">()</span>;\n}\n\n<span class=\"hljs-comment\">// ReadOnlyDocument не може редагувати, зберігати, додавати зображення!</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">ReadOnlyDocument</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">Document</span> {\n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">open</span><span class=\"hljs-params\">()</span> {\n        System.out.println(<span class=\"hljs-string\">\"Opening document for reading...\"</span>);\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">edit</span><span class=\"hljs-params\">(String content)</span> {\n        <span class=\"hljs-keyword\">throw</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">UnsupportedOperationException</span>(<span class=\"hljs-string\">\"Read-only mode!\"</span>);\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">save</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">throw</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">UnsupportedOperationException</span>(<span class=\"hljs-string\">\"Read-only mode!\"</span>);\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">addImage</span><span class=\"hljs-params\">(String imagePath)</span> {\n        <span class=\"hljs-keyword\">throw</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">UnsupportedOperationException</span>(<span class=\"hljs-string\">\"Read-only mode!\"</span>);\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">exportToPDF</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">throw</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">UnsupportedOperationException</span>(<span class=\"hljs-string\">\"Read-only mode!\"</span>);\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">shareWithUsers</span><span class=\"hljs-params\">(List&lt;String&gt; users)</span> {\n        <span class=\"hljs-keyword\">throw</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">UnsupportedOperationException</span>(<span class=\"hljs-string\">\"Read-only mode!\"</span>);\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">trackChanges</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">throw</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">UnsupportedOperationException</span>(<span class=\"hljs-string\">\"Read-only mode!\"</span>);\n    }\n}</code></pre><div class=\"warning\"><strong>⚠️ Проблема</strong> <p>ReadOnlyDocument змушений реалізовувати методи, які йому не потрібні. Це призводить до <strong>stub-методів</strong> (порожніх методів, які тільки викидають виключення) та порушує інкапсуляцію.</p>\n<p><strong>Stub-метод</strong> — це метод, який реалізований формально, але нічого корисного не робить. У нашому випадку всі методи крім <code>open()</code> просто кидають <code>UnsupportedOperationException</code>. Це \"мертвий код\", який існує тільки щоб задовольнити вимоги інтерфейсу.</p>\n</div>\n\n","<h2>✅ Відповідність ISP</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-comment\">// Розділяємо на специфічні інтерфейси</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">interface</span> <span class=\"hljs-title class_\">Readable</span> {\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">open</span><span class=\"hljs-params\">()</span>;\n}\n\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">interface</span> <span class=\"hljs-title class_\">Editable</span> {\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">edit</span><span class=\"hljs-params\">(String content)</span>;\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">save</span><span class=\"hljs-params\">()</span>;\n}\n\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">interface</span> <span class=\"hljs-title class_\">ImageSupport</span> {\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">addImage</span><span class=\"hljs-params\">(String imagePath)</span>;\n}\n\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">interface</span> <span class=\"hljs-title class_\">Exportable</span> {\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">exportToPDF</span><span class=\"hljs-params\">()</span>;\n}\n\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">interface</span> <span class=\"hljs-title class_\">Shareable</span> {\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">shareWithUsers</span><span class=\"hljs-params\">(List&lt;String&gt; users)</span>;\n}\n\n<span class=\"hljs-comment\">// Read-only документ реалізує тільки читання</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">ReadOnlyDocument</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">Readable</span> {\n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">open</span><span class=\"hljs-params\">()</span> {\n        System.out.println(<span class=\"hljs-string\">\"Opening document for reading...\"</span>);\n    }\n}\n\n<span class=\"hljs-comment\">// Базовий документ з редагуванням</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">BasicDocument</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">Readable</span>, Editable {\n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">open</span><span class=\"hljs-params\">()</span> {\n        System.out.println(<span class=\"hljs-string\">\"Opening document...\"</span>);\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">edit</span><span class=\"hljs-params\">(String content)</span> {\n        System.out.println(<span class=\"hljs-string\">\"Editing: \"</span> + content);\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">save</span><span class=\"hljs-params\">()</span> {\n        System.out.println(<span class=\"hljs-string\">\"Saving document...\"</span>);\n    }\n}\n\n<span class=\"hljs-comment\">// Преміум документ з усіма можливостями</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">PremiumDocument</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">Readable</span>, Editable, \n                                        ImageSupport, Exportable, Shareable {\n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">open</span><span class=\"hljs-params\">()</span> { <span class=\"hljs-comment\">/* implementation */</span> }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">edit</span><span class=\"hljs-params\">(String content)</span> { <span class=\"hljs-comment\">/* implementation */</span> }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">save</span><span class=\"hljs-params\">()</span> { <span class=\"hljs-comment\">/* implementation */</span> }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">addImage</span><span class=\"hljs-params\">(String imagePath)</span> {\n        System.out.println(<span class=\"hljs-string\">\"Adding image: \"</span> + imagePath);\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">exportToPDF</span><span class=\"hljs-params\">()</span> {\n        System.out.println(<span class=\"hljs-string\">\"Exporting to PDF...\"</span>);\n    }\n    \n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">shareWithUsers</span><span class=\"hljs-params\">(List&lt;String&gt; users)</span> {\n        System.out.println(<span class=\"hljs-string\">\"Sharing with: \"</span> + users);\n    }\n}</code></pre>","<h2>📐 ISP: До і після</h2>\n\n<img src=\"https://www.plantuml.com/plantuml/svg/jLNXQXD14FwVfnZY7qKejKIDu8_scZl8huRK5zZURPEZkTjZxw8HBIJLGeMWAD8VKl4LOaoiDIQ-mkuhz4cStPpDRT8O4Jp8iJFppJUpSzzkDkE4yAGPD7BnWHz6X9C0zeXxKEEi6NhRhC4ut70SntRkPn1kWyGnFCi1FjOysYuw1QSuZJ7kKPxw2riFrhSAkSCCZnycbEyJboxZmi9thS8YbrKitbkta2iNOGgfKSXVVko2-2GciYrVo1Cn56Cnbc-Wl5l9f-opQlaISvi13PCya1ZGk9D2r7ERHJIyUMjcKyzFidPC7jEiJJol760FHauhOZnvn2ebnqYj4sxW4exzRzT9MADnwZ_KR_sQpZbVfSJR2HjFZQwhEzSq3PTdn_EDWvfCKkViIGnsowLHuhDmVZShGBCjhW0Q-rvLUJgC5IXpGil1cR7f3_hm-TgQ6f8fahDZ4E_agHY8ds8Y-derbgUo8uzaTubOrFZ9NeDEnxv4APdocLGRly1LgfrD_OEehgVIyzzjHcg-cgwSfPlJu99kzCUPzTCo6bfGx5yBSMFrJ582YyI-QsHRfNyyUela5Ku3lnaOz9NI_p_PcKwglsMtaJMjahPimqfZ5IEMMcKprheoKSiXIoXmlrPFWErhWGE8jw8dleYUF18J4ETeN8Y--2PHx3_4K7d50ANUHwXyfI0O5D_nDy2SrrhwseKN9e8naAEX1whIV3tTalY0X5_L5Gi87Y571sGRxPuOOPbpl83Vgr97Q8naLn62Ec_eQAFhipfnW8in5XkYwoMcNiYEKNOJb_Ytz0i0\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n","<h1>⚡ Dependency Inversion Principle (DIP)</h1>\n<p><strong>Принцип інверсії залежностей</strong></p>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <ol>\n<li>Модулі високого рівня <strong>не повинні залежати</strong> від модулів низького рівня. Обидва повинні залежати від <strong>абстракцій</strong>.</li>\n<li>Абстракції <strong>не повинні залежати</strong> від деталей. Деталі повинні залежати від абстракцій.</li>\n</ol>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Залежність від інтерфейсів, а не від конкретних реалізацій. Це дозволяє легко змінювати та розширювати систему без модифікації існуючого коду.</p>\n","<h2>❌ Порушення DIP</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-comment\">// Низький рівень - конкретна реалізація</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">MySQLDatabase</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">save</span><span class=\"hljs-params\">(String data)</span> {\n        System.out.println(<span class=\"hljs-string\">\"Saving to MySQL: \"</span> + data);\n    }\n}\n\n<span class=\"hljs-comment\">// Високий рівень залежить від низького</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">UserService</span> {\n    <span class=\"hljs-keyword\">private</span> MySQLDatabase database; <span class=\"hljs-comment\">// Жорстка залежність!</span>\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">UserService</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-built_in\">this</span>.database = <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">MySQLDatabase</span>();\n    }\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">saveUser</span><span class=\"hljs-params\">(String userData)</span> {\n        database.save(userData);\n    }\n}</code></pre><div class=\"warning\"><strong>⚠️ Порушення обох частин визначення</strong> <p><strong>Порушення частини 1:</strong> UserService (високий рівень) <strong>безпосередньо залежить</strong> від MySQLDatabase (низький рівень). Немає абстракції між ними.</p>\n<p><strong>Порушення частини 2:</strong> Якби ми створили інтерфейс Database з MySQL-специфічними методами (наприклад, <code>executeSQL()</code>), то абстракція залежала б від деталей MySQL.</p>\n<p><strong>Наслідки:</strong> Зміна БД з MySQL на PostgreSQL вимагає зміни UserService. Важко працювати з різними БД одночасно.</p>\n</div>\n\n","<h2>✅ Відповідність DIP</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-comment\">// Абстракція</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">interface</span> <span class=\"hljs-title class_\">Database</span> {\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">save</span><span class=\"hljs-params\">(String data)</span>;\n}\n\n<span class=\"hljs-comment\">// Конкретні реалізації залежать від абстракції</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">MySQLDatabase</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">Database</span> {\n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">save</span><span class=\"hljs-params\">(String data)</span> {\n        System.out.println(<span class=\"hljs-string\">\"Saving to MySQL: \"</span> + data);\n    }\n}\n\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">PostgreSQLDatabase</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">Database</span> {\n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">save</span><span class=\"hljs-params\">(String data)</span> {\n        System.out.println(<span class=\"hljs-string\">\"Saving to PostgreSQL: \"</span> + data);\n    }\n}\n\n<span class=\"hljs-comment\">// Високий рівень залежить від абстракції</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">UserService</span> {\n    <span class=\"hljs-keyword\">private</span> Database database;\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">UserService</span><span class=\"hljs-params\">(Database database)</span> {\n        <span class=\"hljs-built_in\">this</span>.database = database; <span class=\"hljs-comment\">// Dependency Injection</span>\n    }\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">saveUser</span><span class=\"hljs-params\">(String userData)</span> {\n        database.save(userData);\n    }\n}</code></pre><div class=\"tip\"><strong>💡 Відповідність обом частинам визначення</strong> <p><strong>Частина 1 виконана:</strong> UserService (високий рівень) і MySQLDatabase (низький рівень) <strong>обидва залежать</strong> від інтерфейсу Database. Вони не залежать один від одного напряму.</p>\n<p><strong>Частина 2 виконана:</strong> Інтерфейс Database має загальний метод <code>save()</code> без специфіки MySQL чи PostgreSQL. MySQLDatabase <strong>адаптується</strong> під абстракцію, а не навпаки.</p>\n<p><strong>Результат:</strong> Легко змінити БД, легко додати нову, легко тестувати з різними реалізаціями.</p>\n</div>\n\n","<h2>🔌 Dependency Injection</h2>\n<div class=\"info\"><strong>ℹ️ Що таке Dependency Injection?</strong> <p><strong>Dependency Injection (DI)</strong> — техніка, при якій об'єкт <strong>отримує свої залежності ззовні</strong>, а не створює їх сам всередині. Це дозволяє легко змінювати поведінку об'єкта без зміни його коду.</p>\n<p><strong>Ключова ідея:</strong> Замість <code>new MySQLDatabase()</code> всередині класу, ми передаємо готовий об'єкт через <strong>конструктор</strong>.</p>\n</div>\n\n\n\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Application</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">static</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">main</span><span class=\"hljs-params\">(String[] args)</span> {\n        <span class=\"hljs-comment\">// ІНЖЕКТИМО (вводимо) залежність через конструктор</span>\n        \n        <span class=\"hljs-comment\">// Варіант 1: MySQL</span>\n        <span class=\"hljs-type\">Database</span> <span class=\"hljs-variable\">mysqlDb</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">MySQLDatabase</span>();\n        <span class=\"hljs-type\">UserService</span> <span class=\"hljs-variable\">service1</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">UserService</span>(mysqlDb); <span class=\"hljs-comment\">// ← Injection!</span>\n        service1.saveUser(<span class=\"hljs-string\">\"John\"</span>);\n        \n        <span class=\"hljs-comment\">// Варіант 2: PostgreSQL - змінюємо БД БЕЗ ЗМІНИ UserService!</span>\n        <span class=\"hljs-type\">Database</span> <span class=\"hljs-variable\">postgresDb</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">PostgreSQLDatabase</span>();\n        <span class=\"hljs-type\">UserService</span> <span class=\"hljs-variable\">service2</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">UserService</span>(postgresDb); <span class=\"hljs-comment\">// ← Injection!</span>\n        service2.saveUser(<span class=\"hljs-string\">\"Jane\"</span>);\n    }\n}</code></pre><div class=\"tip\"><strong>💡 Переваги Dependency Injection</strong> <p>✅ <strong>Гнучкість:</strong> Легко змінювати реалізацію БД — просто передаємо інший об'єкт<br>✅ <strong>Слабкі зв'язки:</strong> UserService не знає про існування MySQL чи PostgreSQL<br>✅ <strong>Конфігурація:</strong> Вся логіка вибору БД зосереджена в одному місці (Application)  </p>\n<p><strong>Без DI:</strong> <code>new MySQLDatabase()</code> всередині UserService → жорстка залежність<br><strong>З DI:</strong> Передаємо Database через конструктор → гнучка залежність</p>\n</div>\n\n","<h2>🏗️ DIP Architecture</h2>\n\n<img src=\"https://www.plantuml.com/plantuml/svg/hLFDJi904BxtAIPuqHYC1uBO60CeZGT8DCG7MEXQ6yiksLrAZ9g81q-UFE1he47n9_8Cks_a505RH6E8UzXClldc-sQcsxnKHAXM8x3aYS-QH906r4Zzn1EynTmT7d01IuxZb9oD6ACU42dXp08ynLbsAUTadDndZWkNYZ6UAMok5p8Zl204RoVXYvXy4oM9Htyom7OsIzdl1iLSBhjUH2Lh8f3QyxrZADEG1gcnscVhXvAAAXMXNv-uH2Vj4aLgH58RTiVHDBSgIKYZikM8P4DL2PzvApQ4t7T7h8k4Sw4cbI1rvNCsiVQPekA8eEL4FUOzql-ZTfctvmrLEQqUb1UGZkwOp3wNoXFqNxGgd7byiMdZdoYTtlxQcGqkRLBcIk3Ccg9RvsjhCnkmmMyq0zgWJCaPufmPVs4dfqWGBSOL1O7FJ04_YZyRVQkVJKSFzQj-rYzWBarNF-X7_Mvkm7H1loCyC3Tpqb7nKDyZtaUe1tgWU_eDSq-wPwwmN3yWkG-8tfiE8fSOlPfhqpLt5Yu6efwiF4RuNty0\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n","<h1>🎓 Глосарій</h1>\n<div class=\"note\"><strong>📝 Основні терміни</strong> <p><strong>SOLID</strong> — акронім п'яти принципів ОО-дизайну (Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion)</p>\n<p><strong>SRP (Single Responsibility Principle)</strong> — Принцип єдиної відповідальності: клас має одну причину для зміни</p>\n<p><strong>OCP (Open/Closed Principle)</strong> — Принцип відкритості/закритості: відкрито для розширення, закрито для модифікації</p>\n<p><strong>LSP (Liskov Substitution Principle)</strong> — Принцип підстановки Лісков: підкласи можуть замінювати батьківські класи</p>\n<p><strong>ISP (Interface Segregation Principle)</strong> — Принцип розділення інтерфейсів: багато специфічних інтерфейсів краще одного універсального</p>\n<p><strong>DIP (Dependency Inversion Principle)</strong> — Принцип інверсії залежностей: залежність від абстракцій, не від конкретних реалізацій</p>\n<p><strong>Абстракція</strong> — узагальнене представлення об'єкта без деталей реалізації (інтерфейс або абстрактний клас)</p>\n<p><strong>Dependency Injection</strong> — техніка передачі залежностей об'єкту ззовні через конструктор, setter або інтерфейс</p>\n<p><strong>Stub-метод</strong> — порожня реалізація методу, що тільки викидає виключення для задоволення вимог інтерфейсу</p>\n<p><strong>Контракт класу</strong> — набір очікувань щодо поведінки класу: методи, параметри, повернені значення, побічні ефекти</p>\n<p><strong>Strategy Pattern</strong> — шаблон проектування, що дозволяє визначити сімейство алгоритмів та зробити їх взаємозамінними</p>\n</div>\n\n","<h1>🎯 Ключові висновки</h1>\n<h2>🔸 Single Responsibility Principle (SRP)</h2>\n<ul>\n<li><strong>Суть:</strong> Один клас — одна відповідальність — одна причина для зміни</li>\n<li><strong>На практиці:</strong> Розділяй User, UserRepository, EmailService</li>\n<li><strong>Вигода:</strong> Зміни в одній частині не впливають на інші</li>\n</ul>\n<h2>🔓 Open/Closed Principle (OCP)</h2>\n<ul>\n<li><strong>Суть:</strong> Відкрито для розширення, закрито для модифікації</li>\n<li><strong>На практиці:</strong> Використовуй інтерфейси (PaymentMethod) замість if-else</li>\n<li><strong>Вигода:</strong> Нова функціональність без зміни існуючого коду</li>\n</ul>\n<h2>🔄 Liskov Substitution Principle (LSP)</h2>\n<ul>\n<li><strong>Суть:</strong> Підкласи мають замінювати батьківські класи без порушення логіки</li>\n<li><strong>На практиці:</strong> Square НЕ може успадковувати Rectangle — порушує контракт</li>\n<li><strong>Вигода:</strong> Передбачувана поведінка при використанні поліморфізму</li>\n</ul>\n<h2>🧩 Interface Segregation Principle (ISP)</h2>\n<ul>\n<li><strong>Суть:</strong> Багато маленьких інтерфейсів краще одного великого</li>\n<li><strong>На практиці:</strong> Readable, Editable замість одного Document з усім</li>\n<li><strong>Вигода:</strong> Класи не залежать від методів, які не використовують</li>\n</ul>\n<h2>⚡ Dependency Inversion Principle (DIP)</h2>\n<ul>\n<li><strong>Суть:</strong> Залежність від абстракцій, не від конкретних класів</li>\n<li><strong>На практиці:</strong> UserService залежить від інтерфейсу Database, не від MySQLDatabase</li>\n<li><strong>Вигода:</strong> Легко змінювати реалізації через Dependency Injection</li>\n</ul>\n<div class=\"success\"><strong>✅ Головне</strong> <p>SOLID — це не догма, а <strong>інструмент для прийняття рішень</strong> про дизайн коду. Принципи допомагають писати <strong>гнучкий, підтримуваний та зрозумілий</strong> код, який легко змінювати та розширювати.</p>\n</div>\n\n","<h1>❓ Контрольні питання</h1>\n<ol>\n<li><p><strong>Що таке принцип SRP?</strong></p>\n<ul>\n<li>Чому клас User не повинен містити методи для роботи з базою даних?</li>\n</ul>\n</li>\n<li><p><strong>Як принцип OCP допомагає додавати нову функціональність?</strong></p>\n<ul>\n<li>Чому інтерфейс PaymentMethod краще ніж if-else для різних способів оплати?</li>\n</ul>\n</li>\n<li><p><strong>Чому Square не може успадковувати Rectangle?</strong></p>\n<ul>\n<li>Що таке \"контракт класу\" та як Square його порушує?</li>\n</ul>\n</li>\n<li><p><strong>У чому різниця між одним великим інтерфейсом та кількома маленькими?</strong></p>\n<ul>\n<li>Навіщо розділяти Document на Readable, Editable, ImageSupport?</li>\n</ul>\n</li>\n<li><p><strong>Що означає \"залежність від абстракцій\"?</strong></p>\n<ul>\n<li>Чому UserService має залежати від інтерфейсу Database, а не від MySQLDatabase?</li>\n</ul>\n</li>\n<li><p><strong>Як принципи SOLID пов'язані між собою?</strong></p>\n<ul>\n<li>Наведіть приклад, де використовується кілька принципів одночасно</li>\n</ul>\n</li>\n</ol>\n"];let currentSlideIndex=0;
+function showSlide(i){if(i<0||i>=slides.length)return;currentSlideIndex=i;const el=document.getElementById("current-slide");el.innerHTML=slides[i];el.scrollTop=0;document.getElementById("progress-bar").style.width=((i+1)/slides.length*100)+"%";document.getElementById("slide-number").textContent=(i+1)+" / "+slides.length;updateSidebarActive();}
+function nextSlide(){if(currentSlideIndex<slides.length-1)showSlide(currentSlideIndex+1);}
+function previousSlide(){if(currentSlideIndex>0)showSlide(currentSlideIndex-1);}
+function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open");}
+function toggleHelp(){document.getElementById("help-overlay").classList.toggle("hidden");}
+function toggleFullscreen(){if(!document.fullscreenElement){const pc=document.getElementById("presentation-container");if(pc.requestFullscreen)pc.requestFullscreen();else if(pc.webkitRequestFullscreen)pc.webkitRequestFullscreen();else if(pc.msRequestFullscreen)pc.msRequestFullscreen();else if(pc.mozRequestFullScreen)pc.mozRequestFullScreen();}else{if(document.exitFullscreen)document.exitFullscreen();else if(document.webkitExitFullscreen)document.webkitExitFullscreen();else if(document.msExitFullscreen)document.msExitFullscreen();else if(document.mozCancelFullScreen)document.mozCancelFullScreen();}}
+function generateSidebar(){const sc=document.getElementById("sidebar-content");sc.innerHTML="";slides.forEach((html,idx)=>{const t=document.createElement("div");t.className="slide-thumbnail";if(idx===0)t.classList.add("active");const tmp=document.createElement("div");tmp.innerHTML=html;const title=tmp.querySelector("h1,h2");const titleText=title?title.textContent:("Слайд "+(idx+1));const textContent=tmp.textContent.replace(/s+/g," ").trim();const preview=textContent.substring(0,100)+(textContent.length>100?"...":"");t.innerHTML="<div class=\"slide-thumbnail-number\">"+(idx+1)+"</div><div class=\"slide-thumbnail-title\">"+titleText+"</div><div class=\"slide-thumbnail-content\">"+preview+"</div>";t.onclick=()=>{showSlide(idx);if(window.innerWidth<1024)toggleSidebar();};sc.appendChild(t);});}
+function updateSidebarActive(){document.querySelectorAll(".slide-thumbnail").forEach((th,idx)=>{if(idx===currentSlideIndex){th.classList.add("active");th.scrollIntoView({behavior:"smooth",block:"nearest"});}else th.classList.remove("active");});}
+document.addEventListener("keydown",e=>{switch(e.key){case"ArrowLeft":previousSlide();break;case"ArrowRight":case" ":e.preventDefault();nextSlide();break;case"f":case"F":toggleFullscreen();break;case"s":case"S":toggleSidebar();break;case"?":toggleHelp();break;case"Escape":const sb=document.getElementById("sidebar");const ho=document.getElementById("help-overlay");if(sb.classList.contains("open"))toggleSidebar();else if(!ho.classList.contains("hidden"))ho.classList.add("hidden");break;}});
+generateSidebar();showSlide(0);</script></body></html>
