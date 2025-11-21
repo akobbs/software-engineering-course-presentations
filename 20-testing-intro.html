@@ -1,0 +1,614 @@
+<!DOCTYPE html><html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>🧪 Тестування програмного забезпечення</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"><style>.__________cytoscape_container { position: relative; }
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #editor-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #editor-container.hidden {
+            display: none;
+        }
+
+        #editor-header {
+            background: #2d3748;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #editor-header h2 {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        #editor-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #4a5568;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2d3748;
+        }
+
+        #markdown-input {
+            flex: 1;
+            padding: 2rem;
+            background: #1a202c;
+            color: #e2e8f0;
+            border: none;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+        }
+
+        #markdown-input:focus {
+            outline: none;
+        }
+
+        .slide-container {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .slide {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 3rem;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .slide::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .slide::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .slide h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .slide h2 {
+            color: #764ba2;
+            font-size: 2rem;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .slide h3 {
+            color: #4a5568;
+            font-size: 1.5rem;
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        .slide p {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .slide ul, .slide ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .slide li {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide pre {
+            background: #282c34;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+
+        .slide pre code {
+            background: transparent;
+            color: #abb2bf;
+        }
+
+        .slide code {
+            font-family: 'Courier New', Consolas, Monaco, monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .slide p code {
+            background: #edf2f7;
+            color: #e53e3e;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .slide blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            color: #4a5568;
+        }
+
+        .slide img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .slide table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .slide th, .slide td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .slide th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .slide tr:nth-child(even) {
+            background: #f7fafc;
+        }
+
+        .note {
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .note strong {
+            color: #c53030;
+        }
+
+        .warning {
+            background: #fffaf0;
+            border-left: 4px solid #f6ad55;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .warning strong {
+            color: #c05621;
+        }
+
+        .info {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .info strong {
+            color: #2c5282;
+        }
+
+        .success {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .success strong {
+            color: #22543d;
+        }
+
+        .danger {
+            background: #fff5f5;
+            border-left: 4px solid #f56565;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .danger strong {
+            color: #742a2a;
+        }
+
+        .tip {
+            background: #fefcbf;
+            border-left: 4px solid #ecc94b;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .tip strong {
+            color: #744210;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: white;
+            transition: width 0.3s;
+        }
+
+        .slide-number {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            color: #667eea;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #sidebar {
+            position: fixed;
+            right: -320px;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+            transition: right 0.3s ease;
+            z-index: 200;
+            padding: 1rem;
+        }
+
+        #sidebar.open {
+            right: 0;
+        }
+
+        #sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+
+        #sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #667eea;
+        }
+
+        #sidebar-header h3 {
+            color: #667eea;
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        #sidebar-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #4a5568;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        #sidebar-close:hover {
+            color: #667eea;
+        }
+
+        .slide-thumbnail {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+
+        .slide-thumbnail:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+            transform: translateX(-4px);
+        }
+
+        .slide-thumbnail.active {
+            border-color: #667eea;
+            background: #f7faff;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .slide-thumbnail-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide-thumbnail-content {
+            font-size: 0.85rem;
+            color: #2d3748;
+            line-height: 1.4;
+            max-height: 4.2rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slide-thumbnail-content::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 50%;
+            height: 1.4rem;
+            background: linear-gradient(to right, transparent, white);
+        }
+
+        .slide-thumbnail.active .slide-thumbnail-content::after {
+            background: linear-gradient(to right, transparent, #f7faff);
+        }
+
+        .slide-thumbnail-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 0.25rem;
+        }
+
+        #sidebar-toggle {
+            position: fixed;
+            right: 1rem;
+            top: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 8px;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 150;
+        }
+
+        #sidebar-toggle:hover {
+            background: white;
+            transform: scale(1.05);
+        }
+
+        .mermaid {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            overflow: visible; /* щоб не обрізати тіні / розширені ноди */
+        }
+
+        /* Запобігаємо обрізанню останньої літери в нодах Mermaid через зміну font-weight після розрахунку розміру */
+        .mermaid svg { overflow: visible !important; }
+        /* перестраховка проти обрізання foreignObject (на випадок інших діаграм) */
+        .mermaid svg foreignObject { overflow: visible !important; }
+
+        .plantuml-diagram {
+            max-width: 100%;
+            height: auto;
+            margin: 1.5rem auto;
+            display: block;
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #help-overlay {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            transition: opacity 0.3s;
+        }
+
+        #help-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #help-overlay kbd {
+            background: #2d3748;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.85em;
+        }
+
+        .mermaid-error {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            padding: 1rem;
+            border-radius: 6px;
+            color: #742a2a;
+            margin: 1.5rem 0;
+        }
+
+        .mermaid-error pre {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+        }
+
+        /* Повноекранний режим - зберігаємо оригінальний фон */
+        #presentation-container:fullscreen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-webkit-full-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-moz-full-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-ms-fullscreen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+#presentation-container:fullscreen,#presentation-container:-webkit-full-screen,#presentation-container:-moz-full-screen,#presentation-container:-ms-fullscreen{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)!important;}</style></head><body><div id="presentation-container"><div class="progress"><div class="progress-bar" id="progress-bar"></div></div><button id="sidebar-toggle" onclick="toggleSidebar()" title="Навігація слайдами (S)">☰</button><div id="sidebar"><div id="sidebar-header"><h3>📑 Слайди</h3><button id="sidebar-close" onclick="toggleSidebar()">✕</button></div><div id="sidebar-content"></div></div><div class="slide-container"><div class="slide" id="current-slide"></div></div><div class="controls"><button class="control-btn" onclick="previousSlide()" title="Попередній (←)">←</button><button class="control-btn" onclick="nextSlide()" title="Наступний (→)">→</button><button class="control-btn" onclick="toggleFullscreen()" title="Повноекранний режим (F)">⛶</button><button class="control-btn" onclick="toggleHelp()" title="Допомога (?)">?</button></div><div class="slide-number" id="slide-number">1 / 25</div><div id="help-overlay" class="hidden"><strong>Гарячі клавіші:</strong><br><kbd>←</kbd> <kbd>→</kbd> Навігація<br><kbd>F</kbd> Повноекранний режим<br><kbd>S</kbd> Sidebar<br><kbd>?</kbd> Допомога<br><kbd>Esc</kbd> Закрити</div></div><script>const slides=["<h1>🧪 Тестування програмного забезпечення</h1>\n<p><strong>Курс:</strong> Основи інженерії програмного забезпечення<br><strong>Лектор:</strong> Кобилянський Антон</p>\n","<h2>📋 План лекції</h2>\n<ol>\n<li>🎯 Вступ до тестування: що це і навіщо потрібно</li>\n<li>🏗️ Рівні тестування програмного забезпечення</li>\n<li>📦 Типи тестування за призначенням</li>\n<li>⚫⚪ Техніки тестування: Black Box та White Box</li>\n<li>✅ Висновки та контрольні питання</li>\n<li>📚 Глосарій термінів</li>\n</ol>\n","<h1>🎯 Що таке тестування ПЗ?</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Тестування програмного забезпечення (Software Testing)</strong> — це процес аналізу та перевірки програмного продукту з метою виявлення дефектів, підтвердження відповідності заявленим вимогам та оцінки якості системи.</p>\n</div>\n\n\n\n<p><strong>Головна мета тестування:</strong></p>\n<ul>\n<li>🔍 Знайти дефекти до того, як їх знайдуть користувачі</li>\n<li>✅ Переконатися, що система працює згідно з вимогами</li>\n<li>⭐ Оцінити якість та надійність продукту</li>\n<li>🛡️ Зменшити ризики в production середовищі</li>\n</ul>\n<h2>💡 Важлива цитата</h2>\n<blockquote>\n<p>\"Testing shows the presence, not the absence of bugs\"<br>— Edsger W. Dijkstra</p>\n</blockquote>\n<p><strong>Пояснення:</strong> Тестування може показати, що баги існують, але не може довести їх повну відсутність. Неможливо протестувати абсолютно всі можливі сценарії використання системи.</p>\n","<h1>💥 Чому тестування критично важливе?</h1>\n<p>Тестування — це не витрати, а інвестиція 📈. Чим раніше знайдено дефект, тим легше його виправити. Але що відбувається, коли тестування недостатнє?</p>\n<h2>🏦 Реальний приклад: Банківська ATM помилка (2016)</h2>\n<div class=\"danger\"><strong>🚫 Що сталося?</strong> <p>У 2016 році банк <strong>Bank of Ireland</strong> виявив критичний баг в системі банкоматів: клієнти могли <strong>знімати гроші понад ліміт</strong> свого рахунку. Протягом одного уїк-енду люди зняли гроші, яких у них не було.</p>\n<p><strong>Суть проблеми:</strong></p>\n<ul>\n<li>🐛 Помилка в логіці перевірки балансу</li>\n<li>💳 Банкомат не перевіряв реальний залишок перед видачею готівки</li>\n<li>⏰ Проблема виявилась у вихідні, коли технічна підтримка була недоступна</li>\n<li>📱 Інформація швидко поширилась через соціальні мережі</li>\n</ul>\n<p><strong>Наслідки:</strong></p>\n<ul>\n<li>💸 Мільйони євро збитків за одну ніч</li>\n<li>😞 Репутаційні втрати для банку</li>\n<li>🚨 Екстрене закриття всіх банкоматів</li>\n<li>📰 Скандал у ЗМІ та втрата довіри клієнтів</li>\n</ul>\n</div>\n\n\n\n<p><strong>Висновок:</strong> Недостатнє тестування однієї простої умови (перевірка балансу) призвело до величезних збитків. Тестування має покривати не тільки \"щасливий шлях\" (happy path), але й граничні випадки: що станеться, якщо на рахунку 0 грошей? Від'ємний баланс? ⚠️</p>\n","<h1>🏗️ Рівні тестування</h1>\n<p>Тестування програмного забезпечення проводиться на різних рівнях — від найменших компонентів до повної системи. Кожен рівень має свою мету та фокус перевірки.</p>\n\n<div class=\"mermaid\" data-source=\"graph TB\n    A[🧩 Unit Testing&lt;br/&gt;Модульне тестування] --&gt; B[🔗 Integration Testing&lt;br/&gt;Інтеграційне тестування]\n    B --&gt; C[⚙️ System Testing&lt;br/&gt;Системне тестування]\n    C --&gt; D[✅ Acceptance Testing&lt;br/&gt;Приймальне тестування]\n\n    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:2px\n    style B fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px\n    style C fill:#fff3e0,stroke:#f57c00,stroke-width:2px\n    style D fill:#e8f5e9,stroke:#388e3c,stroke-width:2px\"><svg id=\"exp-1763706235377-4-0\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" class=\"flowchart\" style=\"max-width: 249.3125px;\" viewBox=\"0 0 249.3125 454\" role=\"graphics-document document\" aria-roledescription=\"flowchart-v2\"><style>#exp-1763706235377-4-0{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#exp-1763706235377-4-0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#exp-1763706235377-4-0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#exp-1763706235377-4-0 .error-icon{fill:#552222;}#exp-1763706235377-4-0 .error-text{fill:#552222;stroke:#552222;}#exp-1763706235377-4-0 .edge-thickness-normal{stroke-width:1px;}#exp-1763706235377-4-0 .edge-thickness-thick{stroke-width:3.5px;}#exp-1763706235377-4-0 .edge-pattern-solid{stroke-dasharray:0;}#exp-1763706235377-4-0 .edge-thickness-invisible{stroke-width:0;fill:none;}#exp-1763706235377-4-0 .edge-pattern-dashed{stroke-dasharray:3;}#exp-1763706235377-4-0 .edge-pattern-dotted{stroke-dasharray:2;}#exp-1763706235377-4-0 .marker{fill:#333333;stroke:#333333;}#exp-1763706235377-4-0 .marker.cross{stroke:#333333;}#exp-1763706235377-4-0 svg{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;}#exp-1763706235377-4-0 p{margin:0;}#exp-1763706235377-4-0 .label{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;color:#333;}#exp-1763706235377-4-0 .cluster-label text{fill:#333;}#exp-1763706235377-4-0 .cluster-label span{color:#333;}#exp-1763706235377-4-0 .cluster-label span p{background-color:transparent;}#exp-1763706235377-4-0 .label text,#exp-1763706235377-4-0 span{fill:#333;color:#333;}#exp-1763706235377-4-0 .node rect,#exp-1763706235377-4-0 .node circle,#exp-1763706235377-4-0 .node ellipse,#exp-1763706235377-4-0 .node polygon,#exp-1763706235377-4-0 .node path{fill:#ECECFF;stroke:#667eea;stroke-width:1px;}#exp-1763706235377-4-0 .rough-node .label text,#exp-1763706235377-4-0 .node .label text,#exp-1763706235377-4-0 .image-shape .label,#exp-1763706235377-4-0 .icon-shape .label{text-anchor:middle;}#exp-1763706235377-4-0 .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#exp-1763706235377-4-0 .rough-node .label,#exp-1763706235377-4-0 .node .label,#exp-1763706235377-4-0 .image-shape .label,#exp-1763706235377-4-0 .icon-shape .label{text-align:center;}#exp-1763706235377-4-0 .node.clickable{cursor:pointer;}#exp-1763706235377-4-0 .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#exp-1763706235377-4-0 .arrowheadPath{fill:#333333;}#exp-1763706235377-4-0 .edgePath .path{stroke:#333333;stroke-width:2.0px;}#exp-1763706235377-4-0 .flowchart-link{stroke:#333333;fill:none;}#exp-1763706235377-4-0 .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1763706235377-4-0 .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#exp-1763706235377-4-0 .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1763706235377-4-0 .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#exp-1763706235377-4-0 .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#exp-1763706235377-4-0 .cluster text{fill:#333;}#exp-1763706235377-4-0 .cluster span{color:#333;}#exp-1763706235377-4-0 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#exp-1763706235377-4-0 .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#exp-1763706235377-4-0 rect.text{fill:none;stroke-width:0;}#exp-1763706235377-4-0 .icon-shape,#exp-1763706235377-4-0 .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1763706235377-4-0 .icon-shape p,#exp-1763706235377-4-0 .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#exp-1763706235377-4-0 .icon-shape rect,#exp-1763706235377-4-0 .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1763706235377-4-0 .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#exp-1763706235377-4-0 .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#exp-1763706235377-4-0 :root{--mermaid-font-family:\"trebuchet ms\",verdana,arial,sans-serif;}</style><g><marker id=\"exp-1763706235377-4-0_flowchart-v2-pointEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 0 L 10 5 L 0 10 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1763706235377-4-0_flowchart-v2-pointStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"4.5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 5 L 10 10 L 10 0 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1763706235377-4-0_flowchart-v2-circleEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"11\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1763706235377-4-0_flowchart-v2-circleStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-1\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1763706235377-4-0_flowchart-v2-crossEnd\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"12\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1763706235377-4-0_flowchart-v2-crossStart\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"-1\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><g class=\"root\"><g class=\"clusters\"></g><g class=\"edgePaths\"><path d=\"M124.656,80L124.656,84.167C124.656,88.333,124.656,96.667,124.656,104.333C124.656,112,124.656,119,124.656,122.5L124.656,126\" id=\"L_A_B_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_A_B_0\" data-points=\"W3sieCI6MTI0LjY1NjI1LCJ5Ijo4MH0seyJ4IjoxMjQuNjU2MjUsInkiOjEwNX0seyJ4IjoxMjQuNjU2MjUsInkiOjEzMH1d\" marker-end=\"url(#exp-1763706235377-4-0_flowchart-v2-pointEnd)\"></path><path d=\"M124.656,202L124.656,206.167C124.656,210.333,124.656,218.667,124.656,226.333C124.656,234,124.656,241,124.656,244.5L124.656,248\" id=\"L_B_C_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_B_C_0\" data-points=\"W3sieCI6MTI0LjY1NjI1LCJ5IjoyMDJ9LHsieCI6MTI0LjY1NjI1LCJ5IjoyMjd9LHsieCI6MTI0LjY1NjI1LCJ5IjoyNTJ9XQ==\" marker-end=\"url(#exp-1763706235377-4-0_flowchart-v2-pointEnd)\"></path><path d=\"M124.656,324L124.656,328.167C124.656,332.333,124.656,340.667,124.656,348.333C124.656,356,124.656,363,124.656,366.5L124.656,370\" id=\"L_C_D_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_C_D_0\" data-points=\"W3sieCI6MTI0LjY1NjI1LCJ5IjozMjR9LHsieCI6MTI0LjY1NjI1LCJ5IjozNDl9LHsieCI6MTI0LjY1NjI1LCJ5IjozNzR9XQ==\" marker-end=\"url(#exp-1763706235377-4-0_flowchart-v2-pointEnd)\"></path></g><g class=\"edgeLabels\"><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_A_B_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_B_C_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_C_D_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g></g><g class=\"nodes\"><g class=\"node default  \" id=\"flowchart-A-0\" transform=\"translate(124.65625, 44)\"><rect class=\"basic label-container\" style=\"fill:#e3f2fd !important;stroke:#1976d2 !important;stroke-width:2px !important\" x=\"-106.4609375\" y=\"-36\" width=\"212.921875\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-82.4609375, -24)\"><rect></rect><foreignObject width=\"164.921875\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🧩 Unit Testing<br>Модульне тестування</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-B-1\" transform=\"translate(124.65625, 166)\"><rect class=\"basic label-container\" style=\"fill:#f3e5f5 !important;stroke:#7b1fa2 !important;stroke-width:2px !important\" x=\"-116.65625\" y=\"-36\" width=\"233.3125\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-92.65625, -24)\"><rect></rect><foreignObject width=\"185.3125\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🔗 Integration Testing<br>Інтеграційне тестування</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-C-3\" transform=\"translate(124.65625, 288)\"><rect class=\"basic label-container\" style=\"fill:#fff3e0 !important;stroke:#f57c00 !important;stroke-width:2px !important\" x=\"-106.28125\" y=\"-36\" width=\"212.5625\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-82.28125, -24)\"><rect></rect><foreignObject width=\"164.5625\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>⚙️ System Testing<br>Системне тестування</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-D-5\" transform=\"translate(124.65625, 410)\"><rect class=\"basic label-container\" style=\"fill:#e8f5e9 !important;stroke:#388e3c !important;stroke-width:2px !important\" x=\"-116.2734375\" y=\"-36\" width=\"232.546875\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-92.2734375, -24)\"><rect></rect><foreignObject width=\"184.546875\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>✅ Acceptance Testing<br>Приймальне тестування</p></span></div></foreignObject></g></g></g></g></g></svg></div>\n<p><strong>Порядок виконання:</strong> Тестування зазвичай виконується знизу вгору — спочатку тестуємо окремі модулі, потім їх взаємодію, далі всю систему, і нарешті перевіряємо відповідність бізнес-вимогам.</p>\n","<h1>🧩 Unit Testing — Модульне тестування</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Unit Testing</strong> — це тестування найменших частин програми (функцій, методів, класів) окремо від інших компонентів системи. Мета — переконатися, що кожна \"одиниця\" коду працює правильно ізольовано.</p>\n</div>\n\n\n\n<h2>🎯 Основні характеристики</h2>\n<ul>\n<li>🔒 <strong>Ізоляція:</strong> Тестуємо один модуль незалежно від інших</li>\n<li>⚡ <strong>Швидкість:</strong> Unit-тести виконуються дуже швидко (мілісекунди)</li>\n<li>👨‍💻 <strong>Розробники:</strong> Пишуться та виконуються розробниками під час написання коду</li>\n<li>📊 <strong>Покриття:</strong> Кожна функція повинна мати свої unit-тести</li>\n</ul>\n","<h1>🧩 Unit Testing — Приклад на Java</h1>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-comment\">// Клас, який тестуємо</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Calculator</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-type\">int</span> <span class=\"hljs-title function_\">add</span><span class=\"hljs-params\">(<span class=\"hljs-type\">int</span> a, <span class=\"hljs-type\">int</span> b)</span> {\n        <span class=\"hljs-keyword\">return</span> a + b;\n    }\n    \n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-type\">int</span> <span class=\"hljs-title function_\">divide</span><span class=\"hljs-params\">(<span class=\"hljs-type\">int</span> a, <span class=\"hljs-type\">int</span> b)</span> {\n        <span class=\"hljs-keyword\">if</span> (b == <span class=\"hljs-number\">0</span>) {\n            <span class=\"hljs-keyword\">throw</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">ArithmeticException</span>(<span class=\"hljs-string\">\"Division by zero\"</span>);\n        }\n        <span class=\"hljs-keyword\">return</span> a / b;\n    }\n}\n\n<span class=\"hljs-comment\">// Unit тести з використанням JUnit</span>\n<span class=\"hljs-meta\">@Test</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">testAdd</span><span class=\"hljs-params\">()</span> {\n    <span class=\"hljs-type\">Calculator</span> <span class=\"hljs-variable\">calc</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Calculator</span>();\n    assertEquals(<span class=\"hljs-number\">5</span>, calc.add(<span class=\"hljs-number\">2</span>, <span class=\"hljs-number\">3</span>));     <span class=\"hljs-comment\">// 2 + 3 = 5 ✅</span>\n    assertEquals(<span class=\"hljs-number\">0</span>, calc.add(-<span class=\"hljs-number\">1</span>, <span class=\"hljs-number\">1</span>));    <span class=\"hljs-comment\">// -1 + 1 = 0 ✅</span>\n    assertEquals(-<span class=\"hljs-number\">5</span>, calc.add(-<span class=\"hljs-number\">2</span>, -<span class=\"hljs-number\">3</span>));  <span class=\"hljs-comment\">// -2 + (-3) = -5 ✅</span>\n}\n\n<span class=\"hljs-meta\">@Test</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">testDivide</span><span class=\"hljs-params\">()</span> {\n    <span class=\"hljs-type\">Calculator</span> <span class=\"hljs-variable\">calc</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Calculator</span>();\n    assertEquals(<span class=\"hljs-number\">2</span>, calc.divide(<span class=\"hljs-number\">6</span>, <span class=\"hljs-number\">3</span>));  <span class=\"hljs-comment\">// 6 / 3 = 2 ✅</span>\n}\n\n<span class=\"hljs-meta\">@Test(expected = ArithmeticException.class)</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">testDivideByZero</span><span class=\"hljs-params\">()</span> {\n    <span class=\"hljs-type\">Calculator</span> <span class=\"hljs-variable\">calc</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Calculator</span>();\n    calc.divide(<span class=\"hljs-number\">5</span>, <span class=\"hljs-number\">0</span>);  <span class=\"hljs-comment\">// Має викинути виключення ✅</span>\n}</code></pre>","<h1>🧩 Unit Testing: Переваги та обмеження</h1>\n<table>\n<thead>\n<tr>\n<th>✅ Переваги</th>\n<th>⚠️ Обмеження</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>⚡ Швидке виконання (тисячі тестів за секунди)</td>\n<td>🔗 Не виявляє інтеграційні проблеми</td>\n</tr>\n<tr>\n<td>🐛 Рання детекція багів на етапі розробки</td>\n<td>⏰ Потребує часу на написання</td>\n</tr>\n<tr>\n<td>📖 Документація коду (показують як використовувати)</td>\n<td>🚫 100% покриття ≠ відсутність багів</td>\n</tr>\n<tr>\n<td>🔄 Полегшує рефакторинг без страху</td>\n<td></td>\n</tr>\n<tr>\n<td>🎯 Проста локалізація проблем</td>\n<td></td>\n</tr>\n</tbody></table>\n<div class=\"tip\"><strong>💡 Best Practice від Google 🏢</strong> <p>Google вимагає мінімум <strong>80% покриття коду</strong> unit-тестами. Для критичних компонентів — 100%.</p>\n</div>\n\n","<h1>🔗 Integration Testing — Інтеграційне</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Integration Testing</strong> — це тестування взаємодії між декількома модулями або компонентами системи. Мета — переконатися, що окремі частини системи правильно співпрацюють між собою.</p>\n</div>\n\n\n\n<h2>🎯 Ключова ідея</h2>\n<p>Модулі можуть працювати ідеально окремо (unit тести проходять ✅), але при інтеграції виникають проблеми ❌:</p>\n<ul>\n<li>🔌 Невідповідність інтерфейсів (API contracts)</li>\n<li>📦 Неправильний формат даних між модулями</li>\n<li>🔄 Помилки в логіці взаємодії</li>\n<li>⏱️ Проблеми з порядком викликів</li>\n</ul>\n<p><strong>Відмінність від Unit Testing:</strong> Unit — тестуємо 1 модуль ізольовано 🧩. Integration — тестуємо 2-3 модулі разом 🔗.</p>\n","<h1>🔗 Integration Testing — Приклади</h1>\n\n<img src=\"https://www.plantuml.com/plantuml/svg/ZPJ1Rjf048RlVeffUW6faPAWN7AeObgSHaA0OYBrwfY5M80NBPj4gAf4GfBs41MrZUYXXwYNdXq4AOL0Ns7sJVe8dJMWOffA4GVZ-V_PNN__sDjrwGXvLAqOJmgiwFaCqhixh_B9z7uAdgOIreRrCghazlToQTAiH6hJsengsJqpiwCrYzGrmwYNFR_c2ASA1uvRBWb-v1TUy0eNS7BeIRQWrqXtIioMZGe3mLpf-AKACunP7LP-ttpz1AbLbrUhJBXi1Pmwf5wlBvpsZG50Setxp9UmaXK59cmcZhsPEsklHnsx_Z5TkMWikdP35tbXTVMvleCjS0-PMxObTyknE8a-bmmEk9Iy2hoeJq550Bp1lcfY7xkgevgghQxn7YTReDxX0F07tVHnhDwhbhfMP-fAdQhsj6-eEZXIL_fAHP90dU44knZGCYt0CGQWJd688momfphJhb_QJNrjq4tadeIRZscFjjukqBjJUJGlKXlp2-7fZRSHiktlW1-fOOp36TUDIDPBPFF2yUl5ADoy7VMOhajXIp13rJGVLfDJDKbgtWw1coRnBh03JyOIQsln1I6fWn2iy5Vv9uUDH-GmeQSCiQWFz8laCC5R761FWmTQ850NggMPwBOWZEHUHw8N21jYXEmM9v76Pp0ltb6vfzd7_m_-yotWDmhkKWz7UEOx36OH92Alr584ELwNY_XpI_WpN7f5ptMan_r5NqRxSbEY6Pk8-jhOi7Ybma-Og3yytud7S2MMJQ9mJ_CTSftsT0bl1zGvmHY5tFKI0ptJr803TKwpFoIgbxJcb_bWDpM_QKm3_4aLCjECHpbkqt_wRFq1\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n<p><strong>Що важливо:</strong> В Integration Testing ми не тестуємо всю систему, а лише взаємодію конкретних модулів. Наприклад, для e-commerce ми перевіряємо тільки OrderService + InventoryService, не включаючи UI, Payment та інші модулі.</p>\n","<h1>⚙️ System Testing — Системне тестування</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>System Testing</strong> — це тестування повністю інтегрованої та зібраної системи для перевірки її відповідності функціональним та нефункціональним вимогам. Система тестується як єдине ціле в умовах, максимально наближених до production.</p>\n</div>\n\n\n\n<h2>🎯 Ключові характеристики</h2>\n<ul>\n<li>🌐 <strong>Scope:</strong> Тестується вся система цілком з усіма компонентами</li>\n<li>🖥️ <strong>Середовище:</strong> Тестове середовище, наближене до реального</li>\n<li>👤 <strong>Підхід:</strong> Тестування з точки зору кінцевого користувача</li>\n<li>✅ <strong>Мета:</strong> Валідація повної функціональності системи</li>\n</ul>\n<p><strong>Відмінність від Integration:</strong> Integration — тестуємо 2-3 модулі 🔗. System — тестуємо всю систему з усіма компонентами одночасно 🌍 (UI, Backend, Database, External APIs і т.д.).</p>\n","<h1>⚙️ System Testing — Візуалізація</h1>\n\n<img src=\"https://www.plantuml.com/plantuml/svg/VLDDRzD04BtxLmpbN0cr8047r3IrGqGKedwSK0vRP-ki6g-hzGQ845BQKawLAgGg9r25n0y89QYcJSnVcFqB_19cBRdOQiBDC-_Dl7dsyrgicTBziEVSw_0z8JaqwhNds-kD7HVkkwlUYhTHHcgRhjiawB7to7rIXbvkLfer6lCyRzLzKCPQzUOBGghkGxVgEF6-a0TCiH1scRyVgAWlEzMe5obuqnMQEyu1jLd0OGalCCLBdE4Op24cvj0SuK-SKec_pGWdO6lRDST46nDnPivmkWJl781NEp5NK9UQgptcy_O_RnPSxyTqNXn38mg4toxOi-W6qmmglfyHs82hTj5apjXbSRxMEhHjzot9ITQ35Xk4N6gejEfj2rJwkakry9aMaOGjhbuBEYgR2Pde5JlpZbzUVdRdw7a-CjxTynUOkcLdLXRkM-XgBli_LkTlB_j_xpWoqXoK2BgQXhO6iUOXRFDO2ndGbwTFFgGON9gH6PepS_wKI7y-dm1-enZCyDfyf6oaDZLuOquf4YEWT2IKcnH_O9ApBsXBYXEQkQOO9JPdjD66wRISjjk9JrHUMNsQE0QSP8bBp4cEVw76XBH_5JTPaU-OMecSzvKqfvPHuE6LTNQ3Owe-47reOvw9Sza1-qASDNgYV_Kl\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n<p><strong>Важливо:</strong> На цьому рівні ми перевіряємо не окремі модулі, а всю систему в комплексі — як вона поводиться в реальних умовах використання. Включаються всі сервіси, бази даних, зовнішні API.</p>\n","<h1>✅ Acceptance Testing — Приймальне тестування</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Acceptance Testing</strong> — це перевірка системи на відповідність бізнес-вимогам та очікуванням замовника. Це фінальний етап тестування перед передачею продукту клієнту. Часто виконується самим замовником або його представниками.</p>\n</div>\n\n\n\n<h2>🎯 Головна мета</h2>\n<p><strong>Відповісти на питання:</strong> Чи задовольняє система потреби бізнесу 💼? Чи готовий продукт до використання кінцевими користувачами 👥? Чи виконано всі вимоги, які були погоджені на початку проєкту 📋?</p>\n<h2>🔍 Ключові відмінності від System Testing</h2>\n<table>\n<thead>\n<tr>\n<th>Аспект</th>\n<th>System Testing</th>\n<th>Acceptance Testing</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Хто виконує</strong></td>\n<td>🧪 QA-команда</td>\n<td>👔 Замовник / користувачі</td>\n</tr>\n<tr>\n<td><strong>Що перевіряємо</strong></td>\n<td>⚙️ Технічна коректність</td>\n<td>💼 Відповідність бізнес-потребам</td>\n</tr>\n<tr>\n<td><strong>Критерії успіху</strong></td>\n<td>📊 Технічні специфікації</td>\n<td>🎯 Бізнес-вимоги</td>\n</tr>\n<tr>\n<td><strong>Фокус</strong></td>\n<td>🔧 Як працює система</td>\n<td>💡 Чи потрібна така система</td>\n</tr>\n<tr>\n<td><strong>Середовище</strong></td>\n<td>🧪 Тестове</td>\n<td>🚀 Близьке до production</td>\n</tr>\n</tbody></table>\n<p><strong>Простіше кажучи:</strong> System Testing перевіряє \"чи працює правильно\" ✅, а Acceptance Testing — \"чи це те, що потрібно клієнту\" 🎁.</p>\n","<h1>📦 Типи тестування за призначенням</h1>\n<p>Окрім рівнів тестування (Unit, Integration, System, Acceptance), існують різні <strong>типи тестування</strong> залежно від того, що саме ми хочемо перевірити в системі.</p>\n<p><strong>Важливо розуміти різницю:</strong></p>\n<ul>\n<li><strong>Рівні тестування</strong> 🏗️ (Unit, Integration, System, Acceptance) — це <strong>на якому рівні архітектури</strong> ми тестуємо</li>\n<li><strong>Типи тестування</strong> 🎯 (Smoke, Regression, Performance тощо) — це <strong>що саме</strong> ми перевіряємо</li>\n</ul>\n<p>Наприклад, ми можемо проводити Regression Testing на рівні Unit Testing або на рівні System Testing.</p>\n<p><strong>Розглянемо два найважливіші типи:</strong> Smoke Testing 💨 та Regression Testing 🔄</p>\n","<h1>💨 Smoke Testing — \"Димове тестування\"</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Smoke Testing</strong> — це швидка базова перевірка критично важливих функцій системи для визначення, чи варто взагалі продовжувати детальніше тестування. Назва походить від практики електриків — якщо прилад задимився при включенні, щось не так!</p>\n</div>\n\n\n\n<h2>🎯 Характеристики</h2>\n<ul>\n<li>⏱️ <strong>Швидкість:</strong> 15-30 хвилин максимум</li>\n<li>🎯 <strong>Покриття:</strong> Тільки основні функції (happy path — базовий сценарій без помилок)</li>\n<li>🎪 <strong>Мета:</strong> Швидко зрозуміти, чи працює система взагалі, чи стабільний новий build</li>\n<li>🔄 <strong>Частота:</strong> Після кожного нового build або deploy</li>\n<li>📏 <strong>Глибина:</strong> Поверхнево, без детальної перевірки</li>\n</ul>\n<h2>✅ Приклади smoke-тестів для веб-додатку</h2>\n<p><strong>Інтернет-магазин 🛒:</strong></p>\n<ol>\n<li>✅ Чи відкривається головна сторінка? (HTTP 200) 🌐</li>\n<li>✅ Чи можна увійти в систему з валідними credentials? 🔐</li>\n<li>✅ Чи відображається каталог товарів? 📦</li>\n<li>✅ Чи можна додати товар в кошик? 🛍️</li>\n<li>✅ Чи є підключення до бази даних? 🗄️</li>\n<li>✅ Чи працює кнопка \"Оформити замовлення\"? 💳</li>\n</ol>\n<p><strong>Якщо smoke-тести не проходять</strong> ❌ → build повертається розробникам без подальшого тестування, немає сенсу витрачати час на детальне тестування нестабільної версії 🚫.</p>\n","<h1>🔄 Regression Testing — Регресійне тестування</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Regression Testing</strong> — це повторне тестування вже існуючого функціоналу після внесення змін в систему (нові функції, виправлення багів, рефакторинг). Мета — переконатися, що нові зміни не зламали те, що працювало раніше.</p>\n</div>\n\n\n\n<h2>⚠️ Проблема регресії</h2>\n<p><strong>Типова ситуація:</strong> Розробник додає нову функцію або виправляє баг в модулі А 🔧. Раптом перестає працювати функціонал в модулі Б 💥, який здавалося б ніяк не пов'язаний! Це називається <strong>регресією</strong> — погіршення якості існуючого функціоналу 📉.</p>\n<p><strong>Чому це відбувається:</strong></p>\n<ul>\n<li>🔗 Модулі можуть мати приховані залежності</li>\n<li>📚 Зміни в спільних бібліотеках впливають на багато місць</li>\n<li>🔄 Рефакторинг коду може змінити поведінку</li>\n<li>🐛 Виправлення одного бага може створити інший</li>\n</ul>\n\n<div class=\"mermaid\" data-source=\"graph LR\n    A[Додали нову&lt;br/&gt;функцію ✅] --&gt; B{Regression&lt;br/&gt;Testing}\n    B --&gt;|Пройдено ✅| C[Старий функціонал&lt;br/&gt;працює]\n    B --&gt;|Провалено ❌| D[Старий функціонал&lt;br/&gt;зламався!]\n    D --&gt; E[Повернути&lt;br/&gt;на виправлення]\n\n    style A fill:#e8f5e9,stroke:#388e3c,stroke-width:2px\n    style C fill:#e8f5e9,stroke:#388e3c,stroke-width:2px\n    style D fill:#ffcdd2,stroke:#c62828,stroke-width:2px\n    style E fill:#fff3e0,stroke:#f57c00,stroke-width:2px\"><svg id=\"exp-1763706235390-15-0\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" class=\"flowchart\" style=\"max-width: 939.390625px;\" viewBox=\"0 0 939.390625 210\" role=\"graphics-document document\" aria-roledescription=\"flowchart-v2\"><style>#exp-1763706235390-15-0{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#exp-1763706235390-15-0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#exp-1763706235390-15-0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#exp-1763706235390-15-0 .error-icon{fill:#552222;}#exp-1763706235390-15-0 .error-text{fill:#552222;stroke:#552222;}#exp-1763706235390-15-0 .edge-thickness-normal{stroke-width:1px;}#exp-1763706235390-15-0 .edge-thickness-thick{stroke-width:3.5px;}#exp-1763706235390-15-0 .edge-pattern-solid{stroke-dasharray:0;}#exp-1763706235390-15-0 .edge-thickness-invisible{stroke-width:0;fill:none;}#exp-1763706235390-15-0 .edge-pattern-dashed{stroke-dasharray:3;}#exp-1763706235390-15-0 .edge-pattern-dotted{stroke-dasharray:2;}#exp-1763706235390-15-0 .marker{fill:#333333;stroke:#333333;}#exp-1763706235390-15-0 .marker.cross{stroke:#333333;}#exp-1763706235390-15-0 svg{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;}#exp-1763706235390-15-0 p{margin:0;}#exp-1763706235390-15-0 .label{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;color:#333;}#exp-1763706235390-15-0 .cluster-label text{fill:#333;}#exp-1763706235390-15-0 .cluster-label span{color:#333;}#exp-1763706235390-15-0 .cluster-label span p{background-color:transparent;}#exp-1763706235390-15-0 .label text,#exp-1763706235390-15-0 span{fill:#333;color:#333;}#exp-1763706235390-15-0 .node rect,#exp-1763706235390-15-0 .node circle,#exp-1763706235390-15-0 .node ellipse,#exp-1763706235390-15-0 .node polygon,#exp-1763706235390-15-0 .node path{fill:#ECECFF;stroke:#667eea;stroke-width:1px;}#exp-1763706235390-15-0 .rough-node .label text,#exp-1763706235390-15-0 .node .label text,#exp-1763706235390-15-0 .image-shape .label,#exp-1763706235390-15-0 .icon-shape .label{text-anchor:middle;}#exp-1763706235390-15-0 .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#exp-1763706235390-15-0 .rough-node .label,#exp-1763706235390-15-0 .node .label,#exp-1763706235390-15-0 .image-shape .label,#exp-1763706235390-15-0 .icon-shape .label{text-align:center;}#exp-1763706235390-15-0 .node.clickable{cursor:pointer;}#exp-1763706235390-15-0 .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#exp-1763706235390-15-0 .arrowheadPath{fill:#333333;}#exp-1763706235390-15-0 .edgePath .path{stroke:#333333;stroke-width:2.0px;}#exp-1763706235390-15-0 .flowchart-link{stroke:#333333;fill:none;}#exp-1763706235390-15-0 .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1763706235390-15-0 .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#exp-1763706235390-15-0 .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1763706235390-15-0 .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#exp-1763706235390-15-0 .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#exp-1763706235390-15-0 .cluster text{fill:#333;}#exp-1763706235390-15-0 .cluster span{color:#333;}#exp-1763706235390-15-0 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#exp-1763706235390-15-0 .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#exp-1763706235390-15-0 rect.text{fill:none;stroke-width:0;}#exp-1763706235390-15-0 .icon-shape,#exp-1763706235390-15-0 .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1763706235390-15-0 .icon-shape p,#exp-1763706235390-15-0 .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#exp-1763706235390-15-0 .icon-shape rect,#exp-1763706235390-15-0 .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1763706235390-15-0 .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#exp-1763706235390-15-0 .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#exp-1763706235390-15-0 :root{--mermaid-font-family:\"trebuchet ms\",verdana,arial,sans-serif;}</style><g><marker id=\"exp-1763706235390-15-0_flowchart-v2-pointEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 0 L 10 5 L 0 10 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1763706235390-15-0_flowchart-v2-pointStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"4.5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 5 L 10 10 L 10 0 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1763706235390-15-0_flowchart-v2-circleEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"11\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1763706235390-15-0_flowchart-v2-circleStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-1\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1763706235390-15-0_flowchart-v2-crossEnd\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"12\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1763706235390-15-0_flowchart-v2-crossStart\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"-1\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><g class=\"root\"><g class=\"clusters\"></g><g class=\"edgePaths\"><path d=\"M152.672,105L156.839,105C161.005,105,169.339,105,177.005,105C184.672,105,191.672,105,195.172,105L198.672,105\" id=\"L_A_B_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_A_B_0\" data-points=\"W3sieCI6MTUyLjY3MTg3NSwieSI6MTA1fSx7IngiOjE3Ny42NzE4NzUsInkiOjEwNX0seyJ4IjoyMDIuNjcxODc1LCJ5IjoxMDV9XQ==\" marker-end=\"url(#exp-1763706235390-15-0_flowchart-v2-pointEnd)\"></path><path d=\"M333.765,83.765L350.908,77.137C368.052,70.51,402.338,57.255,432.419,50.627C462.5,44,488.375,44,501.313,44L514.25,44\" id=\"L_B_C_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_B_C_0\" data-points=\"W3sieCI6MzMzLjc2NDg5OTEyNTE1NjIsInkiOjgzLjc2NDg5OTEyNTE1NjIyfSx7IngiOjQzNi42MjUsInkiOjQ0fSx7IngiOjUxOC4yNSwieSI6NDR9XQ==\" marker-end=\"url(#exp-1763706235390-15-0_flowchart-v2-pointEnd)\"></path><path d=\"M333.765,126.235L350.908,132.863C368.052,139.49,402.338,152.745,432.419,159.373C462.5,166,488.375,166,501.313,166L514.25,166\" id=\"L_B_D_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_B_D_0\" data-points=\"W3sieCI6MzMzLjc2NDg5OTEyNTE1NjIsInkiOjEyNi4yMzUxMDA4NzQ4NDM3OH0seyJ4Ijo0MzYuNjI1LCJ5IjoxNjZ9LHsieCI6NTE4LjI1LCJ5IjoxNjZ9XQ==\" marker-end=\"url(#exp-1763706235390-15-0_flowchart-v2-pointEnd)\"></path><path d=\"M713.016,166L717.182,166C721.349,166,729.682,166,737.349,166C745.016,166,752.016,166,755.516,166L759.016,166\" id=\"L_D_E_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_D_E_0\" data-points=\"W3sieCI6NzEzLjAxNTYyNSwieSI6MTY2fSx7IngiOjczOC4wMTU2MjUsInkiOjE2Nn0seyJ4Ijo3NjMuMDE1NjI1LCJ5IjoxNjZ9XQ==\" marker-end=\"url(#exp-1763706235390-15-0_flowchart-v2-pointEnd)\"></path></g><g class=\"edgeLabels\"><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_A_B_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\" transform=\"translate(436.625, 44)\"><g class=\"label\" data-id=\"L_B_C_0\" transform=\"translate(-53.03125, -13)\"><g><rect class=\"background\" style=\"\" x=\"-2\" y=\"-3\" width=\"106.0625\" height=\"26\"></rect><text y=\"-10.1\" style=\"\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"><tspan font-style=\"normal\" class=\"text-inner-tspan\" font-weight=\"normal\">Пройдено</tspan><tspan font-style=\"normal\" class=\"text-inner-tspan\" font-weight=\"normal\"> ✅</tspan></tspan></text></g></g></g><g class=\"edgeLabel\" transform=\"translate(436.625, 166)\"><g class=\"label\" data-id=\"L_B_D_0\" transform=\"translate(-56.625, -13)\"><g><rect class=\"background\" style=\"\" x=\"-2\" y=\"-3\" width=\"113.25\" height=\"26\"></rect><text y=\"-10.1\" style=\"\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"><tspan font-style=\"normal\" class=\"text-inner-tspan\" font-weight=\"normal\">Провалено</tspan><tspan font-style=\"normal\" class=\"text-inner-tspan\" font-weight=\"normal\"> ❌</tspan></tspan></text></g></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_D_E_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g></g><g class=\"nodes\"><g class=\"node default  \" id=\"flowchart-A-0\" transform=\"translate(80.3359375, 105)\"><rect class=\"basic label-container\" style=\"fill:#e8f5e9 !important;stroke:#388e3c !important;stroke-width:2px !important\" x=\"-72.3359375\" y=\"-36\" width=\"144.671875\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-48.3359375, -24)\"><rect></rect><foreignObject width=\"96.671875\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>Додали нову<br>функцію ✅</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-B-1\" transform=\"translate(278.8359375, 105)\"><polygon points=\"76.1640625,0 152.328125,-76.1640625 76.1640625,-152.328125 0,-76.1640625\" class=\"label-container\" transform=\"translate(-75.6640625, 76.1640625)\"></polygon><g class=\"label\" style=\"\" transform=\"translate(-40.1640625, -24)\"><rect></rect><foreignObject width=\"80.328125\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>Regression<br>Testing</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-C-3\" transform=\"translate(615.6328125, 44)\"><rect class=\"basic label-container\" style=\"fill:#e8f5e9 !important;stroke:#388e3c !important;stroke-width:2px !important\" x=\"-97.3828125\" y=\"-36\" width=\"194.765625\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-73.3828125, -24)\"><rect></rect><foreignObject width=\"146.765625\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>Старий функціонал<br>працює</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-D-5\" transform=\"translate(615.6328125, 166)\"><rect class=\"basic label-container\" style=\"fill:#ffcdd2 !important;stroke:#c62828 !important;stroke-width:2px !important\" x=\"-97.3828125\" y=\"-36\" width=\"194.765625\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-73.3828125, -24)\"><rect></rect><foreignObject width=\"146.765625\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>Старий функціонал<br>зламався!</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-E-7\" transform=\"translate(847.203125, 166)\"><rect class=\"basic label-container\" style=\"fill:#fff3e0 !important;stroke:#f57c00 !important;stroke-width:2px !important\" x=\"-84.1875\" y=\"-36\" width=\"168.375\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-60.1875, -24)\"><rect></rect><foreignObject width=\"120.375\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>Повернути<br>на виправлення</p></span></div></foreignObject></g></g></g></g></g></svg></div>\n","<h1>🔄 Regression Testing — Коли проводити</h1>\n<h2>🎯 Коли потрібне регресійне тестування</h2>\n<ul>\n<li>➕ Після додавання нової функціональності</li>\n<li>🔧 Після виправлення багів</li>\n<li>🔄 Після рефакторингу коду</li>\n<li>📦 Після оновлення бібліотек/frameworks</li>\n<li>🚀 Перед кожним релізом</li>\n</ul>\n<p><strong>Важливо:</strong> Regression тести повинні покривати критичний функціонал системи 🎯, який не повинен ламатися ні за яких обставин (наприклад, логін 🔐, оплата 💳, створення замовлення 📦).</p>\n<div class=\"warning\"><strong>⚠️ Реальний кейс: Amazon UK, 2014 💸</strong> <p>Баг у програмі автоматичного ціноутворення <strong>RepricerExpress</strong> знизив ціни тисяч товарів до £0.01 (1 пенні). Протягом години клієнти зробили сотні замовлень. Деякі продавці втратили десятки тисяч фунтів і опинилися на межі банкрутства. Проблема виникла через недостатнє тестування оновлення програми.</p>\n</div>\n\n","<h1>⚫⚪ Black Box vs White Box Testing</h1>\n<p>Ці два підходи до тестування відрізняються тим, <strong>скільки тестувальник знає про внутрішню реалізацію</strong> системи, яку він тестує.</p>\n\n<img src=\"https://www.plantuml.com/plantuml/svg/dLHDQrD15Ds_Nt6j6rraaT2wj4rgMuD2eIa48PlNP18VVPa9UHEqY90F8ov2wqAUK1IA6q4tiJOq92R-XJj_eR_4ypxI94L1XK3kp9rpxhtd7jw6f-swRbHTwrP9b1qfw45wxz7ENle9tLvTMqlVMxrEFCxkFDoFCbkRMzlRISlo3XrPi-jsbGxiuc6bhXgojAbSLQTdJnqj5l8rvEsAoEaZLr1T5BKjAwwmhFYULZ8k8igevxGlFEt82bsTVbqXswDCXbvOD0VHIbRM6heWx_0d7fYMQVEKpurFVC5zdXZ_RWZB9fT1kIDFYsf1hg-l1z3FF3LDdd2VJ8j728U0zdZ4_GYUIruhiSopsz1nzJCUyANfyDZqq4FVj2FaRb0OlsoI4edx84ASY-9PIYejw41fhQgaofWGTqHN7xh47tb0V1aqPjxn3vuIdwEnZccRfl7D6yJ7X6u767LiVBpiczT87CyPOb60YGZCA_GumOnu1wKc8R8N21K-wysHfw4cmmYDkW5rA0dnJv0seHJ-mTI6MaZFaUyN6WRO3okCU8ZkJHV72meK2cOPHcT0XIo5GbWl5soG3tnpmmPVGbdp_sc3r39eKvLWPLLnYWNfb1F2zKH1kahLl88iDsHHEqfwaGDISyl_gmLIiGLIaGM2OowAPwaR5iXdVYycH9n2FGpM2ZQ0SXUXK_q_xvl7W7o7o2FJYMI7RSRcn7J3VG0-Ycqm0T79dEWCrvUeCULlI0t_UlblOq_vWHGp4xH2ntQ2zxX458zYEikhtq2Cpyyl\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n<p><strong>Ключова різниця:</strong> Black Box — тестуємо \"ззовні\" як користувачі, White Box — тестуємо \"зсередини\" з доступом до коду.</p>\n","<h1>⚫ Black Box Testing — Приклад</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Black Box Testing</strong> — підхід до тестування, при якому тестувальник не має доступу до коду системи. Система розглядається як \"чорна скринька\" — ми знаємо тільки що входить (input) і що повинно вийти (output) згідно зі специфікацією.</p>\n</div>\n\n\n\n<h2>📝 Приклад: Тестування калькулятора 🔢</h2>\n<p><strong>Що ми маємо (специфікація):</strong></p>\n<ul>\n<li>➕ Функція додавання: приймає два числа, повертає їх суму</li>\n<li>➗ Функція ділення: приймає два числа, повертає результат ділення</li>\n<li>⚠️ При діленні на 0 повинна бути помилка</li>\n</ul>\n<p><strong>Що ми НЕ знаємо:</strong></p>\n<ul>\n<li>🤔 Як реалізовано додавання (чи використовуються бібліотеки)</li>\n<li>🔍 Як оброблюється ділення на 0 (exception, return null, тощо)</li>\n<li>⚙️ Яка внутрішня логіка</li>\n</ul>\n<p><strong>Наші Black Box тести:</strong></p>\n<table>\n<thead>\n<tr>\n<th>Input A</th>\n<th>Input B</th>\n<th>Операція</th>\n<th>Очікуваний Output</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>5</td>\n<td>3</td>\n<td>add</td>\n<td>8 ✅</td>\n</tr>\n<tr>\n<td>-10</td>\n<td>5</td>\n<td>add</td>\n<td>-5 ✅</td>\n</tr>\n<tr>\n<td>10</td>\n<td>2</td>\n<td>divide</td>\n<td>5 ✅</td>\n</tr>\n<tr>\n<td>10</td>\n<td>0</td>\n<td>divide</td>\n<td>Помилка ❌</td>\n</tr>\n</tbody></table>\n<p><strong>Підхід:</strong> Ми тестуємо поведінку системи на основі вимог, не дивлячись на код.</p>\n","<h1>⚪ White Box Testing — Приклад</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>White Box Testing</strong> — підхід до тестування, при якому тестувальник має повний доступ до коду та знає внутрішню структуру системи. Тестування базується на аналізі коду, логіки та шляхів виконання програми.</p>\n</div>\n\n\n\n<h2>💻 Приклад: Тестування функції знижок 💰</h2>\n<p><strong>Код, який ми бачимо:</strong></p>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> <span class=\"hljs-type\">int</span> <span class=\"hljs-title function_\">calculateDiscount</span><span class=\"hljs-params\">(<span class=\"hljs-type\">int</span> price, <span class=\"hljs-type\">boolean</span> isPremium)</span> {\n    <span class=\"hljs-type\">int</span> <span class=\"hljs-variable\">discount</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-number\">0</span>;\n    \n    <span class=\"hljs-comment\">// Шлях 1: Премиум користувач 👑</span>\n    <span class=\"hljs-keyword\">if</span> (isPremium) {\n        discount = <span class=\"hljs-number\">10</span>;\n    }\n    \n    <span class=\"hljs-comment\">// Шлях 2: Дорога покупка 💎</span>\n    <span class=\"hljs-keyword\">if</span> (price &gt; <span class=\"hljs-number\">1000</span>) {\n        discount += <span class=\"hljs-number\">5</span>;\n    }\n    \n    <span class=\"hljs-keyword\">return</span> discount;\n}</code></pre><p><strong>White Box тести для покриття всіх шляхів:</strong></p>\n<table>\n<thead>\n<tr>\n<th>price</th>\n<th>isPremium</th>\n<th>Шляхи в коді</th>\n<th>Очікувана знижка</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>500</td>\n<td>false</td>\n<td>🚫 Жоден if не виконується</td>\n<td>0%</td>\n</tr>\n<tr>\n<td>500</td>\n<td>true</td>\n<td>👑 Тільки перший if (isPremium)</td>\n<td>10%</td>\n</tr>\n<tr>\n<td>1500</td>\n<td>false</td>\n<td>💎 Тільки другий if (price &gt; 1000)</td>\n<td>5%</td>\n</tr>\n<tr>\n<td>1500</td>\n<td>true</td>\n<td>🎉 Обидва if виконуються</td>\n<td>15%</td>\n</tr>\n</tbody></table>\n<p><strong>Підхід:</strong> Ми аналізуємо код і створюємо тести для покриття всіх можливих шляхів виконання (branches) 🔀.</p>\n","<h1>⚫⚪ Порівняння підходів</h1>\n<h2>📊 Black Box vs White Box — Підсумок</h2>\n<table>\n<thead>\n<tr>\n<th>Критерій</th>\n<th>⚫ Black Box</th>\n<th>⚪ White Box</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Знання коду</strong></td>\n<td>Не потрібне</td>\n<td>Обов'язкове</td>\n</tr>\n<tr>\n<td><strong>Хто виконує</strong></td>\n<td>QA, тестувальники</td>\n<td>Розробники</td>\n</tr>\n<tr>\n<td><strong>Базується на</strong></td>\n<td>Вимогах та специфікації</td>\n<td>Структурі коду</td>\n</tr>\n<tr>\n<td><strong>Що перевіряє</strong></td>\n<td>Функціональність (вхід→вихід)</td>\n<td>Логіку та покриття коду</td>\n</tr>\n<tr>\n<td><strong>Рівень тестування</strong></td>\n<td>System, Acceptance</td>\n<td>Unit, Integration</td>\n</tr>\n<tr>\n<td><strong>Переваги</strong></td>\n<td>Користувацька перспектива, не залежить від реалізації</td>\n<td>Знаходить логічні помилки, перевіряє всі шляхи коду</td>\n</tr>\n<tr>\n<td><strong>Недоліки</strong></td>\n<td>Може пропустити невикористаний код</td>\n<td>Потребує знання програмування</td>\n</tr>\n</tbody></table>\n<h2>🎯 Практичне застосування</h2>\n<p><strong>На практиці використовуються обидва підходи:</strong></p>\n<ul>\n<li><strong>White Box</strong> ⚪ — на рівні Unit тестування (розробники перевіряють свій код) 👨‍💻</li>\n<li><strong>Black Box</strong> ⚫ — на рівні System та Acceptance тестування (QA перевіряють функціональність) 🧪</li>\n</ul>\n<p><strong>Комбінація дає найкращий результат!</strong> ✅ Розробники перевіряють внутрішню логіку 🔍, а тестувальники — реальну поведінку системи з точки зору користувача 👤.</p>\n","<h1>✅ Ключові висновки</h1>\n<h2>🎓 Головні тези лекції</h2>\n<div class=\"success\"><strong>✅ Що важливо запам'ятати про тестування</strong> <ol>\n<li><p><strong>Тестування критично важливе для якості</strong> 💥<br>Недостатнє тестування може призвести до серйозних наслідків (Bank of Ireland ATM bug). Чим раніше знайдено проблему — тим легше її виправити.</p>\n</li>\n<li><p><strong>Різні рівні тестування мають різні цілі</strong> 🏗️<br>Unit (окремі модулі) → Integration (взаємодія модулів) → System (вся система) → Acceptance (відповідність бізнес-потребам). Кожен рівень знаходить свої типи багів.</p>\n</li>\n<li><p><strong>Регресійне тестування критично важливе</strong> 🔄<br>20-30% всіх багів — це регресії. Нові зміни можуть зламати старий функціонал, тому перевірка після кожної зміни обов'язкова.</p>\n</li>\n<li><p><strong>Black Box та White Box доповнюють один одного</strong> ⚫⚪<br>White Box (розробники тестують код) + Black Box (QA тестує функціональність) = комплексне покриття.</p>\n</li>\n</ol>\n</div>\n\n\n\n<p><strong>Золоте правило тестування:</strong> The earlier you test, the cheaper it is to fix! ✨</p>\n","<h1>❓ Контрольні питання</h1>\n<ol>\n<li><p><strong>Що означає цитата \"Testing shows the presence, not the absence of bugs\"?</strong></p>\n</li>\n<li><p><strong>Чому важливо тестувати систему на ранніх етапах розробки?</strong></p>\n</li>\n<li><p><strong>В чому різниця між Unit, Integration та System Testing?</strong></p>\n</li>\n<li><p><strong>Що таке Regression Testing і коли його виконують?</strong></p>\n</li>\n<li><p><strong>Чим відрізняються Black Box та White Box тестування?</strong></p>\n</li>\n<li><p><strong>Навіщо потрібен Smoke Testing?</strong></p>\n</li>\n</ol>\n","<h1>📚 Глосарій термінів</h1>\n<div class=\"note\"><strong>📝 Терміни тестування</strong> <p><strong>Bug/Defect (Баг/Дефект)</strong> — відхилення фактичного результату від очікуваного.</p>\n<p><strong>Test Case (Тестовий кейс)</strong> — набір кроків для перевірки функціональності.</p>\n<p><strong>Unit Testing (Модульне тестування)</strong> — тестування окремих модулів коду ізольовано.</p>\n<p><strong>Integration Testing (Інтеграційне тестування)</strong> — тестування взаємодії між модулями.</p>\n<p><strong>System Testing (Системне тестування)</strong> — тестування всієї системи цілком.</p>\n<p><strong>Acceptance Testing (Приймальне тестування)</strong> — перевірка відповідності бізнес-вимогам.</p>\n<p><strong>Smoke Testing (Димове тестування)</strong> — швидка перевірка базової функціональності.</p>\n<p><strong>Regression Testing (Регресійне тестування)</strong> — перевірка, що зміни не зламали старий функціонал.</p>\n<p><strong>Black Box Testing</strong> — тестування без знання внутрішньої структури коду.</p>\n<p><strong>White Box Testing</strong> — тестування з доступом до коду та його структури.</p>\n<p><strong>Happy Path (Щасливий шлях)</strong> — основний сценарій без помилок.</p>\n<p><strong>Edge Case (Граничний випадок)</strong> — тест на межі допустимих значень.</p>\n</div>\n\n","<h1>🎉 Дякую за увагу!</h1>\n\n<div class=\"mermaid\" data-source=\"graph LR\n    A[🧪 Тестування] --&gt; B[Раннє виявлення багів]\n    B --&gt; C[Економія коштів]\n    C --&gt; D[Якісний продукт]\n    D --&gt; E[Щасливі користувачі]\n\n    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:3px\n    style E fill:#e8f5e9,stroke:#388e3c,stroke-width:3px\"><svg id=\"exp-1763706235401-24-0\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" class=\"flowchart\" style=\"max-width: 1144.109375px;\" viewBox=\"0 0 1144.109375 64\" role=\"graphics-document document\" aria-roledescription=\"flowchart-v2\"><style>#exp-1763706235401-24-0{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#exp-1763706235401-24-0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#exp-1763706235401-24-0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#exp-1763706235401-24-0 .error-icon{fill:#552222;}#exp-1763706235401-24-0 .error-text{fill:#552222;stroke:#552222;}#exp-1763706235401-24-0 .edge-thickness-normal{stroke-width:1px;}#exp-1763706235401-24-0 .edge-thickness-thick{stroke-width:3.5px;}#exp-1763706235401-24-0 .edge-pattern-solid{stroke-dasharray:0;}#exp-1763706235401-24-0 .edge-thickness-invisible{stroke-width:0;fill:none;}#exp-1763706235401-24-0 .edge-pattern-dashed{stroke-dasharray:3;}#exp-1763706235401-24-0 .edge-pattern-dotted{stroke-dasharray:2;}#exp-1763706235401-24-0 .marker{fill:#333333;stroke:#333333;}#exp-1763706235401-24-0 .marker.cross{stroke:#333333;}#exp-1763706235401-24-0 svg{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;}#exp-1763706235401-24-0 p{margin:0;}#exp-1763706235401-24-0 .label{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;color:#333;}#exp-1763706235401-24-0 .cluster-label text{fill:#333;}#exp-1763706235401-24-0 .cluster-label span{color:#333;}#exp-1763706235401-24-0 .cluster-label span p{background-color:transparent;}#exp-1763706235401-24-0 .label text,#exp-1763706235401-24-0 span{fill:#333;color:#333;}#exp-1763706235401-24-0 .node rect,#exp-1763706235401-24-0 .node circle,#exp-1763706235401-24-0 .node ellipse,#exp-1763706235401-24-0 .node polygon,#exp-1763706235401-24-0 .node path{fill:#ECECFF;stroke:#667eea;stroke-width:1px;}#exp-1763706235401-24-0 .rough-node .label text,#exp-1763706235401-24-0 .node .label text,#exp-1763706235401-24-0 .image-shape .label,#exp-1763706235401-24-0 .icon-shape .label{text-anchor:middle;}#exp-1763706235401-24-0 .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#exp-1763706235401-24-0 .rough-node .label,#exp-1763706235401-24-0 .node .label,#exp-1763706235401-24-0 .image-shape .label,#exp-1763706235401-24-0 .icon-shape .label{text-align:center;}#exp-1763706235401-24-0 .node.clickable{cursor:pointer;}#exp-1763706235401-24-0 .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#exp-1763706235401-24-0 .arrowheadPath{fill:#333333;}#exp-1763706235401-24-0 .edgePath .path{stroke:#333333;stroke-width:2.0px;}#exp-1763706235401-24-0 .flowchart-link{stroke:#333333;fill:none;}#exp-1763706235401-24-0 .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1763706235401-24-0 .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#exp-1763706235401-24-0 .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1763706235401-24-0 .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#exp-1763706235401-24-0 .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#exp-1763706235401-24-0 .cluster text{fill:#333;}#exp-1763706235401-24-0 .cluster span{color:#333;}#exp-1763706235401-24-0 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#exp-1763706235401-24-0 .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#exp-1763706235401-24-0 rect.text{fill:none;stroke-width:0;}#exp-1763706235401-24-0 .icon-shape,#exp-1763706235401-24-0 .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1763706235401-24-0 .icon-shape p,#exp-1763706235401-24-0 .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#exp-1763706235401-24-0 .icon-shape rect,#exp-1763706235401-24-0 .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1763706235401-24-0 .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#exp-1763706235401-24-0 .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#exp-1763706235401-24-0 :root{--mermaid-font-family:\"trebuchet ms\",verdana,arial,sans-serif;}</style><g><marker id=\"exp-1763706235401-24-0_flowchart-v2-pointEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 0 L 10 5 L 0 10 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1763706235401-24-0_flowchart-v2-pointStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"4.5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 5 L 10 10 L 10 0 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1763706235401-24-0_flowchart-v2-circleEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"11\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1763706235401-24-0_flowchart-v2-circleStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-1\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1763706235401-24-0_flowchart-v2-crossEnd\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"12\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1763706235401-24-0_flowchart-v2-crossStart\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"-1\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><g class=\"root\"><g class=\"clusters\"></g><g class=\"edgePaths\"><path d=\"M166.563,32L170.729,32C174.896,32,183.229,32,190.896,32C198.563,32,205.563,32,209.063,32L212.563,32\" id=\"L_A_B_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_A_B_0\" data-points=\"W3sieCI6MTY2LjU2MjUsInkiOjMyfSx7IngiOjE5MS41NjI1LCJ5IjozMn0seyJ4IjoyMTYuNTYyNSwieSI6MzJ9XQ==\" marker-end=\"url(#exp-1763706235401-24-0_flowchart-v2-pointEnd)\"></path><path d=\"M435.25,32L439.417,32C443.583,32,451.917,32,459.583,32C467.25,32,474.25,32,477.75,32L481.25,32\" id=\"L_B_C_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_B_C_0\" data-points=\"W3sieCI6NDM1LjI1LCJ5IjozMn0seyJ4Ijo0NjAuMjUsInkiOjMyfSx7IngiOjQ4NS4yNSwieSI6MzJ9XQ==\" marker-end=\"url(#exp-1763706235401-24-0_flowchart-v2-pointEnd)\"></path><path d=\"M656.422,32L660.589,32C664.755,32,673.089,32,680.755,32C688.422,32,695.422,32,698.922,32L702.422,32\" id=\"L_C_D_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_C_D_0\" data-points=\"W3sieCI6NjU2LjQyMTg3NSwieSI6MzJ9LHsieCI6NjgxLjQyMTg3NSwieSI6MzJ9LHsieCI6NzA2LjQyMTg3NSwieSI6MzJ9XQ==\" marker-end=\"url(#exp-1763706235401-24-0_flowchart-v2-pointEnd)\"></path><path d=\"M879.703,32L883.87,32C888.036,32,896.37,32,904.036,32C911.703,32,918.703,32,922.203,32L925.703,32\" id=\"L_D_E_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_D_E_0\" data-points=\"W3sieCI6ODc5LjcwMzEyNSwieSI6MzJ9LHsieCI6OTA0LjcwMzEyNSwieSI6MzJ9LHsieCI6OTI5LjcwMzEyNSwieSI6MzJ9XQ==\" marker-end=\"url(#exp-1763706235401-24-0_flowchart-v2-pointEnd)\"></path></g><g class=\"edgeLabels\"><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_A_B_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_B_C_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_C_D_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_D_E_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g></g><g class=\"nodes\"><g class=\"node default  \" id=\"flowchart-A-0\" transform=\"translate(87.28125, 32)\"><rect class=\"basic label-container\" style=\"fill:#e3f2fd !important;stroke:#1976d2 !important;stroke-width:3px !important\" x=\"-79.28125\" y=\"-24\" width=\"158.5625\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-55.28125, -12)\"><rect></rect><foreignObject width=\"110.5625\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🧪 Тестування</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-B-1\" transform=\"translate(325.90625, 32)\"><rect class=\"basic label-container\" style=\"\" x=\"-109.34375\" y=\"-24\" width=\"218.6875\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-85.34375, -12)\"><rect></rect><foreignObject width=\"170.6875\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>Раннє виявлення багів</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-C-3\" transform=\"translate(570.8359375, 32)\"><rect class=\"basic label-container\" style=\"\" x=\"-85.5859375\" y=\"-24\" width=\"171.171875\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-61.5859375, -12)\"><rect></rect><foreignObject width=\"123.171875\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>Економія коштів</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-D-5\" transform=\"translate(793.0625, 32)\"><rect class=\"basic label-container\" style=\"\" x=\"-86.640625\" y=\"-24\" width=\"173.28125\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-62.640625, -12)\"><rect></rect><foreignObject width=\"125.28125\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>Якісний продукт</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-E-7\" transform=\"translate(1032.90625, 32)\"><rect class=\"basic label-container\" style=\"fill:#e8f5e9 !important;stroke:#388e3c !important;stroke-width:3px !important\" x=\"-103.203125\" y=\"-24\" width=\"206.40625\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-79.203125, -12)\"><rect></rect><foreignObject width=\"158.40625\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>Щасливі користувачі</p></span></div></foreignObject></g></g></g></g></g></svg></div>\n<p><strong>Пам'ятайте:</strong> Якісне тестування — це не перешкода для швидкої розробки, а інвестиція в стабільність та надійність продукту! ✨</p>\n"];let currentSlideIndex=0;
+function showSlide(i){if(i<0||i>=slides.length)return;currentSlideIndex=i;const el=document.getElementById("current-slide");el.innerHTML=slides[i];el.scrollTop=0;document.getElementById("progress-bar").style.width=((i+1)/slides.length*100)+"%";document.getElementById("slide-number").textContent=(i+1)+" / "+slides.length;updateSidebarActive();}
+function nextSlide(){if(currentSlideIndex<slides.length-1)showSlide(currentSlideIndex+1);}
+function previousSlide(){if(currentSlideIndex>0)showSlide(currentSlideIndex-1);}
+function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open");}
+function toggleHelp(){document.getElementById("help-overlay").classList.toggle("hidden");}
+function toggleFullscreen(){if(!document.fullscreenElement){const pc=document.getElementById("presentation-container");if(pc.requestFullscreen)pc.requestFullscreen();else if(pc.webkitRequestFullscreen)pc.webkitRequestFullscreen();else if(pc.msRequestFullscreen)pc.msRequestFullscreen();else if(pc.mozRequestFullScreen)pc.mozRequestFullScreen();}else{if(document.exitFullscreen)document.exitFullscreen();else if(document.webkitExitFullscreen)document.webkitExitFullscreen();else if(document.msExitFullscreen)document.msExitFullscreen();else if(document.mozCancelFullScreen)document.mozCancelFullScreen();}}
+function generateSidebar(){const sc=document.getElementById("sidebar-content");sc.innerHTML="";slides.forEach((html,idx)=>{const t=document.createElement("div");t.className="slide-thumbnail";if(idx===0)t.classList.add("active");const tmp=document.createElement("div");tmp.innerHTML=html;const title=tmp.querySelector("h1,h2");const titleText=title?title.textContent:("Слайд "+(idx+1));const textContent=tmp.textContent.replace(/s+/g," ").trim();const preview=textContent.substring(0,100)+(textContent.length>100?"...":"");t.innerHTML="<div class=\"slide-thumbnail-number\">"+(idx+1)+"</div><div class=\"slide-thumbnail-title\">"+titleText+"</div><div class=\"slide-thumbnail-content\">"+preview+"</div>";t.onclick=()=>{showSlide(idx);if(window.innerWidth<1024)toggleSidebar();};sc.appendChild(t);});}
+function updateSidebarActive(){document.querySelectorAll(".slide-thumbnail").forEach((th,idx)=>{if(idx===currentSlideIndex){th.classList.add("active");th.scrollIntoView({behavior:"smooth",block:"nearest"});}else th.classList.remove("active");});}
+document.addEventListener("keydown",e=>{switch(e.key){case"ArrowLeft":previousSlide();break;case"ArrowRight":case" ":e.preventDefault();nextSlide();break;case"f":case"F":toggleFullscreen();break;case"s":case"S":toggleSidebar();break;case"?":toggleHelp();break;case"Escape":const sb=document.getElementById("sidebar");const ho=document.getElementById("help-overlay");if(sb.classList.contains("open"))toggleSidebar();else if(!ho.classList.contains("hidden"))ho.classList.add("hidden");break;}});
+generateSidebar();showSlide(0);</script></body></html>
