@@ -1,0 +1,614 @@
+<!DOCTYPE html><html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>📝 Тестова документація</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"><style>.__________cytoscape_container { position: relative; }
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #editor-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #editor-container.hidden {
+            display: none;
+        }
+
+        #editor-header {
+            background: #2d3748;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #editor-header h2 {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        #editor-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #4a5568;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2d3748;
+        }
+
+        #markdown-input {
+            flex: 1;
+            padding: 2rem;
+            background: #1a202c;
+            color: #e2e8f0;
+            border: none;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+        }
+
+        #markdown-input:focus {
+            outline: none;
+        }
+
+        .slide-container {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .slide {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 3rem;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .slide::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .slide::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .slide h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .slide h2 {
+            color: #764ba2;
+            font-size: 2rem;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .slide h3 {
+            color: #4a5568;
+            font-size: 1.5rem;
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        .slide p {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .slide ul, .slide ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .slide li {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide pre {
+            background: #282c34;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+
+        .slide pre code {
+            background: transparent;
+            color: #abb2bf;
+        }
+
+        .slide code {
+            font-family: 'Courier New', Consolas, Monaco, monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .slide p code {
+            background: #edf2f7;
+            color: #e53e3e;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .slide blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            color: #4a5568;
+        }
+
+        .slide img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .slide table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .slide th, .slide td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .slide th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .slide tr:nth-child(even) {
+            background: #f7fafc;
+        }
+
+        .note {
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .note strong {
+            color: #c53030;
+        }
+
+        .warning {
+            background: #fffaf0;
+            border-left: 4px solid #f6ad55;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .warning strong {
+            color: #c05621;
+        }
+
+        .info {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .info strong {
+            color: #2c5282;
+        }
+
+        .success {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .success strong {
+            color: #22543d;
+        }
+
+        .danger {
+            background: #fff5f5;
+            border-left: 4px solid #f56565;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .danger strong {
+            color: #742a2a;
+        }
+
+        .tip {
+            background: #fefcbf;
+            border-left: 4px solid #ecc94b;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .tip strong {
+            color: #744210;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: white;
+            transition: width 0.3s;
+        }
+
+        .slide-number {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            color: #667eea;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #sidebar {
+            position: fixed;
+            right: -320px;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+            transition: right 0.3s ease;
+            z-index: 200;
+            padding: 1rem;
+        }
+
+        #sidebar.open {
+            right: 0;
+        }
+
+        #sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+
+        #sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #667eea;
+        }
+
+        #sidebar-header h3 {
+            color: #667eea;
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        #sidebar-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #4a5568;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        #sidebar-close:hover {
+            color: #667eea;
+        }
+
+        .slide-thumbnail {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+
+        .slide-thumbnail:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+            transform: translateX(-4px);
+        }
+
+        .slide-thumbnail.active {
+            border-color: #667eea;
+            background: #f7faff;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .slide-thumbnail-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide-thumbnail-content {
+            font-size: 0.85rem;
+            color: #2d3748;
+            line-height: 1.4;
+            max-height: 4.2rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slide-thumbnail-content::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 50%;
+            height: 1.4rem;
+            background: linear-gradient(to right, transparent, white);
+        }
+
+        .slide-thumbnail.active .slide-thumbnail-content::after {
+            background: linear-gradient(to right, transparent, #f7faff);
+        }
+
+        .slide-thumbnail-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 0.25rem;
+        }
+
+        #sidebar-toggle {
+            position: fixed;
+            right: 1rem;
+            top: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 8px;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 150;
+        }
+
+        #sidebar-toggle:hover {
+            background: white;
+            transform: scale(1.05);
+        }
+
+        .mermaid {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            overflow: visible; /* щоб не обрізати тіні / розширені ноди */
+        }
+
+        /* Запобігаємо обрізанню останньої літери в нодах Mermaid через зміну font-weight після розрахунку розміру */
+        .mermaid svg { overflow: visible !important; }
+        /* перестраховка проти обрізання foreignObject (на випадок інших діаграм) */
+        .mermaid svg foreignObject { overflow: visible !important; }
+
+        .plantuml-diagram {
+            max-width: 100%;
+            height: auto;
+            margin: 1.5rem auto;
+            display: block;
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #help-overlay {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            transition: opacity 0.3s;
+        }
+
+        #help-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #help-overlay kbd {
+            background: #2d3748;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.85em;
+        }
+
+        .mermaid-error {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            padding: 1rem;
+            border-radius: 6px;
+            color: #742a2a;
+            margin: 1.5rem 0;
+        }
+
+        .mermaid-error pre {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+        }
+
+        /* Повноекранний режим - зберігаємо оригінальний фон */
+        #presentation-container:fullscreen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-webkit-full-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-moz-full-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-ms-fullscreen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+#presentation-container:fullscreen,#presentation-container:-webkit-full-screen,#presentation-container:-moz-full-screen,#presentation-container:-ms-fullscreen{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)!important;}</style></head><body><div id="presentation-container"><div class="progress"><div class="progress-bar" id="progress-bar"></div></div><button id="sidebar-toggle" onclick="toggleSidebar()" title="Навігація слайдами (S)">☰</button><div id="sidebar"><div id="sidebar-header"><h3>📑 Слайди</h3><button id="sidebar-close" onclick="toggleSidebar()">✕</button></div><div id="sidebar-content"></div></div><div class="slide-container"><div class="slide" id="current-slide"></div></div><div class="controls"><button class="control-btn" onclick="previousSlide()" title="Попередній (←)">←</button><button class="control-btn" onclick="nextSlide()" title="Наступний (→)">→</button><button class="control-btn" onclick="toggleFullscreen()" title="Повноекранний режим (F)">⛶</button><button class="control-btn" onclick="toggleHelp()" title="Допомога (?)">?</button></div><div class="slide-number" id="slide-number">1 / 26</div><div id="help-overlay" class="hidden"><strong>Гарячі клавіші:</strong><br><kbd>←</kbd> <kbd>→</kbd> Навігація<br><kbd>F</kbd> Повноекранний режим<br><kbd>S</kbd> Sidebar<br><kbd>?</kbd> Допомога<br><kbd>Esc</kbd> Закрити</div></div><script>const slides=["<h1>📝 Тестова документація</h1>\n<p><strong>Курс:</strong> Основи інженерії програмного забезпечення<br><strong>Лектор:</strong> Кобилянський Антон</p>\n","<h2>📋 План лекції</h2>\n<ol>\n<li>🎯 Навіщо потрібна тестова документація</li>\n<li>📑 Test Plan — дорожня карта тестування</li>\n<li>🧪 Test Case — атомарна одиниця тестування</li>\n<li>🐛 Bug Report — мистецтво опису дефектів</li>\n<li>📊 Test Summary Report — підсумки тестування</li>\n<li>🔗 Traceability Matrix — зв'язок вимог і тестів</li>\n<li>✅ Висновки та контрольні питання</li>\n<li>📚 Глосарій термінів</li>\n</ol>\n","<h1>🎯 Навіщо потрібна тестова документація?</h1>\n<div class=\"info\"><strong>ℹ️ Ключова ідея</strong> <p><strong>Тестова документація</strong> — це сукупність артефактів, які фіксують процес планування, виконання та результати тестування. Без документації тестування перетворюється на хаотичну діяльність без можливості відстеження прогресу та відтворення результатів.</p>\n</div>\n\n\n\n<h2>🤔 Проблеми без документації</h2>\n<ul>\n<li>🔄 <strong>Неможливо відтворити тест</strong> — \"Як саме ти це перевіряв?\"</li>\n<li>👥 <strong>Складна передача знань</strong> — новий QA не розуміє, що вже перевірено</li>\n<li>📉 <strong>Немає метрик</strong> — скільки тестів пройшло? Яке покриття?</li>\n<li>🐛 <strong>Баги губляться</strong> — \"Здається, це вже було... чи ні?\"</li>\n<li>⚖️ <strong>Юридичні ризики</strong> — немає доказів проведеного тестування</li>\n</ul>\n","<h1>📈 Цінність тестової документації</h1>\n\n<div class=\"mermaid\" data-source=\"graph LR\n    A[📝 Документація] --&gt; B[🔄 Відтворюваність]\n    A --&gt; C[📊 Вимірюваність]\n    A --&gt; D[👥 Комунікація]\n    A --&gt; E[📋 Аудит]\n\n    B --&gt; F[✅ Якість продукту]\n    C --&gt; F\n    D --&gt; F\n    E --&gt; F\n\n    style A fill:#e8eaf6,stroke:#3f51b5,stroke-width:2px\n    style F fill:#c8e6c9,stroke:#43a047,stroke-width:2px\"><svg id=\"exp-1764137910107-3-0\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" class=\"flowchart\" style=\"max-width: 672.1015625px;\" viewBox=\"0 0 672.1015625 358\" role=\"graphics-document document\" aria-roledescription=\"flowchart-v2\"><style>#exp-1764137910107-3-0{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#exp-1764137910107-3-0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#exp-1764137910107-3-0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#exp-1764137910107-3-0 .error-icon{fill:#552222;}#exp-1764137910107-3-0 .error-text{fill:#552222;stroke:#552222;}#exp-1764137910107-3-0 .edge-thickness-normal{stroke-width:1px;}#exp-1764137910107-3-0 .edge-thickness-thick{stroke-width:3.5px;}#exp-1764137910107-3-0 .edge-pattern-solid{stroke-dasharray:0;}#exp-1764137910107-3-0 .edge-thickness-invisible{stroke-width:0;fill:none;}#exp-1764137910107-3-0 .edge-pattern-dashed{stroke-dasharray:3;}#exp-1764137910107-3-0 .edge-pattern-dotted{stroke-dasharray:2;}#exp-1764137910107-3-0 .marker{fill:#333333;stroke:#333333;}#exp-1764137910107-3-0 .marker.cross{stroke:#333333;}#exp-1764137910107-3-0 svg{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;}#exp-1764137910107-3-0 p{margin:0;}#exp-1764137910107-3-0 .label{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;color:#333;}#exp-1764137910107-3-0 .cluster-label text{fill:#333;}#exp-1764137910107-3-0 .cluster-label span{color:#333;}#exp-1764137910107-3-0 .cluster-label span p{background-color:transparent;}#exp-1764137910107-3-0 .label text,#exp-1764137910107-3-0 span{fill:#333;color:#333;}#exp-1764137910107-3-0 .node rect,#exp-1764137910107-3-0 .node circle,#exp-1764137910107-3-0 .node ellipse,#exp-1764137910107-3-0 .node polygon,#exp-1764137910107-3-0 .node path{fill:#ECECFF;stroke:#667eea;stroke-width:1px;}#exp-1764137910107-3-0 .rough-node .label text,#exp-1764137910107-3-0 .node .label text,#exp-1764137910107-3-0 .image-shape .label,#exp-1764137910107-3-0 .icon-shape .label{text-anchor:middle;}#exp-1764137910107-3-0 .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#exp-1764137910107-3-0 .rough-node .label,#exp-1764137910107-3-0 .node .label,#exp-1764137910107-3-0 .image-shape .label,#exp-1764137910107-3-0 .icon-shape .label{text-align:center;}#exp-1764137910107-3-0 .node.clickable{cursor:pointer;}#exp-1764137910107-3-0 .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#exp-1764137910107-3-0 .arrowheadPath{fill:#333333;}#exp-1764137910107-3-0 .edgePath .path{stroke:#333333;stroke-width:2.0px;}#exp-1764137910107-3-0 .flowchart-link{stroke:#333333;fill:none;}#exp-1764137910107-3-0 .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1764137910107-3-0 .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#exp-1764137910107-3-0 .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1764137910107-3-0 .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#exp-1764137910107-3-0 .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#exp-1764137910107-3-0 .cluster text{fill:#333;}#exp-1764137910107-3-0 .cluster span{color:#333;}#exp-1764137910107-3-0 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#exp-1764137910107-3-0 .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#exp-1764137910107-3-0 rect.text{fill:none;stroke-width:0;}#exp-1764137910107-3-0 .icon-shape,#exp-1764137910107-3-0 .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1764137910107-3-0 .icon-shape p,#exp-1764137910107-3-0 .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#exp-1764137910107-3-0 .icon-shape rect,#exp-1764137910107-3-0 .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1764137910107-3-0 .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#exp-1764137910107-3-0 .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#exp-1764137910107-3-0 :root{--mermaid-font-family:\"trebuchet ms\",verdana,arial,sans-serif;}</style><g><marker id=\"exp-1764137910107-3-0_flowchart-v2-pointEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 0 L 10 5 L 0 10 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1764137910107-3-0_flowchart-v2-pointStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"4.5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 5 L 10 10 L 10 0 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1764137910107-3-0_flowchart-v2-circleEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"11\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1764137910107-3-0_flowchart-v2-circleStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-1\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1764137910107-3-0_flowchart-v2-crossEnd\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"12\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1764137910107-3-0_flowchart-v2-crossStart\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"-1\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><g class=\"root\"><g class=\"clusters\"></g><g class=\"edgePaths\"><path d=\"M112.999,155L128.584,134.5C144.169,114,175.338,73,194.423,52.5C213.508,32,220.508,32,224.008,32L227.508,32\" id=\"L_A_B_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_A_B_0\" data-points=\"W3sieCI6MTEyLjk5OTQ0MTk2NDI4NTcyLCJ5IjoxNTV9LHsieCI6MjA2LjUwNzgxMjUsInkiOjMyfSx7IngiOjIzMS41MDc4MTI1LCJ5IjozMn1d\" marker-end=\"url(#exp-1764137910107-3-0_flowchart-v2-pointEnd)\"></path><path d=\"M149.491,155L158.993,150.833C168.496,146.667,187.502,138.333,201.631,134.167C215.76,130,225.013,130,229.639,130L234.266,130\" id=\"L_A_C_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_A_C_0\" data-points=\"W3sieCI6MTQ5LjQ5MDUxMzM5Mjg1NzE0LCJ5IjoxNTV9LHsieCI6MjA2LjUwNzgxMjUsInkiOjEzMH0seyJ4IjoyMzguMjY1NjI1LCJ5IjoxMzB9XQ==\" marker-end=\"url(#exp-1764137910107-3-0_flowchart-v2-pointEnd)\"></path><path d=\"M149.491,203L158.993,207.167C168.496,211.333,187.502,219.667,203.37,223.833C219.238,228,231.969,228,238.334,228L244.699,228\" id=\"L_A_D_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_A_D_0\" data-points=\"W3sieCI6MTQ5LjQ5MDUxMzM5Mjg1NzE0LCJ5IjoyMDN9LHsieCI6MjA2LjUwNzgxMjUsInkiOjIyOH0seyJ4IjoyNDguNjk5MjE4NzUsInkiOjIyOH1d\" marker-end=\"url(#exp-1764137910107-3-0_flowchart-v2-pointEnd)\"></path><path d=\"M112.999,203L128.584,223.5C144.169,244,175.338,285,201.123,305.5C226.908,326,247.307,326,257.507,326L267.707,326\" id=\"L_A_E_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_A_E_0\" data-points=\"W3sieCI6MTEyLjk5OTQ0MTk2NDI4NTcyLCJ5IjoyMDN9LHsieCI6MjA2LjUwNzgxMjUsInkiOjMyNn0seyJ4IjoyNzEuNzA3MDMxMjUsInkiOjMyNn1d\" marker-end=\"url(#exp-1764137910107-3-0_flowchart-v2-pointEnd)\"></path><path d=\"M424.773,32L428.94,32C433.107,32,441.44,32,461.874,51.983C482.307,71.966,514.841,111.932,531.108,131.915L547.375,151.898\" id=\"L_B_F_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_B_F_0\" data-points=\"W3sieCI6NDI0Ljc3MzQzNzUsInkiOjMyfSx7IngiOjQ0OS43NzM0Mzc1LCJ5IjozMn0seyJ4Ijo1NDkuOTAwNTEwMjA0MDgxNywieSI6MTU1fV0=\" marker-end=\"url(#exp-1764137910107-3-0_flowchart-v2-pointEnd)\"></path><path d=\"M418.016,130L423.309,130C428.602,130,439.188,130,454.039,133.914C468.891,137.828,488.008,145.656,497.566,149.57L507.125,153.484\" id=\"L_C_F_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_C_F_0\" data-points=\"W3sieCI6NDE4LjAxNTYyNSwieSI6MTMwfSx7IngiOjQ0OS43NzM0Mzc1LCJ5IjoxMzB9LHsieCI6NTEwLjgyNjUzMDYxMjI0NDksInkiOjE1NX1d\" marker-end=\"url(#exp-1764137910107-3-0_flowchart-v2-pointEnd)\"></path><path d=\"M407.582,228L414.614,228C421.646,228,435.71,228,452.3,224.086C468.891,220.172,488.008,212.344,497.566,208.43L507.125,204.516\" id=\"L_D_F_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_D_F_0\" data-points=\"W3sieCI6NDA3LjU4MjAzMTI1LCJ5IjoyMjh9LHsieCI6NDQ5Ljc3MzQzNzUsInkiOjIyOH0seyJ4Ijo1MTAuODI2NTMwNjEyMjQ0OSwieSI6MjAzfV0=\" marker-end=\"url(#exp-1764137910107-3-0_flowchart-v2-pointEnd)\"></path><path d=\"M384.574,326L395.441,326C406.307,326,428.04,326,455.174,306.017C482.307,286.034,514.841,246.068,531.108,226.085L547.375,206.102\" id=\"L_E_F_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_E_F_0\" data-points=\"W3sieCI6Mzg0LjU3NDIxODc1LCJ5IjozMjZ9LHsieCI6NDQ5Ljc3MzQzNzUsInkiOjMyNn0seyJ4Ijo1NDkuOTAwNTEwMjA0MDgxNywieSI6MjAzfV0=\" marker-end=\"url(#exp-1764137910107-3-0_flowchart-v2-pointEnd)\"></path></g><g class=\"edgeLabels\"><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_A_B_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_A_C_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_A_D_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_A_E_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_B_F_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_C_F_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_D_F_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_E_F_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g></g><g class=\"nodes\"><g class=\"node default  \" id=\"flowchart-A-0\" transform=\"translate(94.75390625, 179)\"><rect class=\"basic label-container\" style=\"fill:#e8eaf6 !important;stroke:#3f51b5 !important;stroke-width:2px !important\" x=\"-86.75390625\" y=\"-24\" width=\"173.5078125\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-62.75390625, -12)\"><rect></rect><foreignObject width=\"125.5078125\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>📝 Документація</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-B-1\" transform=\"translate(328.140625, 32)\"><rect class=\"basic label-container\" style=\"\" x=\"-96.6328125\" y=\"-24\" width=\"193.265625\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-72.6328125, -12)\"><rect></rect><foreignObject width=\"145.265625\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🔄 Відтворюваність</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-C-3\" transform=\"translate(328.140625, 130)\"><rect class=\"basic label-container\" style=\"\" x=\"-89.875\" y=\"-24\" width=\"179.75\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-65.875, -12)\"><rect></rect><foreignObject width=\"131.75\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>📊 Вимірюваність</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-D-5\" transform=\"translate(328.140625, 228)\"><rect class=\"basic label-container\" style=\"\" x=\"-79.44140625\" y=\"-24\" width=\"158.8828125\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-55.44140625, -12)\"><rect></rect><foreignObject width=\"110.8828125\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>👥 Комунікація</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-E-7\" transform=\"translate(328.140625, 326)\"><rect class=\"basic label-container\" style=\"\" x=\"-56.43359375\" y=\"-24\" width=\"112.8671875\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-32.43359375, -12)\"><rect></rect><foreignObject width=\"64.8671875\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>📋 Аудит</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-F-9\" transform=\"translate(569.4375, 179)\"><rect class=\"basic label-container\" style=\"fill:#c8e6c9 !important;stroke:#43a047 !important;stroke-width:2px !important\" x=\"-94.6640625\" y=\"-24\" width=\"189.328125\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-70.6640625, -12)\"><rect></rect><foreignObject width=\"141.328125\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>✅ Якість продукту</p></span></div></foreignObject></g></g></g></g></g></svg></div>\n<h2>🏢 Реальний приклад: NASA та документація</h2>\n<div class=\"success\"><strong>✅ NASA Software Assurance 🚀</strong> <p>NASA вимагає повну документацію всіх тестів для критичного ПЗ. Під час місії <strong>Mars Climate Orbiter (1999)</strong> апарат був втрачений через помилку в одиницях виміру. Розслідування показало, що хоча тести проводились, <strong>документація була неповною</strong>, і помилка не була виявлена вчасно. Після цього NASA посилила вимоги до тестової документації.</p>\n</div>\n\n\n\n<p><strong>Висновок:</strong> Документація — не бюрократія, а страховка від катастроф! 🛡️</p>\n","<h1>🗂️ Основні артефакти тестової документації</h1>\n<table>\n<thead>\n<tr>\n<th>Артефакт</th>\n<th>Призначення</th>\n<th>Коли створюється</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>📑 <strong>Test Plan</strong></td>\n<td>Стратегія та план тестування</td>\n<td>На початку проєкту</td>\n</tr>\n<tr>\n<td>🧪 <strong>Test Case</strong></td>\n<td>Конкретні кроки перевірки</td>\n<td>Перед тестуванням</td>\n</tr>\n<tr>\n<td>🐛 <strong>Bug Report</strong></td>\n<td>Опис знайдених дефектів</td>\n<td>Під час тестування</td>\n</tr>\n<tr>\n<td>📊 <strong>Test Summary</strong></td>\n<td>Підсумковий звіт</td>\n<td>Після завершення циклу</td>\n</tr>\n<tr>\n<td>🔗 <strong>Traceability Matrix</strong></td>\n<td>Зв'язок вимог та тестів</td>\n<td>Протягом усього проєкту</td>\n</tr>\n</tbody></table>\n<p><strong>Кожен артефакт має своє призначення</strong> — разом вони створюють повну картину процесу тестування.</p>\n","<h1>📑 Test Plan — Що це?</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Test Plan (Тест-план)</strong> — це документ, який описує стратегію, підхід, ресурси та розклад тестування для проєкту. Це \"дорожня карта\" 🗺️, яка відповідає на питання: що, як, коли, ким і з якими ресурсами буде тестуватися.</p>\n</div>\n\n\n\n<h2>🎯 Головна мета Test Plan</h2>\n<p>Забезпечити <strong>спільне розуміння</strong> між усіма учасниками проєкту щодо:</p>\n<ul>\n<li>📌 Що саме буде тестуватися (і що НЕ буде)</li>\n<li>👥 Хто відповідальний за тестування</li>\n<li>⏰ Коли тестування почнеться та закінчиться</li>\n<li>🛠️ Які інструменти та середовища потрібні</li>\n<li>✅ Які критерії визначають успішність тестування</li>\n</ul>\n","<h1>📑 Структура Test Plan за IEEE 829</h1>\n<p><strong>IEEE 829</strong> — міжнародний стандарт документації тестування програмного забезпечення.</p>\n<table>\n<thead>\n<tr>\n<th>#</th>\n<th>Розділ</th>\n<th>Опис</th>\n<th>Приклад</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>1</td>\n<td>🆔 Test Plan ID</td>\n<td>Унікальний ідентифікатор</td>\n<td>TP-PROJECT-001</td>\n</tr>\n<tr>\n<td>2</td>\n<td>📝 Introduction</td>\n<td>Опис проєкту та цілей</td>\n<td>\"E-commerce платформа v2.0\"</td>\n</tr>\n<tr>\n<td>3</td>\n<td>📦 Test Items</td>\n<td>Що тестуємо</td>\n<td>Модуль оплати, кошик</td>\n</tr>\n<tr>\n<td>4</td>\n<td>🎯 Features to Test</td>\n<td>Функції для тестування</td>\n<td>Checkout, знижки</td>\n</tr>\n<tr>\n<td>5</td>\n<td>🚫 Features NOT to Test</td>\n<td>Що виключаємо</td>\n<td>Legacy API, адмін-панель</td>\n</tr>\n<tr>\n<td>6</td>\n<td>🔬 Approach</td>\n<td>Підхід до тестування</td>\n<td>Manual + Automated</td>\n</tr>\n<tr>\n<td>7</td>\n<td>✅❌ Pass/Fail Criteria</td>\n<td>Критерії успіху</td>\n<td>95% тестів passed</td>\n</tr>\n<tr>\n<td>8</td>\n<td>👥 Responsibilities</td>\n<td>Хто за що відповідає</td>\n<td>QA Lead, Developers</td>\n</tr>\n<tr>\n<td>9</td>\n<td>📅 Schedule</td>\n<td>Розклад</td>\n<td>2 тижні тестування</td>\n</tr>\n<tr>\n<td>10</td>\n<td>🛠️ Environment</td>\n<td>Середовище</td>\n<td>Chrome, Firefox, iOS</td>\n</tr>\n</tbody></table>\n","<h1>📑 Test Plan — Практичний приклад</h1>\n<div class=\"tip\"><strong>💡 Приклад Test Plan для інтернет-магазину 🛒</strong> <p><strong>Test Plan ID:</strong> TP-SHOP-2024-Q1<br><strong>Проєкт:</strong> Online Shop v3.0<br><strong>Автор:</strong> QA Team Lead<br><strong>Дата:</strong> 15.01.2024</p>\n<p><strong>Scope (Що тестуємо):</strong></p>\n<ul>\n<li>✅ Реєстрація та авторизація користувачів</li>\n<li>✅ Каталог товарів та пошук</li>\n<li>✅ Кошик та оформлення замовлення</li>\n<li>✅ Інтеграція з платіжними системами</li>\n</ul>\n<p><strong>Out of Scope (Що НЕ тестуємо):</strong></p>\n<ul>\n<li>🚫 Адміністративна панель (окремий цикл)</li>\n<li>🚫 Mobile додаток (інша команда)</li>\n</ul>\n<p><strong>Критерії завершення:</strong></p>\n<ul>\n<li>📊 100% критичних тест-кейсів виконано</li>\n<li>🐛 0 Critical/Blocker багів відкрито</li>\n<li>📈 Code coverage ≥ 80%</li>\n</ul>\n</div>\n\n","<h1>🧪 Test Case — Що це?</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Test Case (Тестовий кейс)</strong> — це детальний опис однієї перевірки, який включає передумови, кроки виконання, вхідні дані та очікуваний результат. Це <strong>атомарна одиниця тестування</strong> 🔬 — один тест-кейс перевіряє одну конкретну поведінку системи.</p>\n</div>\n\n\n\n<h2>🎯 Ключові характеристики хорошого Test Case</h2>\n<ul>\n<li>🎯 <strong>Конкретний</strong> — перевіряє одну функцію/сценарій</li>\n<li>🔄 <strong>Відтворюваний</strong> — будь-хто може виконати з однаковим результатом</li>\n<li>✅ <strong>Верифікований</strong> — чітко зрозуміло, passed чи failed</li>\n<li>📝 <strong>Незалежний</strong> — не залежить від інших тест-кейсів</li>\n<li>🧹 <strong>Простий</strong> — мінімум кроків для перевірки</li>\n</ul>\n<p><strong>Аналогія:</strong> Test Case — це як рецепт 🍳. Якщо рецепт написаний добре, будь-хто може приготувати страву однаково!</p>\n","<h1>🧪 Структура Test Case</h1>\n<table>\n<thead>\n<tr>\n<th>Поле</th>\n<th>Опис</th>\n<th>Приклад</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🆔 <strong>Test Case ID</strong></td>\n<td>Унікальний ідентифікатор</td>\n<td>TC-LOGIN-001</td>\n</tr>\n<tr>\n<td>📝 <strong>Title</strong></td>\n<td>Коротка назва тесту</td>\n<td>Успішний логін з валідними даними</td>\n</tr>\n<tr>\n<td>⚙️ <strong>Preconditions</strong></td>\n<td>Що має бути виконано ДО тесту</td>\n<td>Користувач зареєстрований, браузер відкритий</td>\n</tr>\n<tr>\n<td>📋 <strong>Test Steps</strong></td>\n<td>Покрокові дії</td>\n<td>1. Відкрити сторінку 2. Ввести email...</td>\n</tr>\n<tr>\n<td>📊 <strong>Test Data</strong></td>\n<td>Вхідні дані для тесту</td>\n<td>email: <a href=\"mailto:user@test.com\">user@test.com</a>, password: Test123!</td>\n</tr>\n<tr>\n<td>✅ <strong>Expected Result</strong></td>\n<td>Очікувана поведінка системи</td>\n<td>Перехід на Dashboard, відображення імені</td>\n</tr>\n<tr>\n<td>📌 <strong>Status</strong></td>\n<td>Результат виконання</td>\n<td>Passed / Failed / Blocked</td>\n</tr>\n</tbody></table>\n","<h1>🧪 Test Case — Детальний приклад</h1>\n<div class=\"success\"><strong>✅ Приклад: Тест-кейс для функції логіну 🔐</strong> <table>\n<thead>\n<tr>\n<th>Поле</th>\n<th>Значення</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Test Case ID</strong></td>\n<td>TC-AUTH-001</td>\n</tr>\n<tr>\n<td><strong>Title</strong></td>\n<td>Успішна авторизація з валідними credentials</td>\n</tr>\n<tr>\n<td><strong>Priority</strong></td>\n<td>🔴 High</td>\n</tr>\n<tr>\n<td><strong>Module</strong></td>\n<td>Authentication</td>\n</tr>\n<tr>\n<td><strong>Preconditions</strong></td>\n<td>1. Користувач зареєстрований в системі<br>2. Обліковий запис активний<br>3. Браузер Chrome v120+</td>\n</tr>\n<tr>\n<td><strong>Test Data</strong></td>\n<td>Email: <code>john.doe@example.com</code><br>Password: <code>SecurePass123!</code></td>\n</tr>\n</tbody></table>\n<p><strong>Test Steps:</strong></p>\n<table>\n<thead>\n<tr>\n<th>#</th>\n<th>Дія</th>\n<th>Очікуваний результат</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>1</td>\n<td>Відкрити URL: <code>https://app.example.com/login</code></td>\n<td>Відображається форма логіну</td>\n</tr>\n<tr>\n<td>2</td>\n<td>Ввести email у поле \"Email\"</td>\n<td>Email відображається в полі</td>\n</tr>\n<tr>\n<td>3</td>\n<td>Ввести пароль у поле \"Password\"</td>\n<td>Пароль маскується символами <code>•••</code></td>\n</tr>\n<tr>\n<td>4</td>\n<td>Натиснути кнопку \"Sign In\"</td>\n<td>Перехід на Dashboard</td>\n</tr>\n<tr>\n<td>5</td>\n<td>Перевірити header сторінки</td>\n<td>Відображається \"Welcome, John!\"</td>\n</tr>\n</tbody></table>\n</div>\n\n","<h1>🧪 Test Case — Негативний сценарій</h1>\n<div class=\"warning\"><strong>⚠️ Приклад: Тест-кейс для невалідного пароля ❌</strong> <table>\n<thead>\n<tr>\n<th>Поле</th>\n<th>Значення</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Test Case ID</strong></td>\n<td>TC-AUTH-005</td>\n</tr>\n<tr>\n<td><strong>Title</strong></td>\n<td>Відмова авторизації при неправильному паролі</td>\n</tr>\n<tr>\n<td><strong>Priority</strong></td>\n<td>🔴 High</td>\n</tr>\n<tr>\n<td><strong>Type</strong></td>\n<td>Negative Testing</td>\n</tr>\n<tr>\n<td><strong>Preconditions</strong></td>\n<td>Користувач зареєстрований, браузер відкритий</td>\n</tr>\n<tr>\n<td><strong>Test Data</strong></td>\n<td>Email: <code>john.doe@example.com</code><br>Password: <code>WrongPassword!</code></td>\n</tr>\n</tbody></table>\n<p><strong>Test Steps:</strong></p>\n<table>\n<thead>\n<tr>\n<th>#</th>\n<th>Дія</th>\n<th>Очікуваний результат</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>1</td>\n<td>Відкрити сторінку логіну</td>\n<td>Форма відображається</td>\n</tr>\n<tr>\n<td>2</td>\n<td>Ввести валідний email</td>\n<td>Email прийнято</td>\n</tr>\n<tr>\n<td>3</td>\n<td>Ввести <strong>неправильний</strong> пароль</td>\n<td>Пароль маскується</td>\n</tr>\n<tr>\n<td>4</td>\n<td>Натиснути \"Sign In\"</td>\n<td>❌ Помилка: \"Invalid credentials\"</td>\n</tr>\n<tr>\n<td>5</td>\n<td>Перевірити URL</td>\n<td>Залишаємось на <code>/login</code></td>\n</tr>\n<tr>\n<td>6</td>\n<td>Перевірити поле пароля</td>\n<td>Поле очищене</td>\n</tr>\n</tbody></table>\n</div>\n\n\n\n<p><strong>Важливо:</strong> Негативні тест-кейси перевіряють, як система обробляє помилкові дані! 🛡️</p>\n","<h1>🧪 Типи Test Cases</h1>\n<table>\n<thead>\n<tr>\n<th>Тип</th>\n<th>Мета</th>\n<th>Відсоток</th>\n<th>Приклади</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>✅ <strong>Positive</strong></td>\n<td>Перевірка правильної роботи з валідними даними</td>\n<td>40-50%</td>\n<td>Успішний логін, оплата, створення замовлення</td>\n</tr>\n<tr>\n<td>❌ <strong>Negative</strong></td>\n<td>Перевірка обробки помилок та невалідних даних</td>\n<td>30-40%</td>\n<td>Неправильний пароль, некоректний email</td>\n</tr>\n<tr>\n<td>📏 <strong>Boundary</strong></td>\n<td>Перевірка граничних значень</td>\n<td>10-15%</td>\n<td>Пароль 1 символ, пароль 100 символів</td>\n</tr>\n<tr>\n<td>🔒 <strong>Security</strong></td>\n<td>Перевірка безпеки системи</td>\n<td>5-10%</td>\n<td>SQL injection, XSS атаки</td>\n</tr>\n</tbody></table>\n<div class=\"tip\"><strong>💡 Порада 💡</strong> <p>Не забувайте про негативні та граничні тести — саме вони найчастіше виявляють критичні баги!</p>\n</div>\n\n","<h1>🐛 Bug Report — Що це?</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Bug Report (Звіт про дефект)</strong> — це документ, який детально описує знайдену проблему в програмному забезпеченні. Якісний Bug Report дозволяє розробнику відтворити та виправити проблему без додаткових питань.</p>\n</div>\n\n\n\n<h2>🎯 Ознаки хорошого Bug Report</h2>\n<ul>\n<li>🔄 <strong>Відтворюваний</strong> — розробник може повторити проблему</li>\n<li>📍 <strong>Локалізований</strong> — зрозуміло, де саме проблема</li>\n<li>📸 <strong>Наочний</strong> — скріншоти, відео, логи</li>\n<li>🎯 <strong>Конкретний</strong> — один баг = один репорт</li>\n<li>📝 <strong>Повний</strong> — вся необхідна інформація</li>\n</ul>\n<div class=\"danger\"><strong>🚫 Поганий Bug Report ❌</strong> <p>\"Сайт не працює, виправте!\"</p>\n<p><strong>Чому погано:</strong> Немає деталей, неможливо відтворити, незрозуміло що саме не працює.</p>\n</div>\n\n","<h1>🐛 Структура Bug Report</h1>\n<table>\n<thead>\n<tr>\n<th>Поле</th>\n<th>Опис</th>\n<th>Приклад</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🆔 <strong>Bug ID</strong></td>\n<td>Унікальний ідентифікатор</td>\n<td>BUG-2024-0142</td>\n</tr>\n<tr>\n<td>📝 <strong>Summary</strong></td>\n<td>Коротка назва проблеми (що і де)</td>\n<td>Кошик: товар видаляється без підтвердження</td>\n</tr>\n<tr>\n<td>🔴 <strong>Severity</strong></td>\n<td>Серйозність впливу на систему</td>\n<td>Critical / Major / Minor / Trivial</td>\n</tr>\n<tr>\n<td>🎯 <strong>Priority</strong></td>\n<td>Бізнес-пріоритет виправлення</td>\n<td>High / Medium / Low</td>\n</tr>\n<tr>\n<td>📋 <strong>Steps to Reproduce</strong></td>\n<td>Покрокова інструкція відтворення</td>\n<td>1. Відкрити... 2. Натиснути...</td>\n</tr>\n<tr>\n<td>❌ <strong>Actual Result</strong></td>\n<td>Що відбувається зараз (неправильно)</td>\n<td>Товар видаляється миттєво</td>\n</tr>\n<tr>\n<td>✅ <strong>Expected Result</strong></td>\n<td>Що має відбуватися (правильно)</td>\n<td>Показати діалог підтвердження</td>\n</tr>\n<tr>\n<td>🖥️ <strong>Environment</strong></td>\n<td>Середовище тестування</td>\n<td>Chrome 120, Windows 11, v3.2.1</td>\n</tr>\n<tr>\n<td>📎 <strong>Attachments</strong></td>\n<td>Додаткові матеріали</td>\n<td>Скріншоти, відео, логи</td>\n</tr>\n</tbody></table>\n","<h1>🐛 Severity vs Priority</h1>\n<div class=\"note\"><strong>📝 Різниця між Severity та Priority</strong> <p><strong>Severity (Серйозність)</strong> — технічний вплив бага на систему<br><strong>Priority (Пріоритет)</strong> — бізнес-важливість виправлення</p>\n<p>Ці поняття часто плутають, але вони незалежні! 🔀</p>\n</div>\n\n\n\n<table>\n<thead>\n<tr>\n<th>Severity</th>\n<th>Priority</th>\n<th>Приклад</th>\n<th>Пояснення</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🔴 Critical</td>\n<td>🔴 High</td>\n<td>Платежі не проходять</td>\n<td>Блокує бізнес</td>\n</tr>\n<tr>\n<td>🔴 Critical</td>\n<td>🟡 Low</td>\n<td>Crash на сторінці \"Про нас\"</td>\n<td>Критично, але рідко відвідують</td>\n</tr>\n<tr>\n<td>🟢 Minor</td>\n<td>🔴 High</td>\n<td>Фото директора на сайті спотворене</td>\n<td>Дрібниця, але керівництво хоче негайно</td>\n</tr>\n<tr>\n<td>🟢 Minor</td>\n<td>🟢 Low</td>\n<td>Помилка в слові у footer сайту</td>\n<td>Косметичний дефект</td>\n</tr>\n</tbody></table>\n<div class=\"tip\"><strong>💡 Хто визначає?</strong> <ul>\n<li><strong>Severity</strong> визначає QA (технічна оцінка) 🧪</li>\n<li><strong>Priority</strong> визначає Product Owner/Manager (бізнес-оцінка) 💼</li>\n</ul>\n</div>\n\n","<h1>🐛 Bug Report — Практичний приклад</h1>\n<div class=\"danger\"><strong>🚫 Приклад реального Bug Report 🐞</strong> <table>\n<thead>\n<tr>\n<th>Поле</th>\n<th>Значення</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Bug ID</strong></td>\n<td>BUG-SHOP-2024-0089</td>\n</tr>\n<tr>\n<td><strong>Summary</strong></td>\n<td>Кошик: товар видаляється при зміні кількості на 0 без підтвердження</td>\n</tr>\n<tr>\n<td><strong>Severity</strong></td>\n<td>🟠 Major</td>\n</tr>\n<tr>\n<td><strong>Priority</strong></td>\n<td>🔴 High</td>\n</tr>\n<tr>\n<td><strong>Reporter</strong></td>\n<td><a href=\"mailto:qa.engineer@company.com\">qa.engineer@company.com</a></td>\n</tr>\n<tr>\n<td><strong>Assignee</strong></td>\n<td><a href=\"mailto:dev.frontend@company.com\">dev.frontend@company.com</a></td>\n</tr>\n<tr>\n<td><strong>Environment</strong></td>\n<td>Chrome 120, Windows 11, Production</td>\n</tr>\n<tr>\n<td><strong>Version</strong></td>\n<td>Shop v3.2.1</td>\n</tr>\n</tbody></table>\n<p><strong>Steps to Reproduce:</strong></p>\n<ol>\n<li>Відкрити сайт <code>shop.example.com</code></li>\n<li>Додати будь-який товар до кошика</li>\n<li>Перейти до кошика</li>\n<li>Змінити кількість товару з 1 на 0</li>\n<li>Спостерігати поведінку</li>\n</ol>\n<p><strong>Actual Result:</strong> ❌ Товар миттєво видаляється без попередження</p>\n<p><strong>Expected Result:</strong> ✅ Показати діалог \"Видалити товар з кошика?\"</p>\n<p><strong>Attachments:</strong> 📎 video_bug_089.mp4, 📸 screenshot_before_after.png</p>\n</div>\n\n","<h1>📊 Test Summary Report</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Test Summary Report (Підсумковий звіт тестування)</strong> — це документ, який надає загальний огляд виконаного тестування, включаючи статистику, знайдені дефекти, оцінку якості та рекомендації щодо релізу.</p>\n</div>\n\n\n\n<h2>📋 Ключові компоненти звіту</h2>\n<ul>\n<li>📈 <strong>Статистика виконання</strong> — скільки тестів passed/failed/blocked</li>\n<li>🐛 <strong>Огляд дефектів</strong> — розподіл за severity/priority</li>\n<li>📊 <strong>Метрики якості</strong> — coverage, defect density</li>\n<li>⚠️ <strong>Ризики</strong> — відомі проблеми та обмеження</li>\n<li>✅ <strong>Рекомендація</strong> — Go / No-Go для релізу</li>\n</ul>\n","<h1>📊 Test Summary Report — Приклад</h1>\n<div class=\"success\"><strong>✅ Приклад Test Summary Report 📋</strong> <p><strong>Проєкт:</strong> Online Shop v3.2<br><strong>Період тестування:</strong> 01.02.2024 — 14.02.2024<br><strong>QA Lead:</strong> Maria Petrenko</p>\n<h2>📈 Статистика Test Cases</h2>\n<table>\n<thead>\n<tr>\n<th>Метрика</th>\n<th>Значення</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🧪 Всього тест-кейсів</td>\n<td>450</td>\n</tr>\n<tr>\n<td>✅ Passed</td>\n<td>412 (91.5%)</td>\n</tr>\n<tr>\n<td>❌ Failed</td>\n<td>28 (6.2%)</td>\n</tr>\n<tr>\n<td>⏸️ Blocked</td>\n<td>10 (2.3%)</td>\n</tr>\n</tbody></table>\n<h2>🐛 Статистика дефектів</h2>\n<table>\n<thead>\n<tr>\n<th>Severity</th>\n<th>Знайдено</th>\n<th>Виправлено</th>\n<th>Відкрито</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🔴 Critical</td>\n<td>2</td>\n<td>2</td>\n<td>0</td>\n</tr>\n<tr>\n<td>🟠 Major</td>\n<td>8</td>\n<td>6</td>\n<td>2</td>\n</tr>\n<tr>\n<td>🟡 Minor</td>\n<td>15</td>\n<td>10</td>\n<td>5</td>\n</tr>\n<tr>\n<td>🟢 Trivial</td>\n<td>7</td>\n<td>3</td>\n<td>4</td>\n</tr>\n</tbody></table>\n<p><strong>Рекомендація:</strong> ✅ <strong>GO</strong> — реліз можливий після виправлення 2 Major багів</p>\n</div>\n\n","<h1>🔗 Traceability Matrix — Що це?</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Requirements Traceability Matrix (RTM)</strong> — матриця відстеження вимог — це документ, який пов'язує бізнес-вимоги з відповідними тест-кейсами. Дозволяє переконатися, що кожна вимога перевірена і немає \"прогалин\" у тестуванні.</p>\n</div>\n\n\n\n<h2>🎯 Навіщо потрібна RTM?</h2>\n<ul>\n<li>✅ <strong>Повнота покриття</strong> — кожна вимога має тести</li>\n<li>🔍 <strong>Impact Analysis</strong> — які тести запустити при зміні вимоги</li>\n<li>📊 <strong>Звітність</strong> — прогрес тестування по вимогах</li>\n<li>🛡️ <strong>Аудит</strong> — доказ повноти тестування</li>\n</ul>\n","<h1>🔗 Traceability Matrix — Приклад</h1>\n<div class=\"tip\"><strong>💡 Приклад RTM для модуля авторизації 🔐</strong> <table>\n<thead>\n<tr>\n<th>Requirement ID</th>\n<th>Requirement</th>\n<th>Test Case IDs</th>\n<th>Status</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>REQ-AUTH-001</td>\n<td>Користувач може увійти з email та паролем</td>\n<td>TC-001, TC-002, TC-003</td>\n<td>✅ 100%</td>\n</tr>\n<tr>\n<td>REQ-AUTH-002</td>\n<td>Система блокує після 3 невдалих спроб</td>\n<td>TC-010, TC-011</td>\n<td>✅ 100%</td>\n</tr>\n<tr>\n<td>REQ-AUTH-003</td>\n<td>Можливість скинути пароль через email</td>\n<td>TC-020, TC-021, TC-022</td>\n<td>🟡 67%</td>\n</tr>\n<tr>\n<td>REQ-AUTH-004</td>\n<td>Підтримка OAuth (Google, Facebook)</td>\n<td>TC-030, TC-031</td>\n<td>⏸️ Blocked</td>\n</tr>\n<tr>\n<td>REQ-AUTH-005</td>\n<td>Сесія завершується через 30 хв неактивності</td>\n<td>TC-040</td>\n<td>✅ 100%</td>\n</tr>\n</tbody></table>\n<p><strong>Загальне покриття:</strong> 85% вимог повністю протестовано</p>\n</div>\n\n\n\n\n<div class=\"mermaid\" data-source=\"graph LR\n    R1[📋 REQ-001] --&gt; TC1[🧪 TC-001]\n    R1 --&gt; TC2[🧪 TC-002]\n    R2[📋 REQ-002] --&gt; TC3[🧪 TC-010]\n    R2 --&gt; TC4[🧪 TC-011]\n\n    style R1 fill:#e3f2fd,stroke:#1976d2\n    style R2 fill:#e3f2fd,stroke:#1976d2\n    style TC1 fill:#e8f5e9,stroke:#43a047\n    style TC2 fill:#e8f5e9,stroke:#43a047\n    style TC3 fill:#e8f5e9,stroke:#43a047\n    style TC4 fill:#e8f5e9,stroke:#43a047\"><svg id=\"exp-1764137910119-20-0\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" class=\"flowchart\" style=\"max-width: 326.484375px;\" viewBox=\"0 0 326.484375 358\" role=\"graphics-document document\" aria-roledescription=\"flowchart-v2\"><style>#exp-1764137910119-20-0{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#exp-1764137910119-20-0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#exp-1764137910119-20-0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#exp-1764137910119-20-0 .error-icon{fill:#552222;}#exp-1764137910119-20-0 .error-text{fill:#552222;stroke:#552222;}#exp-1764137910119-20-0 .edge-thickness-normal{stroke-width:1px;}#exp-1764137910119-20-0 .edge-thickness-thick{stroke-width:3.5px;}#exp-1764137910119-20-0 .edge-pattern-solid{stroke-dasharray:0;}#exp-1764137910119-20-0 .edge-thickness-invisible{stroke-width:0;fill:none;}#exp-1764137910119-20-0 .edge-pattern-dashed{stroke-dasharray:3;}#exp-1764137910119-20-0 .edge-pattern-dotted{stroke-dasharray:2;}#exp-1764137910119-20-0 .marker{fill:#333333;stroke:#333333;}#exp-1764137910119-20-0 .marker.cross{stroke:#333333;}#exp-1764137910119-20-0 svg{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;}#exp-1764137910119-20-0 p{margin:0;}#exp-1764137910119-20-0 .label{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;color:#333;}#exp-1764137910119-20-0 .cluster-label text{fill:#333;}#exp-1764137910119-20-0 .cluster-label span{color:#333;}#exp-1764137910119-20-0 .cluster-label span p{background-color:transparent;}#exp-1764137910119-20-0 .label text,#exp-1764137910119-20-0 span{fill:#333;color:#333;}#exp-1764137910119-20-0 .node rect,#exp-1764137910119-20-0 .node circle,#exp-1764137910119-20-0 .node ellipse,#exp-1764137910119-20-0 .node polygon,#exp-1764137910119-20-0 .node path{fill:#ECECFF;stroke:#667eea;stroke-width:1px;}#exp-1764137910119-20-0 .rough-node .label text,#exp-1764137910119-20-0 .node .label text,#exp-1764137910119-20-0 .image-shape .label,#exp-1764137910119-20-0 .icon-shape .label{text-anchor:middle;}#exp-1764137910119-20-0 .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#exp-1764137910119-20-0 .rough-node .label,#exp-1764137910119-20-0 .node .label,#exp-1764137910119-20-0 .image-shape .label,#exp-1764137910119-20-0 .icon-shape .label{text-align:center;}#exp-1764137910119-20-0 .node.clickable{cursor:pointer;}#exp-1764137910119-20-0 .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#exp-1764137910119-20-0 .arrowheadPath{fill:#333333;}#exp-1764137910119-20-0 .edgePath .path{stroke:#333333;stroke-width:2.0px;}#exp-1764137910119-20-0 .flowchart-link{stroke:#333333;fill:none;}#exp-1764137910119-20-0 .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1764137910119-20-0 .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#exp-1764137910119-20-0 .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1764137910119-20-0 .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#exp-1764137910119-20-0 .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#exp-1764137910119-20-0 .cluster text{fill:#333;}#exp-1764137910119-20-0 .cluster span{color:#333;}#exp-1764137910119-20-0 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#exp-1764137910119-20-0 .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#exp-1764137910119-20-0 rect.text{fill:none;stroke-width:0;}#exp-1764137910119-20-0 .icon-shape,#exp-1764137910119-20-0 .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1764137910119-20-0 .icon-shape p,#exp-1764137910119-20-0 .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#exp-1764137910119-20-0 .icon-shape rect,#exp-1764137910119-20-0 .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1764137910119-20-0 .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#exp-1764137910119-20-0 .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#exp-1764137910119-20-0 :root{--mermaid-font-family:\"trebuchet ms\",verdana,arial,sans-serif;}</style><g><marker id=\"exp-1764137910119-20-0_flowchart-v2-pointEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 0 L 10 5 L 0 10 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1764137910119-20-0_flowchart-v2-pointStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"4.5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 5 L 10 10 L 10 0 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1764137910119-20-0_flowchart-v2-circleEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"11\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1764137910119-20-0_flowchart-v2-circleStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-1\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1764137910119-20-0_flowchart-v2-crossEnd\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"12\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1764137910119-20-0_flowchart-v2-crossStart\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"-1\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><g class=\"root\"><g class=\"clusters\"></g><g class=\"edgePaths\"><path d=\"M121.318,57L129.213,52.833C137.108,48.667,152.898,40.333,164.479,36.167C176.06,32,183.432,32,187.118,32L190.805,32\" id=\"L_R1_TC1_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_R1_TC1_0\" data-points=\"W3sieCI6MTIxLjMxODIzOTc5NTkxODM3LCJ5Ijo1N30seyJ4IjoxNjguNjg3NSwieSI6MzJ9LHsieCI6MTk0LjgwNDY4NzUsInkiOjMyfV0=\" marker-end=\"url(#exp-1764137910119-20-0_flowchart-v2-pointEnd)\"></path><path d=\"M121.318,105L129.213,109.167C137.108,113.333,152.898,121.667,164.293,125.833C175.688,130,182.688,130,186.188,130L189.688,130\" id=\"L_R1_TC2_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_R1_TC2_0\" data-points=\"W3sieCI6MTIxLjMxODIzOTc5NTkxODM3LCJ5IjoxMDV9LHsieCI6MTY4LjY4NzUsInkiOjEzMH0seyJ4IjoxOTMuNjg3NSwieSI6MTMwfV0=\" marker-end=\"url(#exp-1764137910119-20-0_flowchart-v2-pointEnd)\"></path><path d=\"M121.318,253L129.213,248.833C137.108,244.667,152.898,236.333,164.479,232.167C176.06,228,183.432,228,187.118,228L190.805,228\" id=\"L_R2_TC3_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_R2_TC3_0\" data-points=\"W3sieCI6MTIxLjMxODIzOTc5NTkxODM3LCJ5IjoyNTN9LHsieCI6MTY4LjY4NzUsInkiOjIyOH0seyJ4IjoxOTQuODA0Njg3NSwieSI6MjI4fV0=\" marker-end=\"url(#exp-1764137910119-20-0_flowchart-v2-pointEnd)\"></path><path d=\"M121.318,301L129.213,305.167C137.108,309.333,152.898,317.667,164.7,321.833C176.503,326,184.318,326,188.225,326L192.133,326\" id=\"L_R2_TC4_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_R2_TC4_0\" data-points=\"W3sieCI6MTIxLjMxODIzOTc5NTkxODM3LCJ5IjozMDF9LHsieCI6MTY4LjY4NzUsInkiOjMyNn0seyJ4IjoxOTYuMTMyODEyNSwieSI6MzI2fV0=\" marker-end=\"url(#exp-1764137910119-20-0_flowchart-v2-pointEnd)\"></path></g><g class=\"edgeLabels\"><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_R1_TC1_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_R1_TC2_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_R2_TC3_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_R2_TC4_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\"><tspan class=\"text-outer-tspan\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\"></tspan></text></g></g></g><g class=\"nodes\"><g class=\"node default  \" id=\"flowchart-R1-0\" transform=\"translate(75.84375, 81)\"><rect class=\"basic label-container\" style=\"fill:#e3f2fd !important;stroke:#1976d2 !important\" x=\"-66.7265625\" y=\"-24\" width=\"133.453125\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-42.7265625, -12)\"><rect></rect><foreignObject width=\"85.453125\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>📋 REQ-001</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-TC1-1\" transform=\"translate(256.0859375, 32)\"><rect class=\"basic label-container\" style=\"fill:#e8f5e9 !important;stroke:#43a047 !important\" x=\"-61.28125\" y=\"-24\" width=\"122.5625\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-37.28125, -12)\"><rect></rect><foreignObject width=\"74.5625\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🧪 TC-001</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-TC2-3\" transform=\"translate(256.0859375, 130)\"><rect class=\"basic label-container\" style=\"fill:#e8f5e9 !important;stroke:#43a047 !important\" x=\"-62.3984375\" y=\"-24\" width=\"124.796875\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-38.3984375, -12)\"><rect></rect><foreignObject width=\"76.796875\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🧪 TC-002</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-R2-4\" transform=\"translate(75.84375, 277)\"><rect class=\"basic label-container\" style=\"fill:#e3f2fd !important;stroke:#1976d2 !important\" x=\"-67.84375\" y=\"-24\" width=\"135.6875\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-43.84375, -12)\"><rect></rect><foreignObject width=\"87.6875\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>📋 REQ-002</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-TC3-5\" transform=\"translate(256.0859375, 228)\"><rect class=\"basic label-container\" style=\"fill:#e8f5e9 !important;stroke:#43a047 !important\" x=\"-61.28125\" y=\"-24\" width=\"122.5625\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-37.28125, -12)\"><rect></rect><foreignObject width=\"74.5625\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🧪 TC-010</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"flowchart-TC4-7\" transform=\"translate(256.0859375, 326)\"><rect class=\"basic label-container\" style=\"fill:#e8f5e9 !important;stroke:#43a047 !important\" x=\"-59.953125\" y=\"-24\" width=\"119.90625\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-35.953125, -12)\"><rect></rect><foreignObject width=\"71.90625\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🧪 TC-011</p></span></div></foreignObject></g></g></g></g></g></svg></div>\n","<h1>🛠️ Інструменти для тестової документації</h1>\n<h2>🏢 Популярні Test Management Systems (TMS)</h2>\n<table>\n<thead>\n<tr>\n<th>Інструмент</th>\n<th>Опис</th>\n<th>Особливості</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🧪 <strong>TestRail</strong></td>\n<td>Професійна TMS</td>\n<td>Test cases, runs, reports, Jira integration</td>\n</tr>\n<tr>\n<td>📋 <strong>Zephyr</strong></td>\n<td>Плагін для Jira</td>\n<td>Нативна інтеграція з Jira</td>\n</tr>\n<tr>\n<td>🆓 <strong>TestLink</strong></td>\n<td>Open-source TMS</td>\n<td>Безкоштовний, базовий функціонал</td>\n</tr>\n<tr>\n<td>🐙 <strong>qTest</strong></td>\n<td>Enterprise TMS</td>\n<td>CI/CD інтеграція, масштабованість</td>\n</tr>\n<tr>\n<td>📝 <strong>Notion/Confluence</strong></td>\n<td>Документація</td>\n<td>Гнучкість, колаборація</td>\n</tr>\n</tbody></table>\n","<h1>✅ Ключові висновки</h1>\n<div class=\"success\"><strong>✅ Що важливо запам'ятати 🎓</strong> <ol>\n<li><p><strong>Документація — не бюрократія, а необхідність</strong> 📝<br>Без документації неможливо відстежити прогрес, передати знання та забезпечити відтворюваність тестів.</p>\n</li>\n<li><p><strong>Test Plan — стратегічний документ</strong> 📑<br>Визначає ЩО, ЯК, КИМ та КОЛИ буде тестуватися. Без плану тестування хаотичне.</p>\n</li>\n<li><p><strong>Test Case — атомарна одиниця тестування</strong> 🧪<br>Один тест-кейс = одна перевірка. Має бути відтворюваним та незалежним.</p>\n</li>\n<li><p><strong>Bug Report — ключ до швидкого виправлення</strong> 🐛<br>Якісний звіт дозволяє виправити баг без додаткових питань. Severity ≠ Priority!</p>\n</li>\n<li><p><strong>Traceability Matrix зв'язує вимоги та тести</strong> 🔗<br>Забезпечує повноту покриття та спрощує аналіз впливу змін.</p>\n</li>\n</ol>\n</div>\n\n","<h1>❓ Контрольні питання</h1>\n<ol>\n<li><p><strong>Які основні артефакти тестової документації ви знаєте?</strong></p>\n</li>\n<li><p><strong>Чим відрізняється Severity від Priority?</strong></p>\n</li>\n<li><p><strong>Які обов'язкові поля містить Test Case?</strong></p>\n</li>\n<li><p><strong>Що таке Traceability Matrix?</strong></p>\n</li>\n<li><p><strong>Навіщо потрібні негативні тест-кейси?</strong></p>\n</li>\n<li><p><strong>Що має містити якісний Bug Report?</strong></p>\n</li>\n</ol>\n","<h1>📚 Глосарій термінів</h1>\n<div class=\"note\"><strong>📝 Терміни тестової документації</strong> <p><strong>Test Plan (Тест-план)</strong> — документ, що описує стратегію, scope, ресурси та розклад тестування.</p>\n<p><strong>Test Case (Тестовий кейс)</strong> — детальний опис однієї перевірки з кроками, даними та очікуваним результатом.</p>\n<p><strong>Bug Report (Звіт про дефект)</strong> — документ, що описує знайдену проблему в ПЗ.</p>\n<p><strong>Severity (Серйозність)</strong> — технічний рівень впливу бага на систему (Critical, Major, Minor, Trivial).</p>\n<p><strong>Priority (Пріоритет)</strong> — бізнес-важливість виправлення бага (High, Medium, Low).</p>\n<p><strong>RTM (Requirements Traceability Matrix)</strong> — матриця відстеження вимог — зв'язок між вимогами та тест-кейсами.</p>\n<p><strong>Test Summary Report</strong> — підсумковий звіт про виконане тестування.</p>\n<p><strong>TMS (Test Management System)</strong> — система управління тестуванням — інструмент для створення та виконання тестів.</p>\n<p><strong>IEEE 829</strong> — міжнародний стандарт документації тестування програмного забезпечення.</p>\n<p><strong>Preconditions (Передумови)</strong> — умови, які мають бути виконані перед запуском тесту.</p>\n<p><strong>Expected Result (Очікуваний результат)</strong> — правильна поведінка системи згідно з вимогами.</p>\n<p><strong>Actual Result (Фактичний результат)</strong> — реальна поведінка системи під час тестування.</p>\n</div>\n\n","<h1>🎉 Дякую за увагу!</h1>\n<div class=\"tip\"><strong>💡 Золоте правило тестової документації ✨</strong> <p><strong>\"Якщо це не задокументовано — це не було протестовано!\"</strong></p>\n</div>\n\n\n\n<p><strong>Пам'ятайте:</strong> Якісна документація економить час команди та підвищує надійність продукту! 🚀</p>\n"];let currentSlideIndex=0;
+function showSlide(i){if(i<0||i>=slides.length)return;currentSlideIndex=i;const el=document.getElementById("current-slide");el.innerHTML=slides[i];el.scrollTop=0;document.getElementById("progress-bar").style.width=((i+1)/slides.length*100)+"%";document.getElementById("slide-number").textContent=(i+1)+" / "+slides.length;updateSidebarActive();}
+function nextSlide(){if(currentSlideIndex<slides.length-1)showSlide(currentSlideIndex+1);}
+function previousSlide(){if(currentSlideIndex>0)showSlide(currentSlideIndex-1);}
+function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open");}
+function toggleHelp(){document.getElementById("help-overlay").classList.toggle("hidden");}
+function toggleFullscreen(){if(!document.fullscreenElement){const pc=document.getElementById("presentation-container");if(pc.requestFullscreen)pc.requestFullscreen();else if(pc.webkitRequestFullscreen)pc.webkitRequestFullscreen();else if(pc.msRequestFullscreen)pc.msRequestFullscreen();else if(pc.mozRequestFullScreen)pc.mozRequestFullScreen();}else{if(document.exitFullscreen)document.exitFullscreen();else if(document.webkitExitFullscreen)document.webkitExitFullscreen();else if(document.msExitFullscreen)document.msExitFullscreen();else if(document.mozCancelFullScreen)document.mozCancelFullScreen();}}
+function generateSidebar(){const sc=document.getElementById("sidebar-content");sc.innerHTML="";slides.forEach((html,idx)=>{const t=document.createElement("div");t.className="slide-thumbnail";if(idx===0)t.classList.add("active");const tmp=document.createElement("div");tmp.innerHTML=html;const title=tmp.querySelector("h1,h2");const titleText=title?title.textContent:("Слайд "+(idx+1));const textContent=tmp.textContent.replace(/s+/g," ").trim();const preview=textContent.substring(0,100)+(textContent.length>100?"...":"");t.innerHTML="<div class=\"slide-thumbnail-number\">"+(idx+1)+"</div><div class=\"slide-thumbnail-title\">"+titleText+"</div><div class=\"slide-thumbnail-content\">"+preview+"</div>";t.onclick=()=>{showSlide(idx);if(window.innerWidth<1024)toggleSidebar();};sc.appendChild(t);});}
+function updateSidebarActive(){document.querySelectorAll(".slide-thumbnail").forEach((th,idx)=>{if(idx===currentSlideIndex){th.classList.add("active");th.scrollIntoView({behavior:"smooth",block:"nearest"});}else th.classList.remove("active");});}
+document.addEventListener("keydown",e=>{switch(e.key){case"ArrowLeft":previousSlide();break;case"ArrowRight":case" ":e.preventDefault();nextSlide();break;case"f":case"F":toggleFullscreen();break;case"s":case"S":toggleSidebar();break;case"?":toggleHelp();break;case"Escape":const sb=document.getElementById("sidebar");const ho=document.getElementById("help-overlay");if(sb.classList.contains("open"))toggleSidebar();else if(!ho.classList.contains("hidden"))ho.classList.add("hidden");break;}});
+generateSidebar();showSlide(0);</script></body></html>
