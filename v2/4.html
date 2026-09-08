@@ -1,0 +1,621 @@
+<!DOCTYPE html><html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>User Stories та Agile Planning</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"><style>* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #editor-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #editor-container.hidden {
+            display: none;
+        }
+
+        #editor-header {
+            background: #2d3748;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #editor-header h2 {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        #editor-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #4a5568;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2d3748;
+        }
+
+        #markdown-input {
+            flex: 1;
+            padding: 2rem;
+            background: #1a202c;
+            color: #e2e8f0;
+            border: none;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+        }
+
+        #markdown-input:focus {
+            outline: none;
+        }
+
+        .slide-container {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .slide {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 3rem;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .slide::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .slide::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .slide h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .slide h2 {
+            color: #764ba2;
+            font-size: 2rem;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .slide h3 {
+            color: #4a5568;
+            font-size: 1.5rem;
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        .slide p {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .slide ul, .slide ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .slide li {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide pre {
+            background: #282c34;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+
+        .slide pre code {
+            background: transparent;
+            color: #abb2bf;
+        }
+
+        .slide code {
+            font-family: 'Courier New', Consolas, Monaco, monospace;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        .slide h1 code, .slide h2 code, .slide h3 code {
+            font-size: 0.85em;
+            background: rgba(237, 242, 247, 0.5);
+            padding: 0.1em 0.3em;
+            border-radius: 3px;
+        }
+
+        .slide p code {
+            background: #edf2f7;
+            color: #e53e3e;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .slide blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            color: #4a5568;
+        }
+
+        .slide img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .slide table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .slide th, .slide td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .slide th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .slide tr:nth-child(even) {
+            background: #f7fafc;
+        }
+
+        .note {
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .note strong {
+            color: #c53030;
+        }
+
+        .warning {
+            background: #fffaf0;
+            border-left: 4px solid #f6ad55;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .warning strong {
+            color: #c05621;
+        }
+
+        .info {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .info strong {
+            color: #2c5282;
+        }
+
+        .success {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .success strong {
+            color: #22543d;
+        }
+
+        .danger {
+            background: #fff5f5;
+            border-left: 4px solid #f56565;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .danger strong {
+            color: #742a2a;
+        }
+
+        .tip {
+            background: #fefcbf;
+            border-left: 4px solid #ecc94b;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .tip strong {
+            color: #744210;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: white;
+            transition: width 0.3s;
+        }
+
+        .slide-number {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            color: #667eea;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #sidebar {
+            position: fixed;
+            right: -320px;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+            transition: right 0.3s ease;
+            z-index: 200;
+            padding: 1rem;
+        }
+
+        #sidebar.open {
+            right: 0;
+        }
+
+        #sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+
+        #sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #667eea;
+        }
+
+        #sidebar-header h3 {
+            color: #667eea;
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        #sidebar-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #4a5568;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        #sidebar-close:hover {
+            color: #667eea;
+        }
+
+        .slide-thumbnail {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+
+        .slide-thumbnail:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+            transform: translateX(-4px);
+        }
+
+        .slide-thumbnail.active {
+            border-color: #667eea;
+            background: #f7faff;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .slide-thumbnail-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide-thumbnail-content {
+            font-size: 0.85rem;
+            color: #2d3748;
+            line-height: 1.4;
+            max-height: 4.2rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slide-thumbnail-content::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 50%;
+            height: 1.4rem;
+            background: linear-gradient(to right, transparent, white);
+        }
+
+        .slide-thumbnail.active .slide-thumbnail-content::after {
+            background: linear-gradient(to right, transparent, #f7faff);
+        }
+
+        .slide-thumbnail-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 0.25rem;
+        }
+
+        #sidebar-toggle {
+            position: fixed;
+            right: 1rem;
+            top: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 8px;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 150;
+        }
+
+        #sidebar-toggle:hover {
+            background: white;
+            transform: scale(1.05);
+        }
+
+        .mermaid {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            overflow: visible; /* щоб не обрізати тіні / розширені ноди */
+        }
+
+        /* Запобігаємо обрізанню останньої літери в нодах Mermaid через зміну font-weight після розрахунку розміру */
+        .mermaid svg { overflow: visible !important; }
+        /* перестраховка проти обрізання foreignObject (на випадок інших діаграм) */
+        .mermaid svg foreignObject { overflow: visible !important; }
+
+        .plantuml-diagram {
+            max-width: 100%;
+            height: auto;
+            margin: 1.5rem auto;
+            display: block;
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #help-overlay {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            transition: opacity 0.3s;
+        }
+
+        #help-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #help-overlay kbd {
+            background: #2d3748;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.85em;
+        }
+
+        .mermaid-error {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            padding: 1rem;
+            border-radius: 6px;
+            color: #742a2a;
+            margin: 1.5rem 0;
+        }
+
+        .mermaid-error pre {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+        }
+
+        /* Повноекранний режим - зберігаємо оригінальний фон */
+        #presentation-container:fullscreen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-webkit-full-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-moz-full-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #presentation-container:-ms-fullscreen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+#presentation-container:fullscreen,#presentation-container:-webkit-full-screen,#presentation-container:-moz-full-screen,#presentation-container:-ms-fullscreen{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)!important;}</style></head><body><div id="presentation-container"><div class="progress"><div class="progress-bar" id="progress-bar"></div></div><button id="sidebar-toggle" onclick="toggleSidebar()" title="Навігація слайдами (S)">☰</button><div id="sidebar"><div id="sidebar-header"><h3>📑 Слайди</h3><button id="sidebar-close" onclick="toggleSidebar()">✕</button></div><div id="sidebar-content"></div></div><div class="slide-container"><div class="slide" id="current-slide"></div></div><div class="controls"><button class="control-btn" onclick="previousSlide()" title="Попередній (←)">←</button><button class="control-btn" onclick="nextSlide()" title="Наступний (→)">→</button><button class="control-btn" onclick="toggleFullscreen()" title="Повноекранний режим (F)">⛶</button><button class="control-btn" onclick="toggleHelp()" title="Допомога (?)">?</button></div><div class="slide-number" id="slide-number">1 / 19</div><div id="help-overlay" class="hidden"><strong>Гарячі клавіші:</strong><br><kbd>←</kbd> <kbd>→</kbd> Навігація<br><kbd>F</kbd> Повноекранний режим<br><kbd>S</kbd> Sidebar<br><kbd>?</kbd> Допомога<br><kbd>Esc</kbd> Закрити</div></div><script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script><script>const slides=["<h1>User Stories та Agile Planning</h1>\n<p><strong>Курс:</strong> Основи інженерії програмного забезпечення<br><strong>Лектор:</strong> Кобилянський Антон</p>\n","<h2>📋 План лекції</h2>\n<ol>\n<li>📝 User Story: концепція та формат</li>\n<li>✅ Acceptance Criteria та Given-When-Then</li>\n<li>🎯 INVEST: критерії якості історії</li>\n<li>📊 Story Points та Planning Poker</li>\n<li>🔄 Definition of Ready та Definition of Done</li>\n<li>🗺️ User Story Mapping</li>\n<li>📈 Release Planning</li>\n<li>🧩 Елементи беклогу та розбиття епіків</li>\n<li>🎓 Висновки та контрольні питання</li>\n</ol>\n","<h1>📝 Що таке User Story?</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>User Story</strong> (користувацька історія) - короткий опис функціональності з точки зору кінцевого користувача, написаний простою мовою та сфокусований на цінності для бізнесу.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> історія описує <strong>ЩО</strong> потрібно користувачу та <strong>НАВІЩО</strong>, а не <strong>ЯК</strong> це реалізувати технічно. Технічні рішення залишаються за командою розробки, яка приймає їх під час обговорення історії.</p>\n<p>Такий підхід виник в екстремальному програмуванні (XP) наприкінці 1990-х як відповідь на проблему громіздких специфікацій, які застарівали швидше, ніж їх встигали прочитати. Історія свідомо коротка: її мета не зафіксувати всі деталі, а зафіксувати потребу і запустити діалог між замовником і командою 💬</p>\n<h2>🎭 User Story vs Технічна вимога</h2>\n<table>\n<thead>\n<tr>\n<th>Критерій</th>\n<th>📝 User Story</th>\n<th>⚙️ Технічна вимога</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>Приклад</td>\n<td>\"Як покупець, я хочу фільтрувати товари за ціною, щоб швидко знайти товари в моєму бюджеті\"</td>\n<td>\"Система повинна мати REST API endpoint <code>/api/products/filter</code> з параметрами <code>min_price</code>, <code>max_price</code>\"</td>\n</tr>\n<tr>\n<td>Зрозуміла клієнту</td>\n<td>✅ Так</td>\n<td>❌ Ні</td>\n</tr>\n<tr>\n<td>Пояснює цінність</td>\n<td>✅ Так</td>\n<td>❌ Ні</td>\n</tr>\n<tr>\n<td>Стимулює обговорення</td>\n<td>✅ Так</td>\n<td>❌ Закрита специфікація</td>\n</tr>\n</tbody></table>\n<div class=\"tip\"><strong>💡 Автор підходу</strong> <p>Концепцію User Stories популяризував Майк Кон (Mike Cohn) у книзі \"User Stories Applied\" (2004) 📚</p>\n</div>\n\n","<h1>🧩 Формат \"Як-Хочу-Щоб\"</h1>\n<pre><code class=\"language-plaintext hljs\" data-highlighted=\"yes\">Як [роль / тип користувача],\nя хочу [дія / функціональність],\nщоб [цінність / вигода / мета].</code></pre><p><strong>Приклад:</strong> \"Як покупець, я хочу додавати товари в список бажань, щоб повернутися до них пізніше, коли буде бюджет\" 🛒</p>\n<p>Кожна з трьох частин виконує свою роботу. Роль не дозволяє писати історії для абстрактного \"користувача\": покупець, адміністратор і кур'єр мають різні потреби. Дія описує поведінку системи, яку можна побачити і перевірити. Цінність найважливіша: якщо команда не може сформулювати \"щоб\", варто запитати, чи потрібна ця функція взагалі.</p>\n<table>\n<thead>\n<tr>\n<th>Частина</th>\n<th>Роль у історії</th>\n<th>Питання, на яке відповідає</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>👤 <strong>Роль</strong></td>\n<td>Ідентифікує отримувача цінності</td>\n<td>Для кого це?</td>\n</tr>\n<tr>\n<td>⚡ <strong>Дія</strong></td>\n<td>Описує потрібну поведінку системи</td>\n<td>Що потрібно?</td>\n</tr>\n<tr>\n<td>💎 <strong>Цінність</strong></td>\n<td>Пояснює мотивацію, допомагає приймати дизайн-рішення</td>\n<td>Навіщо це?</td>\n</tr>\n</tbody></table>\n<h2>🃏 Принцип 3C (Рон Джефріс)</h2>\n<p>Історія на картці - лише перший крок. Далі команда обговорює її з Product Owner, уточнює деталі та фіксує домовленості у вигляді критеріїв прийняття.</p>\n\n<div class=\"mermaid\" data-source=\"graph LR\n    A[🃏 Card&lt;br/&gt;Картка з формулюванням] --&gt; B[💬 Conversation&lt;br/&gt;Обговорення з командою]\n    B --&gt; C[✅ Confirmation&lt;br/&gt;Критерії прийняття]\n    style A fill:#e3f2fd,stroke:#1565c0\n    style B fill:#fff3e0,stroke:#ef6c00\n    style C fill:#e8f5e9,stroke:#2e7d32\"><svg id=\"exp-1788848738752-3-0\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" class=\"flowchart\" style=\"max-width: 796.59375px;\" viewBox=\"0 0 796.59375 88\" role=\"graphics-document document\" aria-roledescription=\"flowchart-v2\"><style>#exp-1788848738752-3-0{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#exp-1788848738752-3-0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#exp-1788848738752-3-0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#exp-1788848738752-3-0 .error-icon{fill:#552222;}#exp-1788848738752-3-0 .error-text{fill:#552222;stroke:#552222;}#exp-1788848738752-3-0 .edge-thickness-normal{stroke-width:1px;}#exp-1788848738752-3-0 .edge-thickness-thick{stroke-width:3.5px;}#exp-1788848738752-3-0 .edge-pattern-solid{stroke-dasharray:0;}#exp-1788848738752-3-0 .edge-thickness-invisible{stroke-width:0;fill:none;}#exp-1788848738752-3-0 .edge-pattern-dashed{stroke-dasharray:3;}#exp-1788848738752-3-0 .edge-pattern-dotted{stroke-dasharray:2;}#exp-1788848738752-3-0 .marker{fill:#333333;stroke:#333333;}#exp-1788848738752-3-0 .marker.cross{stroke:#333333;}#exp-1788848738752-3-0 svg{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;}#exp-1788848738752-3-0 p{margin:0;}#exp-1788848738752-3-0 .label{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;color:#333;}#exp-1788848738752-3-0 .cluster-label text{fill:#333;}#exp-1788848738752-3-0 .cluster-label span{color:#333;}#exp-1788848738752-3-0 .cluster-label span p{background-color:transparent;}#exp-1788848738752-3-0 .label text,#exp-1788848738752-3-0 span{fill:#333;color:#333;}#exp-1788848738752-3-0 .node rect,#exp-1788848738752-3-0 .node circle,#exp-1788848738752-3-0 .node ellipse,#exp-1788848738752-3-0 .node polygon,#exp-1788848738752-3-0 .node path{fill:#ECECFF;stroke:#667eea;stroke-width:1px;}#exp-1788848738752-3-0 .rough-node .label text,#exp-1788848738752-3-0 .node .label text,#exp-1788848738752-3-0 .image-shape .label,#exp-1788848738752-3-0 .icon-shape .label{text-anchor:middle;}#exp-1788848738752-3-0 .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#exp-1788848738752-3-0 .rough-node .label,#exp-1788848738752-3-0 .node .label,#exp-1788848738752-3-0 .image-shape .label,#exp-1788848738752-3-0 .icon-shape .label{text-align:center;}#exp-1788848738752-3-0 .node.clickable{cursor:pointer;}#exp-1788848738752-3-0 .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#exp-1788848738752-3-0 .arrowheadPath{fill:#333333;}#exp-1788848738752-3-0 .edgePaths .path{stroke:#333333;stroke-width:1px;}#exp-1788848738752-3-0 .flowchart-link{stroke:#333333;fill:none;}#exp-1788848738752-3-0 .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1788848738752-3-0 .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#exp-1788848738752-3-0 .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1788848738752-3-0 .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#exp-1788848738752-3-0 .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#exp-1788848738752-3-0 .cluster text{fill:#333;}#exp-1788848738752-3-0 .cluster span{color:#333;}#exp-1788848738752-3-0 .node .collapsed-indicator{fill:#aaaa33;stroke:none;opacity:0.6;}#exp-1788848738752-3-0 .node .collapsed-separator{stroke:#aaaa33;stroke-width:0.75px;}#exp-1788848738752-3-0 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#exp-1788848738752-3-0 .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#exp-1788848738752-3-0 rect.text{fill:none;stroke-width:0;}#exp-1788848738752-3-0 .icon-shape,#exp-1788848738752-3-0 .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1788848738752-3-0 .icon-shape p,#exp-1788848738752-3-0 .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#exp-1788848738752-3-0 .icon-shape .label rect,#exp-1788848738752-3-0 .image-shape .label rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1788848738752-3-0 .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#exp-1788848738752-3-0 .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#exp-1788848738752-3-0 .node .neo-node{stroke:#667eea;}#exp-1788848738752-3-0 [data-look=\"neo\"].node rect,#exp-1788848738752-3-0 [data-look=\"neo\"].cluster rect,#exp-1788848738752-3-0 [data-look=\"neo\"].node polygon{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1788848738752-3-0 [data-look=\"neo\"].swimlane.cluster rect{filter:none;}#exp-1788848738752-3-0 [data-look=\"neo\"].node path{stroke:#667eea;stroke-width:1px;}#exp-1788848738752-3-0 [data-look=\"neo\"].node .outer-path{filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1788848738752-3-0 [data-look=\"neo\"].node .neo-line path{stroke:#667eea;filter:none;}#exp-1788848738752-3-0 [data-look=\"neo\"].node circle{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1788848738752-3-0 [data-look=\"neo\"].node circle .state-start{fill:#000000;}#exp-1788848738752-3-0 [data-look=\"neo\"].icon-shape .icon{fill:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1788848738752-3-0 [data-look=\"neo\"].icon-shape .icon-neo path{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1788848738752-3-0 :root{--mermaid-font-family:\"trebuchet ms\",verdana,arial,sans-serif;}</style><g><marker id=\"exp-1788848738752-3-0_flowchart-v2-pointEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 0 L 10 5 L 0 10 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1788848738752-3-0_flowchart-v2-pointStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"4.5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 5 L 10 10 L 10 0 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1788848738752-3-0_flowchart-v2-pointEnd-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 11.5 14\" refX=\"11.5\" refY=\"7\" markerUnits=\"userSpaceOnUse\" markerWidth=\"10.5\" markerHeight=\"14\" orient=\"auto\"><path d=\"M 0 0 L 11.5 7 L 0 14 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1788848738752-3-0_flowchart-v2-pointStart-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 11.5 14\" refX=\"1\" refY=\"7\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11.5\" markerHeight=\"14\" orient=\"auto\"><polygon points=\"0,7 11.5,14 11.5,0\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></polygon></marker><marker id=\"exp-1788848738752-3-0_flowchart-v2-circleEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"11\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1788848738752-3-0_flowchart-v2-circleStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-1\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1788848738752-3-0_flowchart-v2-circleEnd-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refY=\"5\" refX=\"12.25\" markerUnits=\"userSpaceOnUse\" markerWidth=\"14\" markerHeight=\"14\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1788848738752-3-0_flowchart-v2-circleStart-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-2\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"14\" markerHeight=\"14\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1788848738752-3-0_flowchart-v2-crossEnd\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"12\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1788848738752-3-0_flowchart-v2-crossStart\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"-1\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1788848738752-3-0_flowchart-v2-crossEnd-margin\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 15 15\" refX=\"17.7\" refY=\"7.5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"12\" markerHeight=\"12\" orient=\"auto\"><path d=\"M 1,1 L 14,14 M 1,14 L 14,1\" class=\"arrowMarkerPath\" style=\"stroke-width: 2.5;\"></path></marker><marker id=\"exp-1788848738752-3-0_flowchart-v2-crossStart-margin\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 15 15\" refX=\"-3.5\" refY=\"7.5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"12\" markerHeight=\"12\" orient=\"auto\"><path d=\"M 1,1 L 14,14 M 1,14 L 14,1\" class=\"arrowMarkerPath\" style=\"stroke-width: 2.5; stroke-dasharray: 1, 0;\"></path></marker><g class=\"root\"><g class=\"clusters\"></g><g class=\"edgePaths\"><path d=\"M251.984,44L256.151,44C260.318,44,268.651,44,276.318,44C283.984,44,290.984,44,294.484,44L297.984,44\" id=\"exp-1788848738752-3-0-L_A_B_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_A_B_0\" data-points=\"W3sieCI6MjUxLjk4NDM3NSwieSI6NDR9LHsieCI6Mjc2Ljk4NDM3NSwieSI6NDR9LHsieCI6MzAxLjk4NDM3NSwieSI6NDR9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1788848738752-3-0_flowchart-v2-pointEnd)\"></path><path d=\"M545.328,44L549.495,44C553.661,44,561.995,44,569.661,44C577.328,44,584.328,44,587.828,44L591.328,44\" id=\"exp-1788848738752-3-0-L_B_C_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_B_C_0\" data-points=\"W3sieCI6NTQ1LjMyODEyNSwieSI6NDR9LHsieCI6NTcwLjMyODEyNSwieSI6NDR9LHsieCI6NTk1LjMyODEyNSwieSI6NDR9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1788848738752-3-0_flowchart-v2-pointEnd)\"></path></g><g class=\"edgeLabels\"><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_A_B_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\" text-anchor=\"middle\"><tspan class=\"text-outer-tspan row\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\" text-anchor=\"middle\"></tspan></text></g></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_B_C_0\" transform=\"translate(0, 0)\"><text y=\"-10.1\" text-anchor=\"middle\"><tspan class=\"text-outer-tspan row\" x=\"0\" y=\"-0.1em\" dy=\"1.1em\" text-anchor=\"middle\"></tspan></text></g></g><g><rect class=\"background\" style=\"stroke: none\"></rect></g></g><g class=\"nodes\"><g class=\"node default  \" id=\"exp-1788848738752-3-0-flowchart-A-0\" data-look=\"classic\" transform=\"translate(129.9921875, 44)\"><rect class=\"basic label-container\" style=\"fill:#e3f2fd !important;stroke:#1565c0 !important\" x=\"-121.9921875\" y=\"-36\" width=\"243.984375\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-97.9921875, -24)\"><rect></rect><foreignObject width=\"195.984375\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🃏 Card<br>Картка з формулюванням</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1788848738752-3-0-flowchart-B-1\" data-look=\"classic\" transform=\"translate(423.65625, 44)\"><rect class=\"basic label-container\" style=\"fill:#fff3e0 !important;stroke:#ef6c00 !important\" x=\"-121.671875\" y=\"-36\" width=\"243.34375\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-97.671875, -24)\"><rect></rect><foreignObject width=\"195.34375\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>💬 Conversation<br>Обговорення з командою</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1788848738752-3-0-flowchart-C-3\" data-look=\"classic\" transform=\"translate(691.9609375, 44)\"><rect class=\"basic label-container\" style=\"fill:#e8f5e9 !important;stroke:#2e7d32 !important\" x=\"-96.6328125\" y=\"-36\" width=\"193.265625\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-72.6328125, -24)\"><rect></rect><foreignObject width=\"145.265625\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>✅ Confirmation<br>Критерії прийняття</p></span></div></foreignObject></g></g></g></g></g><defs><filter id=\"exp-1788848738752-3-0-drop-shadow\" height=\"130%\" width=\"130%\"><feDropShadow dx=\"4\" dy=\"4\" stdDeviation=\"0\" flood-opacity=\"0.06\" flood-color=\"#000000\"></feDropShadow></filter></defs><defs><filter id=\"exp-1788848738752-3-0-drop-shadow-small\" height=\"150%\" width=\"150%\"><feDropShadow dx=\"2\" dy=\"2\" stdDeviation=\"0\" flood-opacity=\"0.06\" flood-color=\"#000000\"></feDropShadow></filter></defs></svg></div>\n<div class=\"warning\"><strong>⚠️ Картка - це не контракт</strong> <p>Картка лише нагадує про розмову. Не витрачайте години на ідеальне формулювання замість того, щоб обговорити суть із командою.</p>\n</div>\n\n","<h1>✅ Acceptance Criteria (Критерії прийняття)</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Acceptance Criteria</strong> (AC) - конкретні умови, за яких User Story вважається завершеною. Це чек-лист готовності для команди та Product Owner.</p>\n</div>\n\n\n\n<h2>📐 Формат Given-When-Then</h2>\n<p>Запозичений із підходу <strong>BDD</strong> (Behavior-Driven Development / Розробка, керована поведінкою):</p>\n<pre><code class=\"language-gherkin\">Given [Дано: початковий стан]\nWhen  [Коли: дія користувача]\nThen  [Тоді: очікуваний результат]</code></pre><p>Формат змушує описати три речі: контекст, у якому перебуває користувач, дію, яку він виконує, і результат, який має отримати. Одна історія зазвичай має кілька критеріїв: основний успішний сценарій, альтернативні шляхи та граничні випадки.</p>\n<p><strong>Історія:</strong> \"Як користувач, я хочу входити за відбитком пальця, щоб не вводити пароль щоразу\" 🔐</p>\n<table>\n<thead>\n<tr>\n<th>AC</th>\n<th>Given</th>\n<th>When</th>\n<th>Then</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>AC-1</strong> Успішний вхід</td>\n<td>Користувач налаштував відбиток</td>\n<td>Прикладає палець до сканера</td>\n<td>Потрапляє на головну без пароля</td>\n</tr>\n<tr>\n<td><strong>AC-2</strong> Fallback</td>\n<td>Біометрія не розпізнана 3 рази</td>\n<td>Система пропонує альтернативу</td>\n<td>Користувач бачить форму пароля</td>\n</tr>\n<tr>\n<td><strong>AC-3</strong> Перше використання</td>\n<td>Біометрія ще не налаштована</td>\n<td>Відкриває додаток уперше</td>\n<td>Бачить підказку налаштувати відбиток</td>\n</tr>\n</tbody></table>\n<div class=\"danger\"><strong>🚫 Типова помилка</strong> <p>AC не повинні описувати технічну реалізацію. Формулюйте, <strong>що</strong> має статись, а не <strong>як</strong> це зробити в коді. Для простих історій підходить звичайний чек-лист перевірок.</p>\n</div>\n\n","<h1>🎯 INVEST: критерії якості User Story</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>INVEST</strong> - шість критеріїв якісної User Story, сформульованих Біллом Уейком (Bill Wake) у 2003 році.</p>\n</div>\n\n\n\n<p>INVEST зручно використовувати як чек-лист під час backlog refinement: якщо історія не проходить хоча б один критерій, її переписують або розбивають до того, як вона потрапить у спринт.</p>\n<table>\n<thead>\n<tr>\n<th>Критерій</th>\n<th>Значення</th>\n<th>❌ Погано</th>\n<th>✅ Добре</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>I</strong>ndependent 🔓</td>\n<td>Реалізується окремо від інших</td>\n<td>\"Додати кнопку оплати\" + \"інтегрувати платіжку\"</td>\n<td>\"Оплата карткою через Stripe\"</td>\n</tr>\n<tr>\n<td><strong>N</strong>egotiable 💬</td>\n<td>Деталі можна обговорити</td>\n<td>\"Кнопка червона #FF0000\"</td>\n<td>\"Помітна кнопка оплати\"</td>\n</tr>\n<tr>\n<td><strong>V</strong>aluable 💎</td>\n<td>Приносить цінність</td>\n<td>\"Рефакторинг бази даних\"</td>\n<td>\"Каталог завантажується менш ніж за 2 с\"</td>\n</tr>\n<tr>\n<td><strong>E</strong>stimable 📏</td>\n<td>Команда може оцінити</td>\n<td>\"Покращити продуктивність\"</td>\n<td>\"Кешування топ-100 товарів\"</td>\n</tr>\n<tr>\n<td><strong>S</strong>mall 🔬</td>\n<td>Вміщується в один спринт</td>\n<td>\"Створити мобільний додаток\"</td>\n<td>\"Форма реєстрації в додатку\"</td>\n</tr>\n<tr>\n<td><strong>T</strong>estable 🧪</td>\n<td>Можна перевірити готовність</td>\n<td>\"Додаток має бути швидким\"</td>\n<td>\"Головна завантажується за менш ніж 3 с\"</td>\n</tr>\n</tbody></table>\n<div class=\"warning\"><strong>⚠️ Порушення помітне одразу</strong> <p>Історія \"Як користувач, я хочу покращену систему, щоб працювати швидше\" одночасно неоцінювана, незрозуміла за цінністю, нетестовна і занадто велика.</p>\n</div>\n\n\n\n\n\n<div class=\"success\"><strong>✅ Приклад, що проходить усі шість критеріїв</strong> <p>\"Як менеджер продажів, я хочу бачити топ-10 клієнтів за обсягом покупок на дашборді, щоб фокусуватись на найцінніших клієнтах\" + AC: сортування за 30 днів, оновлення о 8:00, працює на desktop 📊</p>\n</div>\n\n","<h1>📊 Story Points: оцінка складності</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Story Points</strong> (SP) - відносна міра складності User Story, що враховує обсяг роботи, складність та невизначеність. SP не вимірюють час, а порівнюють історії між собою.</p>\n</div>\n\n\n\n<p><strong>Чому не години?</strong> ⏱️ Ту саму задачу junior зробить за 8 годин, а senior за 2, але <strong>складність задачі однакова</strong>. Оцінка в годинах залежить від того, хто саме виконуватиме роботу, і команді доводиться сперечатись про час замість того, щоб обговорювати суть задачі.</p>\n<p><strong>Як це працює на практиці:</strong> команда обирає еталонну історію, яку всі добре розуміють, і присвоює їй, наприклад, 5 SP. Решту історій оцінюють порівнянням: \"Це вдвічі простіше за еталон, отже 2 або 3 SP\". З часом команда дізнається свою velocity, тобто скільки SP вона стабільно закриває за спринт, і саме це число дозволяє переводити оцінки в терміни.</p>\n<h2>🔢 Шкала Фібоначчі</h2>\n<table>\n<thead>\n<tr>\n<th>SP</th>\n<th>Складність</th>\n<th>Приклад</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>1</strong></td>\n<td>Тривіальна</td>\n<td>Виправлення тексту, зміна кольору</td>\n</tr>\n<tr>\n<td><strong>2</strong></td>\n<td>Проста</td>\n<td>Кнопка з готовою логікою</td>\n</tr>\n<tr>\n<td><strong>3</strong></td>\n<td>Середня</td>\n<td>Форма з валідацією</td>\n</tr>\n<tr>\n<td><strong>5</strong></td>\n<td>Помірна</td>\n<td>Інтеграція з API</td>\n</tr>\n<tr>\n<td><strong>8</strong></td>\n<td>Складна</td>\n<td>Нова бізнес-логіка</td>\n</tr>\n<tr>\n<td><strong>13</strong></td>\n<td>Дуже складна</td>\n<td>Складний алгоритм</td>\n</tr>\n<tr>\n<td><strong>21+</strong></td>\n<td>🧱 Epic</td>\n<td>Обов'язково розбити на менші історії</td>\n</tr>\n</tbody></table>\n<div class=\"tip\"><strong>💡 Чому саме Фібоначчі?</strong> <p>Зростаючі проміжки відбивають зростання невизначеності: різниця між 8 і 13 SP реально більша, ніж між 1 і 2 SP.</p>\n</div>\n\n","<h1>🃏 Planning Poker: оцінка в команді</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Planning Poker</strong> - техніка колективної оцінки, у якій кожен учасник команди має набір карт <code>1, 2, 3, 5, 8, 13, 21, ?, ☕</code> і всі показують оцінку одночасно.</p>\n</div>\n\n\n\n\n<div class=\"mermaid\" data-source=\"sequenceDiagram\n    participant PO as 👔 Product Owner\n    participant T as 👥 Team\n    participant SM as 🎯 Scrum Master\n    PO-&gt;&gt;T: Читає User Story та відповідає на питання\n    SM-&gt;&gt;T: На рахунок три всі показують карти\n    T-&gt;&gt;SM: Усі відкривають оцінки одночасно\n    alt Консенсус\n        SM-&gt;&gt;T: Фіксуємо оцінку\n    else Розбіжності\n        T-&gt;&gt;T: Обговорення причин різниці\n        T-&gt;&gt;T: Повторне голосування\n    end\"><svg id=\"exp-1788848738765-7-0\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 966px;\" viewBox=\"-50 -10 966 661\" role=\"graphics-document document\" aria-roledescription=\"sequence\"><g><rect x=\"716\" y=\"575\" fill=\"#eaeaea\" stroke=\"#666\" width=\"150\" height=\"65\" name=\"SM\" rx=\"3\" ry=\"3\" class=\"actor actor-bottom\"></rect><text x=\"791\" y=\"607.5\" dominant-baseline=\"central\" alignment-baseline=\"central\" class=\"actor actor-box\" style=\"text-anchor: middle; font-size: 16px; font-weight: 400;\"><tspan x=\"791\" dy=\"0\">🎯 Scrum Master</tspan></text></g><g><rect x=\"380\" y=\"575\" fill=\"#eaeaea\" stroke=\"#666\" width=\"150\" height=\"65\" name=\"T\" rx=\"3\" ry=\"3\" class=\"actor actor-bottom\"></rect><text x=\"455\" y=\"607.5\" dominant-baseline=\"central\" alignment-baseline=\"central\" class=\"actor actor-box\" style=\"text-anchor: middle; font-size: 16px; font-weight: 400;\"><tspan x=\"455\" dy=\"0\">👥 Team</tspan></text></g><g><rect x=\"0\" y=\"575\" fill=\"#eaeaea\" stroke=\"#666\" width=\"150\" height=\"65\" name=\"PO\" rx=\"3\" ry=\"3\" class=\"actor actor-bottom\"></rect><text x=\"75\" y=\"607.5\" dominant-baseline=\"central\" alignment-baseline=\"central\" class=\"actor actor-box\" style=\"text-anchor: middle; font-size: 16px; font-weight: 400;\"><tspan x=\"75\" dy=\"0\">👔 Product Owner</tspan></text></g><g><line id=\"actor8\" x1=\"791\" y1=\"65\" x2=\"791\" y2=\"575\" class=\"actor-line 200\" stroke-width=\"0.5px\" stroke=\"#999\" name=\"SM\" data-et=\"life-line\" data-id=\"SM\"></line><g id=\"root-8\" data-et=\"participant\" data-type=\"participant\" data-id=\"SM\"><rect x=\"716\" y=\"0\" fill=\"#eaeaea\" stroke=\"#666\" width=\"150\" height=\"65\" name=\"SM\" rx=\"3\" ry=\"3\" class=\"actor actor-top\"></rect><text x=\"791\" y=\"32.5\" dominant-baseline=\"central\" alignment-baseline=\"central\" class=\"actor actor-box\" style=\"text-anchor: middle; font-size: 16px; font-weight: 400;\"><tspan x=\"791\" dy=\"0\">🎯 Scrum Master</tspan></text></g></g><g><line id=\"actor7\" x1=\"455\" y1=\"65\" x2=\"455\" y2=\"575\" class=\"actor-line 200\" stroke-width=\"0.5px\" stroke=\"#999\" name=\"T\" data-et=\"life-line\" data-id=\"T\"></line><g id=\"root-7\" data-et=\"participant\" data-type=\"participant\" data-id=\"T\"><rect x=\"380\" y=\"0\" fill=\"#eaeaea\" stroke=\"#666\" width=\"150\" height=\"65\" name=\"T\" rx=\"3\" ry=\"3\" class=\"actor actor-top\"></rect><text x=\"455\" y=\"32.5\" dominant-baseline=\"central\" alignment-baseline=\"central\" class=\"actor actor-box\" style=\"text-anchor: middle; font-size: 16px; font-weight: 400;\"><tspan x=\"455\" dy=\"0\">👥 Team</tspan></text></g></g><g><line id=\"actor6\" x1=\"75\" y1=\"65\" x2=\"75\" y2=\"575\" class=\"actor-line 200\" stroke-width=\"0.5px\" stroke=\"#999\" name=\"PO\" data-et=\"life-line\" data-id=\"PO\"></line><g id=\"root-6\" data-et=\"participant\" data-type=\"participant\" data-id=\"PO\"><rect x=\"0\" y=\"0\" fill=\"#eaeaea\" stroke=\"#666\" width=\"150\" height=\"65\" name=\"PO\" rx=\"3\" ry=\"3\" class=\"actor actor-top\"></rect><text x=\"75\" y=\"32.5\" dominant-baseline=\"central\" alignment-baseline=\"central\" class=\"actor actor-box\" style=\"text-anchor: middle; font-size: 16px; font-weight: 400;\"><tspan x=\"75\" dy=\"0\">👔 Product Owner</tspan></text></g></g><style>#exp-1788848738765-7-0{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#exp-1788848738765-7-0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#exp-1788848738765-7-0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#exp-1788848738765-7-0 .error-icon{fill:#552222;}#exp-1788848738765-7-0 .error-text{fill:#552222;stroke:#552222;}#exp-1788848738765-7-0 .edge-thickness-normal{stroke-width:1px;}#exp-1788848738765-7-0 .edge-thickness-thick{stroke-width:3.5px;}#exp-1788848738765-7-0 .edge-pattern-solid{stroke-dasharray:0;}#exp-1788848738765-7-0 .edge-thickness-invisible{stroke-width:0;fill:none;}#exp-1788848738765-7-0 .edge-pattern-dashed{stroke-dasharray:3;}#exp-1788848738765-7-0 .edge-pattern-dotted{stroke-dasharray:2;}#exp-1788848738765-7-0 .marker{fill:#333333;stroke:#333333;}#exp-1788848738765-7-0 .marker.cross{stroke:#333333;}#exp-1788848738765-7-0 svg{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;}#exp-1788848738765-7-0 p{margin:0;}#exp-1788848738765-7-0 .actor{stroke:#9370DB;fill:#ECECFF;stroke-width:1;}#exp-1788848738765-7-0 rect.actor.outer-path[data-look=\"neo\"]{filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1788848738765-7-0 rect.note[data-look=\"neo\"]{stroke:#aaaa33;fill:#fff5ad;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1788848738765-7-0 text.actor&gt;tspan{fill:black;stroke:none;}#exp-1788848738765-7-0 .actor-line{stroke:#9370DB;}#exp-1788848738765-7-0 .innerArc{stroke-width:1.5;stroke-dasharray:none;}#exp-1788848738765-7-0 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#333;}#exp-1788848738765-7-0 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#333;}#exp-1788848738765-7-0 [id$=\"-arrowhead\"] path{fill:#333;stroke:#333;}#exp-1788848738765-7-0 .sequenceNumber{fill:white;}#exp-1788848738765-7-0 [id$=\"-sequencenumber\"]{fill:#333;}#exp-1788848738765-7-0 [id$=\"-crosshead\"] path{fill:#333;stroke:#333;}#exp-1788848738765-7-0 .messageText{fill:#333;stroke:none;}#exp-1788848738765-7-0 .labelBox{stroke:#9370DB;fill:#ECECFF;filter:none;}#exp-1788848738765-7-0 .labelText,#exp-1788848738765-7-0 .labelText&gt;tspan{fill:black;stroke:none;}#exp-1788848738765-7-0 .loopText,#exp-1788848738765-7-0 .loopText&gt;tspan{fill:black;stroke:none;}#exp-1788848738765-7-0 .sectionTitle,#exp-1788848738765-7-0 .sectionTitle&gt;tspan{fill:black;stroke:none;}#exp-1788848738765-7-0 .loopLine{stroke-width:2px;stroke-dasharray:2,2;stroke:#9370DB;fill:#9370DB;}#exp-1788848738765-7-0 .note{stroke:#aaaa33;fill:#fff5ad;}#exp-1788848738765-7-0 .noteText,#exp-1788848738765-7-0 .noteText&gt;tspan{fill:black;stroke:none;font-weight:normal;}#exp-1788848738765-7-0 .activation0{fill:#f4f4f4;stroke:#666;}#exp-1788848738765-7-0 .activation1{fill:#f4f4f4;stroke:#666;}#exp-1788848738765-7-0 .activation2{fill:#f4f4f4;stroke:#666;}#exp-1788848738765-7-0 .actorPopupMenu{position:absolute;}#exp-1788848738765-7-0 .actorPopupMenuPanel{position:absolute;fill:#ECECFF;box-shadow:0px 8px 16px 0px rgba(0,0,0,0.2);filter:drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));}#exp-1788848738765-7-0 .actor-man circle,#exp-1788848738765-7-0 line{fill:#ECECFF;stroke-width:2px;}#exp-1788848738765-7-0 g rect.rect{filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));stroke:#667eea;}#exp-1788848738765-7-0 .node .neo-node{stroke:#667eea;}#exp-1788848738765-7-0 [data-look=\"neo\"].node rect,#exp-1788848738765-7-0 [data-look=\"neo\"].cluster rect,#exp-1788848738765-7-0 [data-look=\"neo\"].node polygon{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1788848738765-7-0 [data-look=\"neo\"].swimlane.cluster rect{filter:none;}#exp-1788848738765-7-0 [data-look=\"neo\"].node path{stroke:#667eea;stroke-width:1px;}#exp-1788848738765-7-0 [data-look=\"neo\"].node .outer-path{filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1788848738765-7-0 [data-look=\"neo\"].node .neo-line path{stroke:#667eea;filter:none;}#exp-1788848738765-7-0 [data-look=\"neo\"].node circle{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1788848738765-7-0 [data-look=\"neo\"].node circle .state-start{fill:#000000;}#exp-1788848738765-7-0 [data-look=\"neo\"].icon-shape .icon{fill:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1788848738765-7-0 [data-look=\"neo\"].icon-shape .icon-neo path{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1788848738765-7-0 :root{--mermaid-font-family:\"trebuchet ms\",verdana,arial,sans-serif;}</style><g></g><defs><symbol id=\"exp-1788848738765-7-0-computer\" width=\"24\" height=\"24\"><path transform=\"scale(.5)\" d=\"M2 2v13h20v-13h-20zm18 11h-16v-9h16v9zm-10.228 6l.466-1h3.524l.467 1h-4.457zm14.228 3h-24l2-6h2.104l-1.33 4h18.45l-1.297-4h2.073l2 6zm-5-10h-14v-7h14v7z\"></path></symbol></defs><defs><symbol id=\"exp-1788848738765-7-0-database\" fill-rule=\"evenodd\" clip-rule=\"evenodd\"><path transform=\"scale(.5)\" d=\"M12.258.001l.256.004.255.005.253.008.251.01.249.012.247.015.246.016.242.019.241.02.239.023.236.024.233.027.231.028.229.031.225.032.223.034.22.036.217.038.214.04.211.041.208.043.205.045.201.046.198.048.194.05.191.051.187.053.183.054.18.056.175.057.172.059.168.06.163.061.16.063.155.064.15.066.074.033.073.033.071.034.07.034.069.035.068.035.067.035.066.035.064.036.064.036.062.036.06.036.06.037.058.037.058.037.055.038.055.038.053.038.052.038.051.039.05.039.048.039.047.039.045.04.044.04.043.04.041.04.04.041.039.041.037.041.036.041.034.041.033.042.032.042.03.042.029.042.027.042.026.043.024.043.023.043.021.043.02.043.018.044.017.043.015.044.013.044.012.044.011.045.009.044.007.045.006.045.004.045.002.045.001.045v17l-.001.045-.002.045-.004.045-.006.045-.007.045-.009.044-.011.045-.012.044-.013.044-.015.044-.017.043-.018.044-.02.043-.021.043-.023.043-.024.043-.026.043-.027.042-.029.042-.03.042-.032.042-.033.042-.034.041-.036.041-.037.041-.039.041-.04.041-.041.04-.043.04-.044.04-.045.04-.047.039-.048.039-.05.039-.051.039-.052.038-.053.038-.055.038-.055.038-.058.037-.058.037-.06.037-.06.036-.062.036-.064.036-.064.036-.066.035-.067.035-.068.035-.069.035-.07.034-.071.034-.073.033-.074.033-.15.066-.155.064-.16.063-.163.061-.168.06-.172.059-.175.057-.18.056-.183.054-.187.053-.191.051-.194.05-.198.048-.201.046-.205.045-.208.043-.211.041-.214.04-.217.038-.22.036-.223.034-.225.032-.229.031-.231.028-.233.027-.236.024-.239.023-.241.02-.242.019-.246.016-.247.015-.249.012-.251.01-.253.008-.255.005-.256.004-.258.001-.258-.001-.256-.004-.255-.005-.253-.008-.251-.01-.249-.012-.247-.015-.245-.016-.243-.019-.241-.02-.238-.023-.236-.024-.234-.027-.231-.028-.228-.031-.226-.032-.223-.034-.22-.036-.217-.038-.214-.04-.211-.041-.208-.043-.204-.045-.201-.046-.198-.048-.195-.05-.19-.051-.187-.053-.184-.054-.179-.056-.176-.057-.172-.059-.167-.06-.164-.061-.159-.063-.155-.064-.151-.066-.074-.033-.072-.033-.072-.034-.07-.034-.069-.035-.068-.035-.067-.035-.066-.035-.064-.036-.063-.036-.062-.036-.061-.036-.06-.037-.058-.037-.057-.037-.056-.038-.055-.038-.053-.038-.052-.038-.051-.039-.049-.039-.049-.039-.046-.039-.046-.04-.044-.04-.043-.04-.041-.04-.04-.041-.039-.041-.037-.041-.036-.041-.034-.041-.033-.042-.032-.042-.03-.042-.029-.042-.027-.042-.026-.043-.024-.043-.023-.043-.021-.043-.02-.043-.018-.044-.017-.043-.015-.044-.013-.044-.012-.044-.011-.045-.009-.044-.007-.045-.006-.045-.004-.045-.002-.045-.001-.045v-17l.001-.045.002-.045.004-.045.006-.045.007-.045.009-.044.011-.045.012-.044.013-.044.015-.044.017-.043.018-.044.02-.043.021-.043.023-.043.024-.043.026-.043.027-.042.029-.042.03-.042.032-.042.033-.042.034-.041.036-.041.037-.041.039-.041.04-.041.041-.04.043-.04.044-.04.046-.04.046-.039.049-.039.049-.039.051-.039.052-.038.053-.038.055-.038.056-.038.057-.037.058-.037.06-.037.061-.036.062-.036.063-.036.064-.036.066-.035.067-.035.068-.035.069-.035.07-.034.072-.034.072-.033.074-.033.151-.066.155-.064.159-.063.164-.061.167-.06.172-.059.176-.057.179-.056.184-.054.187-.053.19-.051.195-.05.198-.048.201-.046.204-.045.208-.043.211-.041.214-.04.217-.038.22-.036.223-.034.226-.032.228-.031.231-.028.234-.027.236-.024.238-.023.241-.02.243-.019.245-.016.247-.015.249-.012.251-.01.253-.008.255-.005.256-.004.258-.001.258.001zm-9.258 20.499v.01l.001.021.003.021.004.022.005.021.006.022.007.022.009.023.01.022.011.023.012.023.013.023.015.023.016.024.017.023.018.024.019.024.021.024.022.025.023.024.024.025.052.049.056.05.061.051.066.051.07.051.075.051.079.052.084.052.088.052.092.052.097.052.102.051.105.052.11.052.114.051.119.051.123.051.127.05.131.05.135.05.139.048.144.049.147.047.152.047.155.047.16.045.163.045.167.043.171.043.176.041.178.041.183.039.187.039.19.037.194.035.197.035.202.033.204.031.209.03.212.029.216.027.219.025.222.024.226.021.23.02.233.018.236.016.24.015.243.012.246.01.249.008.253.005.256.004.259.001.26-.001.257-.004.254-.005.25-.008.247-.011.244-.012.241-.014.237-.016.233-.018.231-.021.226-.021.224-.024.22-.026.216-.027.212-.028.21-.031.205-.031.202-.034.198-.034.194-.036.191-.037.187-.039.183-.04.179-.04.175-.042.172-.043.168-.044.163-.045.16-.046.155-.046.152-.047.148-.048.143-.049.139-.049.136-.05.131-.05.126-.05.123-.051.118-.052.114-.051.11-.052.106-.052.101-.052.096-.052.092-.052.088-.053.083-.051.079-.052.074-.052.07-.051.065-.051.06-.051.056-.05.051-.05.023-.024.023-.025.021-.024.02-.024.019-.024.018-.024.017-.024.015-.023.014-.024.013-.023.012-.023.01-.023.01-.022.008-.022.006-.022.006-.022.004-.022.004-.021.001-.021.001-.021v-4.127l-.077.055-.08.053-.083.054-.085.053-.087.052-.09.052-.093.051-.095.05-.097.05-.1.049-.102.049-.105.048-.106.047-.109.047-.111.046-.114.045-.115.045-.118.044-.12.043-.122.042-.124.042-.126.041-.128.04-.13.04-.132.038-.134.038-.135.037-.138.037-.139.035-.142.035-.143.034-.144.033-.147.032-.148.031-.15.03-.151.03-.153.029-.154.027-.156.027-.158.026-.159.025-.161.024-.162.023-.163.022-.165.021-.166.02-.167.019-.169.018-.169.017-.171.016-.173.015-.173.014-.175.013-.175.012-.177.011-.178.01-.179.008-.179.008-.181.006-.182.005-.182.004-.184.003-.184.002h-.37l-.184-.002-.184-.003-.182-.004-.182-.005-.181-.006-.179-.008-.179-.008-.178-.01-.176-.011-.176-.012-.175-.013-.173-.014-.172-.015-.171-.016-.17-.017-.169-.018-.167-.019-.166-.02-.165-.021-.163-.022-.162-.023-.161-.024-.159-.025-.157-.026-.156-.027-.155-.027-.153-.029-.151-.03-.15-.03-.148-.031-.146-.032-.145-.033-.143-.034-.141-.035-.14-.035-.137-.037-.136-.037-.134-.038-.132-.038-.13-.04-.128-.04-.126-.041-.124-.042-.122-.042-.12-.044-.117-.043-.116-.045-.113-.045-.112-.046-.109-.047-.106-.047-.105-.048-.102-.049-.1-.049-.097-.05-.095-.05-.093-.052-.09-.051-.087-.052-.085-.053-.083-.054-.08-.054-.077-.054v4.127zm0-5.654v.011l.001.021.003.021.004.021.005.022.006.022.007.022.009.022.01.022.011.023.012.023.013.023.015.024.016.023.017.024.018.024.019.024.021.024.022.024.023.025.024.024.052.05.056.05.061.05.066.051.07.051.075.052.079.051.084.052.088.052.092.052.097.052.102.052.105.052.11.051.114.051.119.052.123.05.127.051.131.05.135.049.139.049.144.048.147.048.152.047.155.046.16.045.163.045.167.044.171.042.176.042.178.04.183.04.187.038.19.037.194.036.197.034.202.033.204.032.209.03.212.028.216.027.219.025.222.024.226.022.23.02.233.018.236.016.24.014.243.012.246.01.249.008.253.006.256.003.259.001.26-.001.257-.003.254-.006.25-.008.247-.01.244-.012.241-.015.237-.016.233-.018.231-.02.226-.022.224-.024.22-.025.216-.027.212-.029.21-.03.205-.032.202-.033.198-.035.194-.036.191-.037.187-.039.183-.039.179-.041.175-.042.172-.043.168-.044.163-.045.16-.045.155-.047.152-.047.148-.048.143-.048.139-.05.136-.049.131-.05.126-.051.123-.051.118-.051.114-.052.11-.052.106-.052.101-.052.096-.052.092-.052.088-.052.083-.052.079-.052.074-.051.07-.052.065-.051.06-.05.056-.051.051-.049.023-.025.023-.024.021-.025.02-.024.019-.024.018-.024.017-.024.015-.023.014-.023.013-.024.012-.022.01-.023.01-.023.008-.022.006-.022.006-.022.004-.021.004-.022.001-.021.001-.021v-4.139l-.077.054-.08.054-.083.054-.085.052-.087.053-.09.051-.093.051-.095.051-.097.05-.1.049-.102.049-.105.048-.106.047-.109.047-.111.046-.114.045-.115.044-.118.044-.12.044-.122.042-.124.042-.126.041-.128.04-.13.039-.132.039-.134.038-.135.037-.138.036-.139.036-.142.035-.143.033-.144.033-.147.033-.148.031-.15.03-.151.03-.153.028-.154.028-.156.027-.158.026-.159.025-.161.024-.162.023-.163.022-.165.021-.166.02-.167.019-.169.018-.169.017-.171.016-.173.015-.173.014-.175.013-.175.012-.177.011-.178.009-.179.009-.179.007-.181.007-.182.005-.182.004-.184.003-.184.002h-.37l-.184-.002-.184-.003-.182-.004-.182-.005-.181-.007-.179-.007-.179-.009-.178-.009-.176-.011-.176-.012-.175-.013-.173-.014-.172-.015-.171-.016-.17-.017-.169-.018-.167-.019-.166-.02-.165-.021-.163-.022-.162-.023-.161-.024-.159-.025-.157-.026-.156-.027-.155-.028-.153-.028-.151-.03-.15-.03-.148-.031-.146-.033-.145-.033-.143-.033-.141-.035-.14-.036-.137-.036-.136-.037-.134-.038-.132-.039-.13-.039-.128-.04-.126-.041-.124-.042-.122-.043-.12-.043-.117-.044-.116-.044-.113-.046-.112-.046-.109-.046-.106-.047-.105-.048-.102-.049-.1-.049-.097-.05-.095-.051-.093-.051-.09-.051-.087-.053-.085-.052-.083-.054-.08-.054-.077-.054v4.139zm0-5.666v.011l.001.02.003.022.004.021.005.022.006.021.007.022.009.023.01.022.011.023.012.023.013.023.015.023.016.024.017.024.018.023.019.024.021.025.022.024.023.024.024.025.052.05.056.05.061.05.066.051.07.051.075.052.079.051.084.052.088.052.092.052.097.052.102.052.105.051.11.052.114.051.119.051.123.051.127.05.131.05.135.05.139.049.144.048.147.048.152.047.155.046.16.045.163.045.167.043.171.043.176.042.178.04.183.04.187.038.19.037.194.036.197.034.202.033.204.032.209.03.212.028.216.027.219.025.222.024.226.021.23.02.233.018.236.017.24.014.243.012.246.01.249.008.253.006.256.003.259.001.26-.001.257-.003.254-.006.25-.008.247-.01.244-.013.241-.014.237-.016.233-.018.231-.02.226-.022.224-.024.22-.025.216-.027.212-.029.21-.03.205-.032.202-.033.198-.035.194-.036.191-.037.187-.039.183-.039.179-.041.175-.042.172-.043.168-.044.163-.045.16-.045.155-.047.152-.047.148-.048.143-.049.139-.049.136-.049.131-.051.126-.05.123-.051.118-.052.114-.051.11-.052.106-.052.101-.052.096-.052.092-.052.088-.052.083-.052.079-.052.074-.052.07-.051.065-.051.06-.051.056-.05.051-.049.023-.025.023-.025.021-.024.02-.024.019-.024.018-.024.017-.024.015-.023.014-.024.013-.023.012-.023.01-.022.01-.023.008-.022.006-.022.006-.022.004-.022.004-.021.001-.021.001-.021v-4.153l-.077.054-.08.054-.083.053-.085.053-.087.053-.09.051-.093.051-.095.051-.097.05-.1.049-.102.048-.105.048-.106.048-.109.046-.111.046-.114.046-.115.044-.118.044-.12.043-.122.043-.124.042-.126.041-.128.04-.13.039-.132.039-.134.038-.135.037-.138.036-.139.036-.142.034-.143.034-.144.033-.147.032-.148.032-.15.03-.151.03-.153.028-.154.028-.156.027-.158.026-.159.024-.161.024-.162.023-.163.023-.165.021-.166.02-.167.019-.169.018-.169.017-.171.016-.173.015-.173.014-.175.013-.175.012-.177.01-.178.01-.179.009-.179.007-.181.006-.182.006-.182.004-.184.003-.184.001-.185.001-.185-.001-.184-.001-.184-.003-.182-.004-.182-.006-.181-.006-.179-.007-.179-.009-.178-.01-.176-.01-.176-.012-.175-.013-.173-.014-.172-.015-.171-.016-.17-.017-.169-.018-.167-.019-.166-.02-.165-.021-.163-.023-.162-.023-.161-.024-.159-.024-.157-.026-.156-.027-.155-.028-.153-.028-.151-.03-.15-.03-.148-.032-.146-.032-.145-.033-.143-.034-.141-.034-.14-.036-.137-.036-.136-.037-.134-.038-.132-.039-.13-.039-.128-.041-.126-.041-.124-.041-.122-.043-.12-.043-.117-.044-.116-.044-.113-.046-.112-.046-.109-.046-.106-.048-.105-.048-.102-.048-.1-.05-.097-.049-.095-.051-.093-.051-.09-.052-.087-.052-.085-.053-.083-.053-.08-.054-.077-.054v4.153zm8.74-8.179l-.257.004-.254.005-.25.008-.247.011-.244.012-.241.014-.237.016-.233.018-.231.021-.226.022-.224.023-.22.026-.216.027-.212.028-.21.031-.205.032-.202.033-.198.034-.194.036-.191.038-.187.038-.183.04-.179.041-.175.042-.172.043-.168.043-.163.045-.16.046-.155.046-.152.048-.148.048-.143.048-.139.049-.136.05-.131.05-.126.051-.123.051-.118.051-.114.052-.11.052-.106.052-.101.052-.096.052-.092.052-.088.052-.083.052-.079.052-.074.051-.07.052-.065.051-.06.05-.056.05-.051.05-.023.025-.023.024-.021.024-.02.025-.019.024-.018.024-.017.023-.015.024-.014.023-.013.023-.012.023-.01.023-.01.022-.008.022-.006.023-.006.021-.004.022-.004.021-.001.021-.001.021.001.021.001.021.004.021.004.022.006.021.006.023.008.022.01.022.01.023.012.023.013.023.014.023.015.024.017.023.018.024.019.024.02.025.021.024.023.024.023.025.051.05.056.05.06.05.065.051.07.052.074.051.079.052.083.052.088.052.092.052.096.052.101.052.106.052.11.052.114.052.118.051.123.051.126.051.131.05.136.05.139.049.143.048.148.048.152.048.155.046.16.046.163.045.168.043.172.043.175.042.179.041.183.04.187.038.191.038.194.036.198.034.202.033.205.032.21.031.212.028.216.027.22.026.224.023.226.022.231.021.233.018.237.016.241.014.244.012.247.011.25.008.254.005.257.004.26.001.26-.001.257-.004.254-.005.25-.008.247-.011.244-.012.241-.014.237-.016.233-.018.231-.021.226-.022.224-.023.22-.026.216-.027.212-.028.21-.031.205-.032.202-.033.198-.034.194-.036.191-.038.187-.038.183-.04.179-.041.175-.042.172-.043.168-.043.163-.045.16-.046.155-.046.152-.048.148-.048.143-.048.139-.049.136-.05.131-.05.126-.051.123-.051.118-.051.114-.052.11-.052.106-.052.101-.052.096-.052.092-.052.088-.052.083-.052.079-.052.074-.051.07-.052.065-.051.06-.05.056-.05.051-.05.023-.025.023-.024.021-.024.02-.025.019-.024.018-.024.017-.023.015-.024.014-.023.013-.023.012-.023.01-.023.01-.022.008-.022.006-.023.006-.021.004-.022.004-.021.001-.021.001-.021-.001-.021-.001-.021-.004-.021-.004-.022-.006-.021-.006-.023-.008-.022-.01-.022-.01-.023-.012-.023-.013-.023-.014-.023-.015-.024-.017-.023-.018-.024-.019-.024-.02-.025-.021-.024-.023-.024-.023-.025-.051-.05-.056-.05-.06-.05-.065-.051-.07-.052-.074-.051-.079-.052-.083-.052-.088-.052-.092-.052-.096-.052-.101-.052-.106-.052-.11-.052-.114-.052-.118-.051-.123-.051-.126-.051-.131-.05-.136-.05-.139-.049-.143-.048-.148-.048-.152-.048-.155-.046-.16-.046-.163-.045-.168-.043-.172-.043-.175-.042-.179-.041-.183-.04-.187-.038-.191-.038-.194-.036-.198-.034-.202-.033-.205-.032-.21-.031-.212-.028-.216-.027-.22-.026-.224-.023-.226-.022-.231-.021-.233-.018-.237-.016-.241-.014-.244-.012-.247-.011-.25-.008-.254-.005-.257-.004-.26-.001-.26.001z\"></path></symbol></defs><defs><symbol id=\"exp-1788848738765-7-0-clock\" width=\"24\" height=\"24\"><path transform=\"scale(.5)\" d=\"M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.848 12.459c.202.038.202.333.001.372-1.907.361-6.045 1.111-6.547 1.111-.719 0-1.301-.582-1.301-1.301 0-.512.77-5.447 1.125-7.445.034-.192.312-.181.343.014l.985 6.238 5.394 1.011z\"></path></symbol></defs><defs><marker id=\"exp-1788848738765-7-0-arrowhead\" refX=\"7.9\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"12\" markerHeight=\"12\" orient=\"auto-start-reverse\"><path d=\"M -1 0 L 10 5 L 0 10 z\"></path></marker></defs><defs><marker id=\"exp-1788848738765-7-0-crosshead\" markerWidth=\"15\" markerHeight=\"8\" orient=\"auto\" refX=\"4\" refY=\"4.5\"><path fill=\"none\" stroke=\"#000000\" stroke-width=\"1pt\" d=\"M 1,2 L 6,7 M 6,2 L 1,7\" style=\"stroke-dasharray: 0, 0;\"></path></marker></defs><defs><marker id=\"exp-1788848738765-7-0-filled-head\" refX=\"15.5\" refY=\"7\" markerWidth=\"20\" markerHeight=\"28\" orient=\"auto\"><path d=\"M 18,7 L9,13 L14,7 L9,1 Z\"></path></marker></defs><defs><marker id=\"exp-1788848738765-7-0-sequencenumber\" refX=\"15\" refY=\"15\" markerWidth=\"60\" markerHeight=\"40\" orient=\"auto\"><circle cx=\"15\" cy=\"15\" r=\"6\"></circle></marker></defs><defs><marker id=\"exp-1788848738765-7-0-solidTopArrowHead\" refX=\"7.9\" refY=\"7.25\" markerUnits=\"userSpaceOnUse\" markerWidth=\"12\" markerHeight=\"12\" orient=\"auto-start-reverse\"><path d=\"M 0 0 L 10 8 L 0 8 z\"></path></marker></defs><defs><marker id=\"exp-1788848738765-7-0-solidBottomArrowHead\" refX=\"7.9\" refY=\"0.75\" markerUnits=\"userSpaceOnUse\" markerWidth=\"12\" markerHeight=\"12\" orient=\"auto-start-reverse\"><path d=\"M 0 0 L 10 0 L 0 8 z\"></path></marker></defs><defs><marker id=\"exp-1788848738765-7-0-stickTopArrowHead\" refX=\"7.5\" refY=\"7\" markerUnits=\"userSpaceOnUse\" markerWidth=\"12\" markerHeight=\"12\" orient=\"auto-start-reverse\"><path d=\"M 0 0 L 7 7\" stroke=\"black\" stroke-width=\"1.5\" fill=\"none\"></path></marker></defs><defs><marker id=\"exp-1788848738765-7-0-stickBottomArrowHead\" refX=\"7.5\" refY=\"0\" markerUnits=\"userSpaceOnUse\" markerWidth=\"12\" markerHeight=\"12\" orient=\"auto-start-reverse\"><path d=\"M 0 7 L 7 0\" stroke=\"black\" stroke-width=\"1.5\" fill=\"none\"></path></marker></defs><g data-et=\"control-structure\" data-id=\"i8\"><line x1=\"341\" y1=\"225\" x2=\"802\" y2=\"225\" class=\"loopLine\"></line><line x1=\"802\" y1=\"225\" x2=\"802\" y2=\"555\" class=\"loopLine\"></line><line x1=\"341\" y1=\"555\" x2=\"802\" y2=\"555\" class=\"loopLine\"></line><line x1=\"341\" y1=\"225\" x2=\"341\" y2=\"555\" class=\"loopLine\"></line><line x1=\"341\" y1=\"325\" x2=\"802\" y2=\"325\" class=\"loopLine\" style=\"stroke-dasharray: 3, 3;\"></line><polygon points=\"341,225 391,225 391,238 382.6,245 341,245\" class=\"labelBox\"></polygon><text x=\"366\" y=\"238\" text-anchor=\"middle\" dominant-baseline=\"middle\" alignment-baseline=\"middle\" class=\"labelText\" style=\"font-size: 16px; font-weight: 400;\">alt</text><text x=\"596.5\" y=\"243\" text-anchor=\"middle\" class=\"loopText\" style=\"font-size: 16px; font-weight: 400;\"><tspan x=\"596.5\">[Консенсус]</tspan></text><text x=\"571.5\" y=\"343\" text-anchor=\"middle\" class=\"sectionTitle\" style=\"font-size: 16px; font-weight: 400;\">[Розбіжності]</text></g><text x=\"264\" y=\"80\" text-anchor=\"middle\" dominant-baseline=\"middle\" alignment-baseline=\"middle\" class=\"messageText\" dy=\"1em\" style=\"font-size: 16px; font-weight: 400;\">Читає User Story та відповідає на питання</text><line x1=\"76\" y1=\"115\" x2=\"451\" y2=\"115\" class=\"messageLine0\" data-et=\"message\" data-id=\"i0\" data-from=\"PO\" data-to=\"T\" stroke-width=\"2\" stroke=\"none\" marker-end=\"url(#exp-1788848738765-7-0-arrowhead)\" style=\"fill: none;\"></line><text x=\"625\" y=\"130\" text-anchor=\"middle\" dominant-baseline=\"middle\" alignment-baseline=\"middle\" class=\"messageText\" dy=\"1em\" style=\"font-size: 16px; font-weight: 400;\">На рахунок три всі показують карти</text><line x1=\"790\" y1=\"165\" x2=\"459\" y2=\"165\" class=\"messageLine0\" data-et=\"message\" data-id=\"i1\" data-from=\"SM\" data-to=\"T\" stroke-width=\"2\" stroke=\"none\" marker-end=\"url(#exp-1788848738765-7-0-arrowhead)\" style=\"fill: none;\"></line><text x=\"622\" y=\"180\" text-anchor=\"middle\" dominant-baseline=\"middle\" alignment-baseline=\"middle\" class=\"messageText\" dy=\"1em\" style=\"font-size: 16px; font-weight: 400;\">Усі відкривають оцінки одночасно</text><line x1=\"456\" y1=\"215\" x2=\"787\" y2=\"215\" class=\"messageLine0\" data-et=\"message\" data-id=\"i2\" data-from=\"T\" data-to=\"SM\" stroke-width=\"2\" stroke=\"none\" marker-end=\"url(#exp-1788848738765-7-0-arrowhead)\" style=\"fill: none;\"></line><text x=\"625\" y=\"275\" text-anchor=\"middle\" dominant-baseline=\"middle\" alignment-baseline=\"middle\" class=\"messageText\" dy=\"1em\" style=\"font-size: 16px; font-weight: 400;\">Фіксуємо оцінку</text><line x1=\"790\" y1=\"310\" x2=\"459\" y2=\"310\" class=\"messageLine0\" data-et=\"message\" data-id=\"i4\" data-from=\"SM\" data-to=\"T\" stroke-width=\"2\" stroke=\"none\" marker-end=\"url(#exp-1788848738765-7-0-arrowhead)\" style=\"fill: none;\"></line><text x=\"456\" y=\"370\" text-anchor=\"middle\" dominant-baseline=\"middle\" alignment-baseline=\"middle\" class=\"messageText\" dy=\"1em\" style=\"font-size: 16px; font-weight: 400;\">Обговорення причин різниці</text><path d=\"M 456,405 C 516,395 516,435 456,425\" class=\"messageLine0\" data-et=\"message\" data-id=\"i6\" data-from=\"T\" data-to=\"T\" stroke-width=\"2\" stroke=\"none\" marker-end=\"url(#exp-1788848738765-7-0-arrowhead)\" style=\"fill: none;\"></path><text x=\"456\" y=\"450\" text-anchor=\"middle\" dominant-baseline=\"middle\" alignment-baseline=\"middle\" class=\"messageText\" dy=\"1em\" style=\"font-size: 16px; font-weight: 400;\">Повторне голосування</text><path d=\"M 456,485 C 516,475 516,515 456,505\" class=\"messageLine0\" data-et=\"message\" data-id=\"i7\" data-from=\"T\" data-to=\"T\" stroke-width=\"2\" stroke=\"none\" marker-end=\"url(#exp-1788848738765-7-0-arrowhead)\" style=\"fill: none;\"></path></svg></div>\n<p><strong>Хід сесії:</strong> Product Owner зачитує історію та відповідає на питання команди. Далі кожен учасник мовчки обирає карту. За командою Scrum Master усі одночасно відкривають карти. Якщо оцінки близькі, їх фіксують. Якщо різниця суттєва, автори найнижчої та найвищої оцінок пояснюють свою логіку, після чого команда голосує повторно, зазвичай 2-3 раунди достатньо для консенсусу.</p>\n<table>\n<thead>\n<tr>\n<th>Карта</th>\n<th>Значення</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>?</strong></td>\n<td>Потрібні пояснення, не можу оцінити</td>\n</tr>\n<tr>\n<td><strong>☕</strong></td>\n<td>Задача занадто велика, потрібна перерва або розбиття</td>\n</tr>\n</tbody></table>\n<div class=\"tip\"><strong>💡 Сила методу - одночасне відкриття</strong> <p>Ніхто не \"якориться\" на чужій оцінці. Якщо frontend дав 3, а backend 13, зазвичай виявляється, що вони бачили різний обсяг роботи: перший припускав готовий API, другий - інтеграцію з нуля 🔍</p>\n</div>\n\n","<h1>🔄 Definition of Ready та Definition of Done</h1>\n<div class=\"info\"><strong>ℹ️ Дві межі готовності</strong> <p><strong>DoR</strong> (Definition of Ready) відповідає на питання \"Чи готові ми <strong>почати</strong>?\", а <strong>DoD</strong> (Definition of Done) на питання \"Чи ми <strong>закінчили</strong>?\"</p>\n</div>\n\n\n\n<p>Обидва визначення команда узгоджує заздалегідь і записує явно, щоб не сперечатись у кожному спринті окремо. DoR захищає команду від розмитих задач, які неможливо оцінити чи виконати. DoD захищає продукт від \"майже готового\" коду, що не протестований і не задокументований.</p>\n<table>\n<thead>\n<tr>\n<th>🚀 Definition of Ready</th>\n<th>✅ Definition of Done</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>Є чіткі Acceptance Criteria</td>\n<td>Код написано та пройшов code review</td>\n</tr>\n<tr>\n<td>Історія оцінена у Story Points</td>\n<td>Виконано unit- та integration-тести</td>\n</tr>\n<tr>\n<td>Немає блокерів та нерозв'язаних залежностей</td>\n<td>Оновлено документацію</td>\n</tr>\n<tr>\n<td>Команда розуміє, що треба зробити</td>\n<td>Задеплоєно на staging</td>\n</tr>\n<tr>\n<td>Є wireframes для візуальних історій</td>\n<td>Product Owner прийняв роботу, AC виконані</td>\n</tr>\n<tr>\n<td>Розмір не перевищує 13 SP</td>\n<td>Немає критичних багів</td>\n</tr>\n</tbody></table>\n<table>\n<thead>\n<tr>\n<th>Критерій</th>\n<th>DoR</th>\n<th>DoD</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>Коли</td>\n<td>Перед початком роботи</td>\n<td>Після завершення</td>\n</tr>\n<tr>\n<td>Де перевіряють</td>\n<td>Sprint Planning</td>\n<td>Sprint Review</td>\n</tr>\n<tr>\n<td>Якщо не відповідає</td>\n<td>Історія повертається в Backlog</td>\n<td>Історія не потрапляє в Increment</td>\n</tr>\n</tbody></table>\n<div class=\"note\"><strong>📝 Аналогія з кухнею 🍳</strong> <p>DoR перевіряє наявність і свіжість інгредієнтів перед готуванням, DoD - якість готової страви перед подачею.</p>\n</div>\n\n\n\n\n\n<div class=\"warning\"><strong>⚠️ Нюанс</strong> <p>Офіційний Scrum Guide визначає лише <strong>Definition of Done</strong>. DoR є поширеною практикою команд, але не частиною стандарту Scrum.</p>\n</div>\n\n","<h1>🗺️ User Story Mapping</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>User Story Mapping</strong> - візуальна техніка організації історій у вигляді карти, що показує шлях користувача та пріоритети релізів. Запропонована Джеффом Паттоном (Jeff Patton).</p>\n</div>\n\n\n\n<p><strong>Дві осі карти:</strong> горизонталь ➡️ послідовність дій користувача (user journey), вертикаль ⬇️ пріоритети релізів.</p>\n<p>Плоский список беклогу відповідає на питання \"що робити далі?\", але не показує, як окремі історії складаються у цілісний досвід користувача. Story Map будується у три рівні: великі дії користувача (activities), під ними конкретні кроки (tasks), а вже під кроками окремі історії, відсортовані за пріоритетом зверху вниз.</p>\n<table>\n<thead>\n<tr>\n<th></th>\n<th>🧑‍💻 Реєстрація</th>\n<th>🛒 Покупка</th>\n<th>📦 Отримання</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Tasks</strong> (кроки)</td>\n<td>Ввести email, підтвердити пошту</td>\n<td>Вибрати товар, оплатити</td>\n<td>Відстежити, отримати</td>\n</tr>\n<tr>\n<td><strong>Release 1</strong> 🟢</td>\n<td>Форма реєстрації</td>\n<td>Каталог, оплата карткою</td>\n<td>Адреса доставки</td>\n</tr>\n<tr>\n<td><strong>Release 2</strong> 🟡</td>\n<td>Код підтвердження</td>\n<td>Фільтри, список бажань</td>\n<td>Статус замовлення</td>\n</tr>\n<tr>\n<td><strong>Release 3</strong> ⚪</td>\n<td>Вхід через Google</td>\n<td>Промокоди</td>\n<td>Вибір часу доставки</td>\n</tr>\n</tbody></table>\n<p><strong>Як читати карту:</strong> верхні два рядки - це <strong>backbone</strong> (хребет продукту): активності та кроки користувача зліва направо у тому порядку, в якому він їх виконує. Під кожним кроком історії стоять стовпчиком: найважливіші вгорі, менш важливі нижче. Горизонтальна лінія між рядками - межа релізу.</p>\n","<h1>👕 Story Map на практиці: інтернет-магазин одягу</h1>\n<table>\n<thead>\n<tr>\n<th>Реліз</th>\n<th>🔍 Пошук</th>\n<th>👀 Вибір</th>\n<th>📝 Оформлення</th>\n<th>💳 Оплата</th>\n<th>🚚 Доставка</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>1.0 MVP</strong></td>\n<td>Базовий пошук за назвою</td>\n<td>Картка товару (фото, ціна)</td>\n<td>Форма замовлення</td>\n<td>Оплата карткою</td>\n<td>Адреса доставки</td>\n</tr>\n<tr>\n<td><strong>2.0</strong></td>\n<td>Фільтри (ціна, колір)</td>\n<td>Список бажань</td>\n<td>Промокоди</td>\n<td>Google Pay</td>\n<td>Статус замовлення</td>\n</tr>\n<tr>\n<td><strong>3.0</strong></td>\n<td>Автодоповнення</td>\n<td>Порівняння товарів</td>\n<td>Збережені адреси</td>\n<td>Оплата частинами</td>\n<td>Вибір часу доставки</td>\n</tr>\n</tbody></table>\n<p><strong>Кожна клітинка</strong> - окрема User Story для конкретного етапу journey з певним пріоритетом.</p>\n<p>Зверніть увагу на логіку MVP: перший реліз проходить увесь шлях покупця від пошуку до доставки, але кожен крок реалізований у найпростішому вигляді. Це \"тонкий зріз\" продукту, який уже приносить цінність. Наступні релізи не додають нових етапів, а поглиблюють існуючі.</p>\n<div class=\"success\"><strong>✅ Переваги Story Mapping</strong> <p>✅ Цілісне бачення продукту: одночасно повний шлях користувача та план релізів<br>✅ Виявляє пропуски у функціональності, які не видно у плоскому списку беклогу<br>✅ Спільна мова для команди та стейкхолдерів 🤝</p>\n</div>\n\n","<h1>📈 Release Planning</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Release Plan</strong> - план випуску версії продукту, що визначає, які User Stories реалізують і в які терміни.</p>\n</div>\n\n\n\n<p>Release Plan відповідає на питання замовника \"коли?\" і при цьому не вимагає детальної оцінки в годинах: достатньо знати velocity команди та розмір беклогу в Story Points.</p>\n<h2>📥 Вхідні параметри планування</h2>\n<ul>\n<li>⚡ <strong>Velocity</strong> - скільки SP команда виконує за спринт</li>\n<li>📦 <strong>Розмір беклогу</strong> у Story Points</li>\n<li>🎯 <strong>Пріоритети</strong> історій</li>\n<li>📅 <strong>Фіксовані дати</strong> та deadlines</li>\n</ul>\n<h2>🧮 Спрощена формула</h2>\n<pre><code class=\"language-plaintext hljs\" data-highlighted=\"yes\">Кількість спринтів = Розмір беклогу (SP) / Velocity (SP за спринт)\n\nПриклад: 200 SP / 40 SP = 5 спринтів = 10 тижнів (при 2-тижневих спринтах)</code></pre><div class=\"warning\"><strong>⚠️ Reality Check</strong> <p>До розрахунків додають <strong>буфер 20-30%</strong> на непередбачувані обставини: баги, хвороби, зміни вимог, дослідження.</p>\n</div>\n\n\n\n\n\n<div class=\"note\"><strong>📝 Product Roadmap</strong> <p>На відміну від Release Plan, <strong>Roadmap</strong> - високорівнева стратегія на 3-12 місяців у термінах тем і епіків, а не конкретних історій. Це напрямок, а не контракт: він уточнюється з кожним релізом 🧭</p>\n</div>\n\n","<h1>🧩 Типи елементів беклогу</h1>\n<table>\n<thead>\n<tr>\n<th>Тип</th>\n<th>Опис</th>\n<th>Приклад</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>📝 <strong>User Story</strong></td>\n<td>Функціональна вимога від користувача</td>\n<td>\"Як покупець, я хочу...\"</td>\n</tr>\n<tr>\n<td>🐛 <strong>Bug</strong></td>\n<td>Помилка, відхилення від AC</td>\n<td>\"Кнопка не працює в Safari\"</td>\n</tr>\n<tr>\n<td>🔧 <strong>Technical Task</strong></td>\n<td>Технічний борг, рефакторинг</td>\n<td>\"Оптимізувати SQL-запити\"</td>\n</tr>\n<tr>\n<td>🔬 <strong>Spike</strong></td>\n<td>Time-boxed дослідження</td>\n<td>\"Дослідити AWS vs Azure\"</td>\n</tr>\n<tr>\n<td>🧱 <strong>Epic</strong></td>\n<td>Велика історія, що потребує розбиття</td>\n<td>\"Система авторизації\"</td>\n</tr>\n</tbody></table>\n<p>Bug і Technical Task не мають прямої цінності для користувача, тому їх зазвичай не оцінюють у Story Points або оцінюють окремо. Проте ігнорувати їх не можна: накопичений технічний борг з часом уповільнює реалізацію будь-якої User Story.</p>\n<div class=\"info\"><strong>ℹ️ Spike</strong> <p><strong>Spike</strong> - дослідження з фіксованим відрізком часу для зменшення технічної невизначеності. Результат - не робочий код, а <strong>звіт із рекомендаціями</strong>: чи можливо реалізувати, яка складність, які ризики.<br>Приклад: \"Spike: дослідити інтеграцію з Apple Pay (time-box: 8 годин)\" 🍎</p>\n</div>\n\n\n\n\n\n<div class=\"info\"><strong>ℹ️ Epic</strong> <p><strong>Epic</strong> - історія, яку команда не може виконати за один спринт (зазвичай понад 13 SP). Перед взяттям у роботу епік розбивають на менші історії.</p>\n</div>\n\n","<h1>✂️ Розбиття епіків на User Stories</h1>\n<p>Вибір стратегії залежить від природи епіка: якщо він описує процес, ділимо за кроками шляху; якщо йдеться про сутність, за операціями над нею; якщо про один сценарій із варіантами, за варіаціями.</p>\n<table>\n<thead>\n<tr>\n<th>Стратегія</th>\n<th>Епік</th>\n<th>Результат розбиття</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🚶 <strong>За user journey</strong></td>\n<td>Система реєстрації</td>\n<td>Форма реєстрації, Email-підтвердження, Профіль, Відновлення пароля</td>\n</tr>\n<tr>\n<td>📋 <strong>За CRUD-операціями</strong></td>\n<td>Управління товарами</td>\n<td>Create, Read, Update, Delete окремо</td>\n</tr>\n<tr>\n<td>🔀 <strong>За варіаціями даних</strong></td>\n<td>Оплата замовлення</td>\n<td>Карткою, через PayPal, через Google Pay</td>\n</tr>\n<tr>\n<td>📱 <strong>За платформами</strong></td>\n<td>Мобільний додаток</td>\n<td>iOS-версія, Android-версія, tablet-версія</td>\n</tr>\n<tr>\n<td>📶 <strong>Від MVP до Enhanced</strong></td>\n<td>Пошук товарів</td>\n<td>Базовий пошук, пошук із фільтрами, автодоповнення</td>\n</tr>\n</tbody></table>\n<div class=\"success\"><strong>✅ Ключове правило</strong> <p>Кожна мала історія має <strong>приносити цінність користувачу</strong> і бути потенційно готовою до релізу.</p>\n</div>\n\n\n\n\n\n<div class=\"danger\"><strong>🚫 Ознака неправильного розбиття</strong> <p>Якщо після розбиття отримуєте \"технічні\" фрагменти на кшталт \"налаштувати базу даних\" без зрозумілої цінності, вісь поділу обрана неправильно. Змініть стратегію ❌</p>\n</div>\n\n","<h1>🎓 Ключові висновки</h1>\n<div class=\"success\"><strong>✅ Що потрібно запам'ятати</strong> <ol>\n<li>📝 <strong>User Story</strong> описує ЩО і НАВІЩО з позиції користувача, а не ЯК реалізувати</li>\n<li>🧩 Шаблон <strong>\"Як-Хочу-Щоб\"</strong>: роль, дія, цінність. Картка - нагадування про розмову (3C)</li>\n<li>✅ <strong>Acceptance Criteria</strong> у форматі Given-When-Then роблять історію перевірюваною</li>\n<li>🎯 <strong>INVEST</strong> - шість критеріїв якісної історії</li>\n<li>📊 <strong>Story Points</strong> порівнюють складність історій між собою, а не вимірюють час</li>\n<li>🃏 <strong>Planning Poker</strong> усуває вплив авторитету через одночасне відкриття карт</li>\n<li>🔄 <strong>DoR</strong> перевіряють перед спринтом, <strong>DoD</strong> після завершення роботи</li>\n<li>🗺️ <strong>Story Map</strong> показує шлях користувача та пріоритети релізів</li>\n<li>📈 <strong>Release Plan</strong> = беклог / velocity + буфер 20-30%</li>\n<li>✂️ Епіки розбивають так, щоб кожна частина мала цінність для користувача</li>\n</ol>\n</div>\n\n","<h1>❓ Контрольні питання</h1>\n<p><strong>1. User Story vs технічна вимога</strong> 📝</p>\n<ul>\n<li>У чому принципова відмінність? Яке призначення кожної з трьох частин шаблону \"Як-Хочу-Щоб\"?</li>\n</ul>\n<p><strong>2. Acceptance Criteria</strong> ✅</p>\n<ul>\n<li>Опишіть формат Given-When-Then. Наведіть власний приклад AC для функції відновлення пароля</li>\n</ul>\n<p><strong>3. INVEST</strong> 🎯</p>\n<ul>\n<li>Перелічіть критерії. Наведіть приклад порушення для трьох із них</li>\n</ul>\n<p><strong>4. Story Points та Planning Poker</strong> 📊</p>\n<ul>\n<li>Чому команди оцінюють у Story Points, а не в годинах?</li>\n<li>Чому одночасне відкриття карт є принциповою частиною методу?</li>\n</ul>\n<p><strong>5. DoR та DoD</strong> 🔄</p>\n<ul>\n<li>Сформулюйте різницю. На якій події Scrum застосовується кожне визначення?</li>\n</ul>\n<p><strong>6. Story Mapping та Release Planning</strong> 🗺️</p>\n<ul>\n<li>Що показують горизонтальна та вертикальна осі карти?</li>\n<li>Як розрахувати кількість спринтів для релізу?</li>\n</ul>\n<p><strong>7. Розбиття епіків</strong> ✂️</p>\n<ul>\n<li>Назвіть три техніки розбиття. Чим результат Spike відрізняється від результату User Story?</li>\n</ul>\n","<h1>📖 Глосарій термінів</h1>\n<table>\n<thead>\n<tr>\n<th>Термін</th>\n<th>Англійською</th>\n<th>Визначення</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Користувацька історія</strong></td>\n<td>User Story</td>\n<td>Короткий опис функціональності з точки зору користувача, сфокусований на цінності</td>\n</tr>\n<tr>\n<td><strong>Критерії прийняття</strong></td>\n<td>Acceptance Criteria</td>\n<td>Конкретні умови, за яких історія вважається завершеною</td>\n</tr>\n<tr>\n<td><strong>Story Points</strong></td>\n<td>Story Points</td>\n<td>Відносна міра складності історії, що враховує обсяг, складність і невизначеність</td>\n</tr>\n<tr>\n<td><strong>Planning Poker</strong></td>\n<td>Planning Poker</td>\n<td>Техніка колективної оцінки з одночасним відкриттям карт</td>\n</tr>\n<tr>\n<td><strong>Швидкість команди</strong></td>\n<td>Velocity</td>\n<td>Кількість Story Points, яку команда виконує за спринт</td>\n</tr>\n<tr>\n<td><strong>Епік</strong></td>\n<td>Epic</td>\n<td>Велика історія, що не вміщується в один спринт і потребує розбиття</td>\n</tr>\n<tr>\n<td><strong>Спайк</strong></td>\n<td>Spike</td>\n<td>Time-boxed дослідження для зменшення технічної невизначеності</td>\n</tr>\n<tr>\n<td><strong>Карта історій</strong></td>\n<td>User Story Map</td>\n<td>Візуальна структура історій за шляхом користувача та пріоритетами релізів</td>\n</tr>\n<tr>\n<td><strong>План релізу</strong></td>\n<td>Release Plan</td>\n<td>План випуску версії продукту з конкретними історіями та термінами</td>\n</tr>\n<tr>\n<td><strong>Дорожня карта</strong></td>\n<td>Product Roadmap</td>\n<td>Високорівнева стратегія продукту на 3-12 місяців</td>\n</tr>\n</tbody></table>\n","<h1>🔤 Глосарій абревіатур</h1>\n<table>\n<thead>\n<tr>\n<th>Абревіатура</th>\n<th>Розшифровка</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>AC</strong></td>\n<td>Acceptance Criteria / Критерії прийняття</td>\n</tr>\n<tr>\n<td><strong>BDD</strong></td>\n<td>Behavior-Driven Development / Розробка, керована поведінкою</td>\n</tr>\n<tr>\n<td><strong>INVEST</strong></td>\n<td>Independent, Negotiable, Valuable, Estimable, Small, Testable</td>\n</tr>\n<tr>\n<td><strong>SP</strong></td>\n<td>Story Points / Одиниці оцінки складності історії</td>\n</tr>\n<tr>\n<td><strong>DoR</strong></td>\n<td>Definition of Ready / Визначення готовності до роботи</td>\n</tr>\n<tr>\n<td><strong>DoD</strong></td>\n<td>Definition of Done / Визначення завершеності</td>\n</tr>\n<tr>\n<td><strong>PO</strong></td>\n<td>Product Owner / Власник продукту</td>\n</tr>\n<tr>\n<td><strong>MVP</strong></td>\n<td>Minimum Viable Product / Мінімально життєздатний продукт</td>\n</tr>\n<tr>\n<td><strong>CRUD</strong></td>\n<td>Create, Read, Update, Delete / Створення, читання, оновлення, видалення</td>\n</tr>\n<tr>\n<td><strong>API</strong></td>\n<td>Application Programming Interface / Програмний інтерфейс застосунку</td>\n</tr>\n</tbody></table>\n","<h1>🎉 Дякую за увагу!</h1>\n<p><strong>Пам'ятайте:</strong> User Story - це не документ, а запрошення до розмови між бізнесом і командою 💬</p>\n<p><strong>Питання?</strong> 🙋‍♂️</p>\n"];let currentSlideIndex=0;
+function renderMath(root){if(typeof renderMathInElement!=="function"||!root)return;try{renderMathInElement(root,{delimiters:[{left:"$$",right:"$$",display:true},{left:"\\[",right:"\\]",display:true},{left:"$",right:"$",display:false},{left:"\\(",right:"\\)",display:false}],throwOnError:false,strict:"ignore",ignoredTags:["script","noscript","style","textarea","pre","code"]});}catch(e){console.warn("Math render error:",e);}}
+function showSlide(i){if(i<0||i>=slides.length)return;currentSlideIndex=i;const el=document.getElementById("current-slide");el.innerHTML=slides[i];el.scrollTop=0;renderMath(el);document.getElementById("progress-bar").style.width=((i+1)/slides.length*100)+"%";document.getElementById("slide-number").textContent=(i+1)+" / "+slides.length;updateSidebarActive();}
+function nextSlide(){if(currentSlideIndex<slides.length-1)showSlide(currentSlideIndex+1);}
+function previousSlide(){if(currentSlideIndex>0)showSlide(currentSlideIndex-1);}
+function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open");}
+function toggleHelp(){document.getElementById("help-overlay").classList.toggle("hidden");}
+function toggleFullscreen(){if(!document.fullscreenElement){const pc=document.getElementById("presentation-container");if(pc.requestFullscreen)pc.requestFullscreen();else if(pc.webkitRequestFullscreen)pc.webkitRequestFullscreen();else if(pc.msRequestFullscreen)pc.msRequestFullscreen();else if(pc.mozRequestFullScreen)pc.mozRequestFullScreen();}else{if(document.exitFullscreen)document.exitFullscreen();else if(document.webkitExitFullscreen)document.webkitExitFullscreen();else if(document.msExitFullscreen)document.msExitFullscreen();else if(document.mozCancelFullScreen)document.mozCancelFullScreen();}}
+function generateSidebar(){const sc=document.getElementById("sidebar-content");sc.innerHTML="";slides.forEach((html,idx)=>{const t=document.createElement("div");t.className="slide-thumbnail";if(idx===0)t.classList.add("active");const tmp=document.createElement("div");tmp.innerHTML=html;const title=tmp.querySelector("h1,h2");const titleText=title?title.textContent:("Слайд "+(idx+1));const textContent=tmp.textContent.replace(/s+/g," ").trim();const preview=textContent.substring(0,100)+(textContent.length>100?"...":"");t.innerHTML="<div class=\"slide-thumbnail-number\">"+(idx+1)+"</div><div class=\"slide-thumbnail-title\">"+titleText+"</div><div class=\"slide-thumbnail-content\">"+preview+"</div>";t.onclick=()=>{showSlide(idx);if(window.innerWidth<1024)toggleSidebar();};sc.appendChild(t);});}
+function updateSidebarActive(){document.querySelectorAll(".slide-thumbnail").forEach((th,idx)=>{if(idx===currentSlideIndex){th.classList.add("active");th.scrollIntoView({behavior:"smooth",block:"nearest"});}else th.classList.remove("active");});}
+document.addEventListener("keydown",e=>{switch(e.key){case"ArrowLeft":previousSlide();break;case"ArrowRight":case" ":e.preventDefault();nextSlide();break;case"f":case"F":toggleFullscreen();break;case"s":case"S":toggleSidebar();break;case"?":toggleHelp();break;case"Escape":const sb=document.getElementById("sidebar");const ho=document.getElementById("help-overlay");if(sb.classList.contains("open"))toggleSidebar();else if(!ho.classList.contains("hidden"))ho.classList.add("hidden");break;}});
+generateSidebar();showSlide(0);</script></body></html>
