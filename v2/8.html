@@ -1,0 +1,752 @@
+<!DOCTYPE html><html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Use Cases: Моделювання вимог через сценарії використання</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"><style>:root {
+            --presentation-bg: linear-gradient(135deg, #4f46e5 0%, #312e81 100%);
+            /* Кольори теми - шкали Tailwind CSS, задаються разом із фоном (див. BG_PRESETS / applyBackground):
+               --heading       заголовки h1 (slate-900)
+               --accent        декоративний акцент: лінії, маркери, рамки (500)
+               --accent-2      підзаголовки h2 (700)
+               --accent-strong заливки з білим текстом та дрібний акцентний текст (700)
+               --accent-tint   світлий фон парних рядків і активних елементів (50) */
+            --heading: #0f172a;
+            --accent: #6366f1;
+            --accent-2: #4338ca;
+            --accent-strong: #4338ca;
+            --accent-tint: #eef2ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--presentation-bg);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #editor-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #editor-container.hidden {
+            display: none;
+        }
+
+        #editor-header {
+            background: #2d3748;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #editor-header h2 {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        #editor-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--accent-strong);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #4a5568;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2d3748;
+        }
+
+        #markdown-input {
+            flex: 1;
+            padding: 2rem;
+            background: #1a202c;
+            color: #e2e8f0;
+            border: none;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+        }
+
+        #markdown-input:focus {
+            outline: none;
+        }
+
+        .slide-container {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .slide {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 3rem;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .slide::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .slide::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+        }
+
+        .slide h1 {
+            color: var(--heading);
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 45%, transparent 100%) left bottom / 100% 4px no-repeat;
+            padding-bottom: 0.5rem;
+        }
+
+        .slide h2 {
+            color: var(--accent-2);
+            font-size: 2rem;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .slide h3 {
+            color: #4a5568;
+            font-size: 1.5rem;
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        .slide p {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .slide ul, .slide ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .slide li {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide pre {
+            background: #282c34;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+
+        .slide pre code {
+            background: transparent;
+            color: #abb2bf;
+        }
+
+        .slide code {
+            font-family: 'Courier New', Consolas, Monaco, monospace;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        .slide h1 code, .slide h2 code, .slide h3 code {
+            font-size: 0.85em;
+            background: rgba(237, 242, 247, 0.5);
+            padding: 0.1em 0.3em;
+            border-radius: 3px;
+        }
+
+        .slide p code {
+            background: #edf2f7;
+            color: #e53e3e;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .slide blockquote {
+            border-left: 4px solid var(--accent);
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            color: #4a5568;
+        }
+
+        .slide img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .slide table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .slide th, .slide td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .slide th {
+            background: var(--accent-strong);
+            color: white;
+            font-weight: 600;
+        }
+
+        .slide tr:nth-child(even) {
+            background: var(--accent-tint);
+        }
+
+        .slide li::marker {
+            color: var(--accent);
+        }
+
+        .note {
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .note strong {
+            color: #c53030;
+        }
+
+        .warning {
+            background: #fffaf0;
+            border-left: 4px solid #f6ad55;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .warning strong {
+            color: #c05621;
+        }
+
+        .info {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .info strong {
+            color: #2c5282;
+        }
+
+        .success {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .success strong {
+            color: #22543d;
+        }
+
+        .danger {
+            background: #fff5f5;
+            border-left: 4px solid #f56565;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .danger strong {
+            color: #742a2a;
+        }
+
+        .tip {
+            background: #fefcbf;
+            border-left: 4px solid #ecc94b;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .tip strong {
+            color: #744210;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: white;
+            transition: width 0.3s;
+        }
+
+        .slide-number {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            color: var(--accent-strong);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #sidebar {
+            position: fixed;
+            right: -320px;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+            transition: right 0.3s ease;
+            z-index: 200;
+            padding: 1rem;
+        }
+
+        #sidebar.open {
+            right: 0;
+        }
+
+        #sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 3px;
+        }
+
+        #sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        #sidebar-header h3 {
+            color: var(--accent-strong);
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        #sidebar-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #4a5568;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        #sidebar-close:hover {
+            color: var(--accent-strong);
+        }
+
+        .slide-thumbnail {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+
+        .slide-thumbnail:hover {
+            border-color: var(--accent);
+            box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 20%, transparent);
+            transform: translateX(-4px);
+        }
+
+        .slide-thumbnail.active {
+            border-color: var(--accent);
+            background: var(--accent-tint);
+            box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 30%, transparent);
+        }
+
+        .slide-thumbnail-number {
+            display: inline-block;
+            background: var(--accent-strong);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide-thumbnail-content {
+            font-size: 0.85rem;
+            color: #2d3748;
+            line-height: 1.4;
+            max-height: 4.2rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slide-thumbnail-content::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 50%;
+            height: 1.4rem;
+            background: linear-gradient(to right, transparent, white);
+        }
+
+        .slide-thumbnail.active .slide-thumbnail-content::after {
+            background: linear-gradient(to right, transparent, var(--accent-tint));
+        }
+
+        .slide-thumbnail-title {
+            font-weight: 600;
+            color: var(--accent-strong);
+            margin-bottom: 0.25rem;
+        }
+
+        #sidebar-toggle {
+            position: fixed;
+            right: 1rem;
+            top: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 8px;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 150;
+        }
+
+        #sidebar-toggle:hover {
+            background: white;
+            transform: scale(1.05);
+        }
+
+        .mermaid {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            overflow: visible; /* щоб не обрізати тіні / розширені ноди */
+        }
+
+        /* Запобігаємо обрізанню останньої літери в нодах Mermaid через зміну font-weight після розрахунку розміру */
+        .mermaid svg { overflow: visible !important; }
+        /* перестраховка проти обрізання foreignObject (на випадок інших діаграм) */
+        .mermaid svg foreignObject { overflow: visible !important; }
+
+        /* Ізоляція підписів Mermaid від типографіки слайду.
+           Mermaid рендерить підписи як HTML (<p>, <li>, <code>) всередині foreignObject і міряє їх
+           без стилів слайду. Без цього скидання правила .slide p / .slide li збільшують шрифт
+           і міжрядковий інтервал уже після розрахунку розмірів - і текст вилазить за межі блоків. */
+        .mermaid svg p,
+        .mermaid svg li,
+        .mermaid svg ul,
+        .mermaid svg ol {
+            font-size: inherit;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            color: inherit;
+        }
+        .mermaid svg code {
+            font-size: inherit;
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        .plantuml-diagram {
+            max-width: 100%;
+            height: auto;
+            margin: 1.5rem auto;
+            display: block;
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #help-overlay {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            transition: opacity 0.3s;
+        }
+
+        #help-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #help-overlay kbd {
+            background: #2d3748;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.85em;
+        }
+
+        .mermaid-error {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            padding: 1rem;
+            border-radius: 6px;
+            color: #742a2a;
+            margin: 1.5rem 0;
+        }
+
+        .mermaid-error pre {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+        }
+
+        /* Вибір фону презентації */
+        #bg-picker {
+            position: fixed;
+            bottom: 6rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(360px, calc(100vw - 2rem));
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            padding: 1rem 1.1rem 1.1rem;
+            z-index: 160;
+            color: #2d3748;
+        }
+
+        #bg-picker.hidden {
+            display: none;
+        }
+
+        #bg-picker h4 {
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .bg-swatches {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .bg-swatch {
+            aspect-ratio: 16 / 10;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+            transition: transform 0.15s;
+        }
+
+        /* Мініатюра теми: фон + маленька «картка слайду» з акцентною лінією */
+        .bg-swatch {
+            position: relative;
+        }
+
+        .bg-swatch::after {
+            content: '';
+            position: absolute;
+            left: 22%;
+            right: 22%;
+            top: 30%;
+            bottom: 30%;
+            border-radius: 3px;
+            background:
+                linear-gradient(90deg, var(--sw-accent), transparent) 18% 38% / 55% 3px no-repeat,
+                white;
+        }
+
+        .bg-swatch:hover {
+            transform: scale(1.06);
+        }
+
+        .bg-swatch.active {
+            border-color: #2d3748;
+            box-shadow: 0 0 0 2px white inset;
+        }
+
+        .bg-custom {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.85rem;
+            flex-wrap: wrap;
+        }
+
+        .bg-custom input[type="color"] {
+            width: 38px;
+            height: 30px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 2px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .bg-custom .bg-hint {
+            color: #718096;
+            font-size: 0.75rem;
+            width: 100%;
+        }
+
+        /* Повноекранний режим - зберігаємо обраний фон */
+        #presentation-container:fullscreen {
+            background: var(--presentation-bg);
+        }
+
+        #presentation-container:-webkit-full-screen {
+            background: var(--presentation-bg);
+        }
+
+        #presentation-container:-moz-full-screen {
+            background: var(--presentation-bg);
+        }
+
+        #presentation-container:-ms-fullscreen {
+            background: var(--presentation-bg);
+        }
+#presentation-container:fullscreen,#presentation-container:-webkit-full-screen,#presentation-container:-moz-full-screen,#presentation-container:-ms-fullscreen{background:var(--presentation-bg)!important;}:root{--presentation-bg:linear-gradient(135deg, #4f46e5 0%, #312e81 100%);--heading:#0f172a;--accent:#6366f1;--accent-2:#4338ca;--accent-strong:#4338ca;--accent-tint:#eef2ff;}</style></head><body><div id="presentation-container"><div class="progress"><div class="progress-bar" id="progress-bar"></div></div><button id="sidebar-toggle" onclick="toggleSidebar()" title="Навігація слайдами (S)">☰</button><div id="sidebar"><div id="sidebar-header"><h3>📑 Слайди</h3><button id="sidebar-close" onclick="toggleSidebar()">✕</button></div><div id="sidebar-content"></div></div><div class="slide-container"><div class="slide" id="current-slide"></div></div><div class="controls"><button class="control-btn" onclick="previousSlide()" title="Попередній (←)">←</button><button class="control-btn" onclick="nextSlide()" title="Наступний (→)">→</button><button class="control-btn" onclick="toggleFullscreen()" title="Повноекранний режим (F)">⛶</button><button class="control-btn" onclick="toggleHelp()" title="Допомога (?)">?</button></div><div class="slide-number" id="slide-number">1 / 20</div><div id="help-overlay" class="hidden"><strong>Гарячі клавіші:</strong><br><kbd>←</kbd> <kbd>→</kbd> Навігація<br><kbd>F</kbd> Повноекранний режим<br><kbd>S</kbd> Sidebar<br><kbd>?</kbd> Допомога<br><kbd>Esc</kbd> Закрити</div></div><script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script><script>const slides=["<h1>Use Cases: Моделювання вимог через сценарії використання</h1>\n<p><strong>Курс:</strong> Основи інженерії програмного забезпечення<br><strong>Лектор:</strong> Кобилянський Антон</p>\n","<h2>📋 План лекції</h2>\n<ol>\n<li>🎯 Що таке Use Case і навіщо він потрібен</li>\n<li>🎭 Актори та їх типи</li>\n<li>📊 Use Case діаграма UML</li>\n<li>📝 Структура специфікації та рівні деталізації</li>\n<li>🔀 Основний та альтернативні сценарії</li>\n<li>🔗 Відношення include та extend</li>\n<li>✍️ Правила написання, типові помилки, зв'язок з User Stories</li>\n<li>🏨 Виявлення Use Cases та комплексний приклад</li>\n</ol>\n","<h1>🎯 Що таке Use Case?</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Use Case</strong> (UC / Сценарій використання) - це опис послідовності взаємодій між актором і системою, виконання якої приводить до досягнення конкретної мети користувача.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Use Case описує, ЩО система робить з точки зору користувача, а не ЯК це реалізовано технічно.</p>\n<div class=\"note\"><strong>📝 Походження</strong> <p>Концепцію запропонував Івар Якобсон у 1986 році під час роботи в Ericsson. З 1997 року Use Cases є частиною стандарту <strong>UML</strong> (Unified Modeling Language / Уніфікована мова моделювання).</p>\n</div>\n\n\n\n<h2>🧩 Яку задачу вирішує Use Case</h2>\n<table>\n<thead>\n<tr>\n<th>Проблема</th>\n<th>Як допомагає Use Case</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🗣️ Бізнес і розробники говорять різними мовами</td>\n<td>Спільна мова: кроки взаємодії без технічних деталей</td>\n</tr>\n<tr>\n<td>📋 Список функцій не пояснює, як їх використовувати</td>\n<td>Кожен UC прив'язаний до мети конкретного актора</td>\n</tr>\n<tr>\n<td>🧪 Незрозуміло, що саме тестувати</td>\n<td>Кожен крок і альтернатива стають основою тест-кейсу</td>\n</tr>\n<tr>\n<td>📏 Важко оцінити обсяг роботи</td>\n<td>Кількість і складність UC дають базу для оцінки</td>\n</tr>\n</tbody></table>\n","<h1>🎭 Актори</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Актор</strong> (Actor) - це роль користувача або зовнішньої системи, яка взаємодіє з нашою системою для досягнення певної мети.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Актор - це завжди роль, а не конкретна людина. Один і той самий співробітник може виступати у різних ролях, і в моделі це будуть різні актори.</p>\n<h2>Типи акторів</h2>\n<table>\n<thead>\n<tr>\n<th>Тип</th>\n<th>Роль у сценарії</th>\n<th>Приклад 👤</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🟢 <strong>Первинний</strong></td>\n<td>Ініціює взаємодію та отримує цінність від системи</td>\n<td>Клієнт інтернет-магазину</td>\n</tr>\n<tr>\n<td>🔵 <strong>Вторинний</strong></td>\n<td>Надає системі сервіс, коли вона до нього звертається</td>\n<td>Платіжна система, поштовий сервіс</td>\n</tr>\n<tr>\n<td>⚪ <strong>Офстейдж</strong> (Off-stage)</td>\n<td>Має інтерес у результаті, але не бере участі у взаємодії</td>\n<td>Менеджер магазину, бухгалтерія</td>\n</tr>\n</tbody></table>\n<h2>На прикладі інтернет-магазину</h2>\n<p>Клієнт відкриває сайт, обирає товар і натискає \"Оформити замовлення\": він запускає сценарій і отримує результат, тому це первинний актор. Під час оплати система сама звертається до платіжного сервісу, який підтверджує або відхиляє транзакцію: платіжна система нічого не ініціює, вона лише відповідає на запит, тому це вторинний актор. Менеджер магазину в цьому сценарії не бере участі, але йому важливо, щоб замовлення потрапило у звітність: це офстейдж-актор, і його інтереси впливають на вимоги, хоча на діаграмі його зазвичай не малюють.</p>\n<div class=\"tip\"><strong>💡 Як знайти акторів</strong> <p>Поставте три запитання: хто користується системою, які зовнішні системи вона викликає, хто зацікавлений у результаті. Кожна відповідь - кандидат на роль актора.</p>\n</div>\n\n\n\n\n\n<div class=\"warning\"><strong>⚠️ Типова помилка</strong> <p>Якщо одна й та сама людина і оформлює замовлення як клієнт, і керує товарами як адміністратор, у моделі це два різні актори. Актор визначається метою взаємодії, а не посадою чи обліковим записом.</p>\n</div>\n\n","<h1>📊 Use Case діаграма</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Use Case діаграма</strong> - це діаграма UML, що показує акторів, сценарії використання та зв'язки між ними в межах системи.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Діаграма дає огляд функціональності системи з висоти пташиного польоту. Деталі кожного сценарію живуть у текстовій специфікації, а не на діаграмі.</p>\n\n<img src=\"https://www.plantuml.com/plantuml/svg/XLFDJjj04BxlKupISr0Rd1OGYd0ZVAvKyG1RUqcj-0Ujrq88LGe18MxqW7BWG5yXAWIi94vVOVQDcDqu4JL2s5hBdlc-RxwPaVSonQNAuuXb_J0vufB7m7sLok_g91B0ZqMMnk95yWVt-psPvadGJQDKmWVFDNUT3gSCwFhw2krvpdvxcKjb8EGwxdvfVMQ_NkZacV1v9jvIsj_o76_hjPBZRdzq7L9YaJXKe5AGOU-dWY2KmbTXcZ2sTDZ0MvpfaRx1KWyRm3FevfcYRkKQy1iVSAv711ZfCptK0nph8IxqmCBT80wJDVOFpaoMq8zOuXZq6HQ6X1ESuzWIll6JM2IACUE49pqQS0ClJNcSa7P9ps7JeF6UpXCMM3QgzbV3C7KCTaAGcRucxZcn2y2fjJOc4mkyjzKEkfzgr1lAFLXS0QOF_4iV0w3OmWWiz1MLd5Pc3xgj6lrENvZUoM2nhFb4zUPMPaQ6IZ9pNL4twrJyjnpF-rIdHhqr_Ufpw_L_urQYg6Xji_7L0g7PxDZ-Qu5MFR39wC26UNLW1tPtmyIFya1qEin436YrDBljYjPcUo89wAzv1W00\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n<h2>Елементи діаграми</h2>\n<ul>\n<li>🟦 <strong>Прямокутник</strong> - межа системи: усередині те, що ми розробляємо</li>\n<li>👤 <strong>Актори</strong> - розташовані зовні, бо не є частиною системи</li>\n<li>⭕ <strong>Овали</strong> - окремі сценарії використання, назва у формі \"дієслово + об'єкт\"</li>\n<li>➡️ <strong>Суцільна лінія</strong> - актор бере участь у сценарії; стрілка від UC до актора означає, що система звертається до вторинного актора</li>\n</ul>\n<h2>Як читати цю діаграму</h2>\n<p>Клієнт може переглядати каталог, наповнювати кошик і оформлювати замовлення: три лінії від актора до трьох овалів. Оформлення замовлення завжди включає оплату, тому між ними пунктирна стрілка include. Оплата, у свою чергу, звертається до платіжної системи, і стрілка йде від овалу до актора: не платіжна система приходить у магазин, а магазин просить її провести транзакцію. Адміністратор має власний сценарій керування товарами, який не перетинається з клієнтськими.</p>\n<div class=\"warning\"><strong>⚠️ Чого на діаграмі немає</strong> <p>Діаграма не показує порядок кроків, умови й помилки. З неї не видно, що робити, якщо оплата не пройшла. Усе це описує текстова специфікація, тому діаграма без специфікації є лише змістом без розділів.</p>\n</div>\n\n","<h1>📝 Структура специфікації Use Case</h1>\n<p><strong>Головна ідея:</strong> Діаграма відповідає на питання \"хто і що робить\", а текстова специфікація - \"як саме це відбувається крок за кроком\".</p>\n<table>\n<thead>\n<tr>\n<th>Елемент</th>\n<th>Що містить</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🏷️ <strong>Назва</strong></td>\n<td>Мета користувача у форматі \"дієслово + об'єкт\"</td>\n</tr>\n<tr>\n<td>👤 <strong>Актор</strong></td>\n<td>Хто ініціює сценарій</td>\n</tr>\n<tr>\n<td>🎯 <strong>Мета</strong></td>\n<td>Навіщо актор виконує цей сценарій</td>\n</tr>\n<tr>\n<td>🔑 <strong>Передумови</strong></td>\n<td>Стан системи, який має виконуватись до початку</td>\n</tr>\n<tr>\n<td>✅ <strong>Основний сценарій</strong></td>\n<td>Покрокова взаємодія \"актор робить / система відповідає\"</td>\n</tr>\n<tr>\n<td>🔀 <strong>Альтернативні сценарії</strong></td>\n<td>Що відбувається при відхиленнях і помилках</td>\n</tr>\n<tr>\n<td>🏁 <strong>Результат</strong></td>\n<td>Стан системи після успішного завершення</td>\n</tr>\n</tbody></table>\n<h2>Навіщо кожне поле</h2>\n<p>Передумови економлять місце в сценарії: якщо записати \"клієнт авторизований\", не доведеться в кожному кроці перевіряти, чи він увійшов у систему. Результат фіксує, що саме змінилося у світі після сценарію, і саме його перевірятиме тестувальник: не \"форма закрилася\", а \"замовлення створено зі статусом Нове\". Мета пояснює, чому актор взагалі розпочав сценарій, і допомагає відсіяти кроки, які до цієї мети не ведуть.</p>\n<div class=\"tip\"><strong>💡 Ритм кроків</strong> <p>Основний сценарій пишуть як діалог: крок актора, потім відповідь системи. Такий ритм робить специфікацію легкою для читання і перевірки: якщо два кроки поспіль виконує система, варто перевірити, чи не пропущено дію користувача або чи не варто об'єднати кроки.</p>\n</div>\n\n","<h1>🛍️ Приклад: UC-01 Оформити замовлення</h1>\n<p><strong>Актор:</strong> Клієнт<br><strong>Мета:</strong> придбати товари з кошика</p>\n<div class=\"info\"><strong>ℹ️ Передумови</strong> <ul>\n<li>Клієнт авторизований у системі</li>\n<li>У кошику є щонайменше один товар</li>\n<li>Товари наявні на складі</li>\n</ul>\n</div>\n\n\n\n<p><strong>Основний сценарій:</strong></p>\n<ol>\n<li>Клієнт натискає \"Оформити замовлення\"</li>\n<li>Система показує форму з адресою доставки</li>\n<li>Клієнт вводить або обирає адресу</li>\n<li>Система показує доступні способи оплати</li>\n<li>Клієнт обирає спосіб оплати</li>\n<li>Система розраховує вартість доставки та показує підсумок</li>\n<li>Клієнт підтверджує замовлення</li>\n<li>Клієнт оплачує замовлення (UC-04 Оплатити замовлення)</li>\n<li>Система створює замовлення та показує його номер</li>\n</ol>\n<div class=\"success\"><strong>✅ Результат</strong> <p>Замовлення створено, клієнт отримав підтвердження на email.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Кожен крок описує намір і результат, а не елементи інтерфейсу. \"Система показує форму\" залишає дизайнеру свободу вирішити, як саме ця форма виглядатиме.</p>\n","<h1>🔀 Альтернативні сценарії</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Альтернативний сценарій</strong> (Alternative Flow) - це опис поведінки системи при відхиленні від основного шляху: помилка введення, недоступний ресурс, зовнішній збій.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Основний сценарій описує щасливий шлях, але саме альтернативи визначають, наскільки надійною буде система. У повній специфікації вони зазвичай займають більше місця, ніж основний сценарій.</p>\n<h2>Нумерація альтернатив</h2>\n<p>Альтернатива прив'язується до кроку основного сценарію: запис <strong>3a</strong> означає перше відхилення на кроці 3, <strong>3b</strong> - друге відхилення на тому самому кроці. Кожна альтернатива закінчується одним із двох способів: поверненням до конкретного кроку основного сценарію або завершенням сценарію, якщо мету досягти неможливо.</p>\n<p><strong>3a. Адреса не заповнена</strong> ⚠️</p>\n<ol>\n<li>Система виявляє порожнє поле адреси</li>\n<li>Система показує повідомлення \"Введіть адресу доставки\"</li>\n<li>Повернення до кроку 3 основного сценарію</li>\n</ol>\n<p><strong>7a. Товар закінчився на складі</strong> 📦</p>\n<ol>\n<li>Під час підтвердження система виявляє, що товар уже викуплено іншим клієнтом</li>\n<li>Система видаляє товар із кошика та повідомляє про це</li>\n<li>Якщо кошик не порожній, повернення до кроку 6; інакше сценарій завершується</li>\n</ol>\n<p>Зверніть увагу: передумова \"товари наявні на складі\" перевіряється на початку сценарію, але за час оформлення залишки можуть змінитися. Саме тому потрібна альтернатива 7a, і саме такі ситуації найлегше пропустити, якщо описувати лише щасливий шлях.</p>\n<div class=\"tip\"><strong>💡 Як знаходити альтернативи</strong> <p>Для кожного кроку основного сценарію запитайте: \"Що тут може піти не так?\". Кожна змістовна відповідь - окремий альтернативний сценарій. Для UC-01 це також: спосіб оплати недоступний (5a), доставка за цією адресою не здійснюється (6a), оплату відхилено платіжною системою (8a).</p>\n</div>\n\n\n\n\n\n<div class=\"note\"><strong>📝 Альтернатива чи помилка</strong> <p>Не кожна альтернатива є помилкою. Якщо на кроці 3 клієнт обирає самовивіз замість доставки, це нормальний варіант поведінки, який теж оформлюють як альтернативний сценарій. Термін \"виняток\" (exception) зазвичай залишають саме для збоїв.</p>\n</div>\n\n","<h1>📥 Відношення include</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Include</strong> (включення) - це відношення, при якому базовий Use Case обов'язково виконує інший Use Case як свою частину.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Include прибирає дублювання. Якщо однакові кроки повторюються в кількох сценаріях, їх виносять в окремий UC і посилаються на нього.</p>\n\n<img src=\"https://www.plantuml.com/plantuml/svg/RP11JW8n58RtFSKBxetYBD2G2GDnRk01whHYmz2QjhCo9YekZRXogLSWc0cJ89pXzKQy4KWcOhlvN____rxIdlFS-cASCpTI-evRFePhdes6rXHQ34nkB1obINqRYSB9Z3i9zmpezF_cBpjfb7Qsdh52sjrxb9oV915xO2oNDnwy0Qk6jnw4iZBpocZ6zkGMVeONN8T7_C4gF6C5kC0P3MkSun9BNE4gJ5l07LmDJXkrBoofLE8tBiEKCfFVSlW8JoI8H-hjW1LUTwHsW_IEysq5Aro42MLdDOj0-xrdZD5oE8vh3HVGxIgTvOMGSKn6-t-Z9xMW_zu0\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n<p><strong>Приклад:</strong> і оформлення замовлення, і перегляд історії вимагають авторизації. Замість того щоб описувати вхід у систему двічі, створюємо UC \"Авторизуватися\" і включаємо його.</p>\n<h2>Як це виглядає у специфікації</h2>\n<p>В основному сценарії включений UC згадується одним кроком. Саме так у UC-01 записано крок 8: \"Клієнт оплачує замовлення (UC-04 Оплатити замовлення)\". Усі деталі вибору картки, підтвердження транзакції та помилок оплати описані в UC-04, а базовий сценарій продовжує з наступного кроку. Так само записують і авторизацію: \"1. Клієнт авторизується (UC-05 Авторизуватися)\". Якщо логіка входу зміниться, правити доведеться одне місце, а не кожен сценарій, що її використовує.</p>\n<div class=\"note\"><strong>📝 Include чи передумова</strong> <p>Авторизацію можна змоделювати двома способами: як включений UC (тоді вхід є кроком сценарію) або як передумову \"клієнт авторизований\" (тоді сценарій починається вже після входу). У специфікації UC-01 обрано другий варіант, на діаграмі вище показано перший. Обидва коректні, важливо лише не змішувати їх в одному сценарії.</p>\n</div>\n\n\n\n\n\n<div class=\"note\"><strong>📝 Коли include зайвий</strong> <p>Якщо спільні кроки трапляються лише в одному сценарії, виносити їх немає сенсу. Include виправданий, коли є повторення щонайменше у двох UC або коли включена частина досить складна, щоб описувати її окремо.</p>\n</div>\n\n\n\n\n\n<div class=\"warning\"><strong>⚠️ Напрямок стрілки</strong> <p>Пунктирна стрілка йде <strong>від базового UC до включеного</strong>: \"Оформити замовлення\" включає \"Авторизуватися\".</p>\n</div>\n\n","<h1>📤 Відношення extend</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Extend</strong> (розширення) - це відношення, при якому додатковий Use Case може за певної умови доповнити базовий, але базовий повністю працює і без нього.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Extend описує опціональну поведінку. Клієнт може застосувати промокод, а може і не застосовувати: оформлення замовлення від цього не ламається.</p>\n\n<img src=\"https://www.plantuml.com/plantuml/svg/RP3FIiD04CRlynH3lOlQ7AgKqBIOD_01rcIjeMbMTZSWY53_tBq8tdo6K2oMQk8hpBwHaoPAAkwokymtt-zZs96nGjjydeAP9TcLq6AEvoAQJRNAitYYKgLnBmpgtN7aHaR2IBm1v3N-wpyTX5uuQ7fAnrAtkXSS7mGUt0AayiAYLQYJwQN5ED4oiedA07wIU_Jg7gbo2_gajRkdDT8x5LnKjAGFMb59fNlgeJ1uDZdiO2zKk3i6AhuVs5iqy1SdLLjym-Uj1Oywu7Ej_zhROi4PvHPPqggM2zeqiJi3z04u3FVzUXWymU5GNbkPnRxFUlzVVSGFV_it\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n<h2>Як це виглядає у специфікації</h2>\n<p>Розширення має точку розширення (extension point) і умову. У специфікації UC-01 це записують так: \"Точка розширення: після кроку 6, якщо клієнт має промокод, виконується UC-07 Застосувати промокод\". Кроки базового сценарію промокод не згадують: базовий UC лише оголошує точку, де його можна розширити. У цьому відмінність від include, де базовий UC явно викликає включений як свій крок.</p>\n<h2>Include чи extend?</h2>\n<table>\n<thead>\n<tr>\n<th>Питання</th>\n<th>📥 include</th>\n<th>📤 extend</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>Чи виконується завжди?</td>\n<td>Так, обов'язково</td>\n<td>Ні, лише за умови</td>\n</tr>\n<tr>\n<td>Чи працює базовий UC без нього?</td>\n<td>Ні</td>\n<td>Так</td>\n</tr>\n<tr>\n<td>Куди спрямована стрілка?</td>\n<td>Від базового до включеного</td>\n<td>Від розширення до базового</td>\n</tr>\n<tr>\n<td>Типовий приклад</td>\n<td>Авторизація, оплата</td>\n<td>Промокод, подарункове пакування</td>\n</tr>\n</tbody></table>\n<div class=\"tip\"><strong>💡 Мнемоніка</strong> <p>Include: базовий сценарій \"тягне\" до себе обов'язкову частину. Extend: додаткова можливість \"прилаштовується\" до базового ззовні.</p>\n</div>\n\n","<h1>📏 Рівні деталізації</h1>\n<p><strong>Головна ідея:</strong> Не кожен сценарій потребує повної специфікації. Рівень деталізації обирають залежно від важливості сценарію та етапу проєкту.</p>\n\n<div class=\"mermaid\" data-source=\"graph LR\n    A[📋 Brief] --&gt; B[📄 Casual]\n    B --&gt; C[📖 Fully Dressed]\n    style A fill:#e8f5e9,stroke:#388e3c\n    style B fill:#fff3e0,stroke:#ef6c00\n    style C fill:#fce4ec,stroke:#c2185b\"><svg id=\"exp-1790536644596-10-0\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" class=\"flowchart\" style=\"max-width: 501.3828125px;\" viewBox=\"0 0 501.3828125 64\" role=\"graphics-document document\" aria-roledescription=\"flowchart-v2\"><style>#exp-1790536644596-10-0{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#exp-1790536644596-10-0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#exp-1790536644596-10-0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#exp-1790536644596-10-0 .error-icon{fill:#552222;}#exp-1790536644596-10-0 .error-text{fill:#552222;stroke:#552222;}#exp-1790536644596-10-0 .edge-thickness-normal{stroke-width:1px;}#exp-1790536644596-10-0 .edge-thickness-thick{stroke-width:3.5px;}#exp-1790536644596-10-0 .edge-pattern-solid{stroke-dasharray:0;}#exp-1790536644596-10-0 .edge-thickness-invisible{stroke-width:0;fill:none;}#exp-1790536644596-10-0 .edge-pattern-dashed{stroke-dasharray:3;}#exp-1790536644596-10-0 .edge-pattern-dotted{stroke-dasharray:2;}#exp-1790536644596-10-0 .marker{fill:#333333;stroke:#333333;}#exp-1790536644596-10-0 .marker.cross{stroke:#333333;}#exp-1790536644596-10-0 svg{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;}#exp-1790536644596-10-0 p{margin:0;}#exp-1790536644596-10-0 .label{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;color:#333;}#exp-1790536644596-10-0 .cluster-label text{fill:#333;}#exp-1790536644596-10-0 .cluster-label span{color:#333;}#exp-1790536644596-10-0 .cluster-label span p{background-color:transparent;}#exp-1790536644596-10-0 .label text,#exp-1790536644596-10-0 span{fill:#333;color:#333;}#exp-1790536644596-10-0 .node rect,#exp-1790536644596-10-0 .node circle,#exp-1790536644596-10-0 .node ellipse,#exp-1790536644596-10-0 .node polygon,#exp-1790536644596-10-0 .node path{fill:#ECECFF;stroke:#667eea;stroke-width:1px;}#exp-1790536644596-10-0 .rough-node .label text,#exp-1790536644596-10-0 .node .label text,#exp-1790536644596-10-0 .image-shape .label,#exp-1790536644596-10-0 .icon-shape .label{text-anchor:middle;}#exp-1790536644596-10-0 .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#exp-1790536644596-10-0 .rough-node .label,#exp-1790536644596-10-0 .node .label,#exp-1790536644596-10-0 .image-shape .label,#exp-1790536644596-10-0 .icon-shape .label{text-align:center;}#exp-1790536644596-10-0 .node.clickable{cursor:pointer;}#exp-1790536644596-10-0 .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#exp-1790536644596-10-0 .arrowheadPath{fill:#333333;}#exp-1790536644596-10-0 .edgePaths .path{stroke:#333333;stroke-width:1px;}#exp-1790536644596-10-0 .flowchart-link{stroke:#333333;fill:none;}#exp-1790536644596-10-0 .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1790536644596-10-0 .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#exp-1790536644596-10-0 .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1790536644596-10-0 .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#exp-1790536644596-10-0 .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#exp-1790536644596-10-0 .cluster text{fill:#333;}#exp-1790536644596-10-0 .cluster span{color:#333;}#exp-1790536644596-10-0 .node .collapsed-indicator{fill:#aaaa33;stroke:none;opacity:0.6;}#exp-1790536644596-10-0 .node .collapsed-separator{stroke:#aaaa33;stroke-width:0.75px;}#exp-1790536644596-10-0 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#exp-1790536644596-10-0 .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#exp-1790536644596-10-0 rect.text{fill:none;stroke-width:0;}#exp-1790536644596-10-0 .icon-shape,#exp-1790536644596-10-0 .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1790536644596-10-0 .icon-shape p,#exp-1790536644596-10-0 .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#exp-1790536644596-10-0 .icon-shape .label rect,#exp-1790536644596-10-0 .image-shape .label rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1790536644596-10-0 .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#exp-1790536644596-10-0 .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#exp-1790536644596-10-0 .node .neo-node{stroke:#667eea;}#exp-1790536644596-10-0 [data-look=\"neo\"].node rect,#exp-1790536644596-10-0 [data-look=\"neo\"].cluster rect,#exp-1790536644596-10-0 [data-look=\"neo\"].node polygon{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790536644596-10-0 [data-look=\"neo\"].swimlane.cluster rect{filter:none;}#exp-1790536644596-10-0 [data-look=\"neo\"].node path{stroke:#667eea;stroke-width:1px;}#exp-1790536644596-10-0 [data-look=\"neo\"].node .outer-path{filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790536644596-10-0 [data-look=\"neo\"].node .neo-line path{stroke:#667eea;filter:none;}#exp-1790536644596-10-0 [data-look=\"neo\"].node circle{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790536644596-10-0 [data-look=\"neo\"].node circle .state-start{fill:#000000;}#exp-1790536644596-10-0 [data-look=\"neo\"].icon-shape .icon{fill:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790536644596-10-0 [data-look=\"neo\"].icon-shape .icon-neo path{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790536644596-10-0 :root{--mermaid-font-family:\"trebuchet ms\",verdana,arial,sans-serif;}</style><g><marker id=\"exp-1790536644596-10-0_flowchart-v2-pointEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 0 L 10 5 L 0 10 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790536644596-10-0_flowchart-v2-pointStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"4.5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 5 L 10 10 L 10 0 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790536644596-10-0_flowchart-v2-pointEnd-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 11.5 14\" refX=\"11.5\" refY=\"7\" markerUnits=\"userSpaceOnUse\" markerWidth=\"10.5\" markerHeight=\"14\" orient=\"auto\"><path d=\"M 0 0 L 11.5 7 L 0 14 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790536644596-10-0_flowchart-v2-pointStart-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 11.5 14\" refX=\"1\" refY=\"7\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11.5\" markerHeight=\"14\" orient=\"auto\"><polygon points=\"0,7 11.5,14 11.5,0\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></polygon></marker><marker id=\"exp-1790536644596-10-0_flowchart-v2-circleEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"11\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1790536644596-10-0_flowchart-v2-circleStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-1\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1790536644596-10-0_flowchart-v2-circleEnd-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refY=\"5\" refX=\"12.25\" markerUnits=\"userSpaceOnUse\" markerWidth=\"14\" markerHeight=\"14\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1790536644596-10-0_flowchart-v2-circleStart-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-2\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"14\" markerHeight=\"14\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1790536644596-10-0_flowchart-v2-crossEnd\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"12\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790536644596-10-0_flowchart-v2-crossStart\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"-1\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790536644596-10-0_flowchart-v2-crossEnd-margin\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 15 15\" refX=\"17.7\" refY=\"7.5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"12\" markerHeight=\"12\" orient=\"auto\"><path d=\"M 1,1 L 14,14 M 1,14 L 14,1\" class=\"arrowMarkerPath\" style=\"stroke-width: 2.5;\"></path></marker><marker id=\"exp-1790536644596-10-0_flowchart-v2-crossStart-margin\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 15 15\" refX=\"-3.5\" refY=\"7.5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"12\" markerHeight=\"12\" orient=\"auto\"><path d=\"M 1,1 L 14,14 M 1,14 L 14,1\" class=\"arrowMarkerPath\" style=\"stroke-width: 2.5; stroke-dasharray: 1, 0;\"></path></marker><g class=\"root\"><g class=\"clusters\"></g><g class=\"edgePaths\"><path d=\"M110.117,32L114.284,32C118.451,32,126.784,32,134.451,32C142.117,32,149.117,32,152.617,32L156.117,32\" id=\"exp-1790536644596-10-0-L_A_B_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_A_B_0\" data-points=\"W3sieCI6MTEwLjExNzE4NzUsInkiOjMyfSx7IngiOjEzNS4xMTcxODc1LCJ5IjozMn0seyJ4IjoxNjAuMTE3MTg3NSwieSI6MzJ9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1790536644596-10-0_flowchart-v2-pointEnd)\"></path><path d=\"M277.297,32L281.464,32C285.63,32,293.964,32,301.63,32C309.297,32,316.297,32,319.797,32L323.297,32\" id=\"exp-1790536644596-10-0-L_B_C_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_B_C_0\" data-points=\"W3sieCI6Mjc3LjI5Njg3NSwieSI6MzJ9LHsieCI6MzAyLjI5Njg3NSwieSI6MzJ9LHsieCI6MzI3LjI5Njg3NSwieSI6MzJ9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1790536644596-10-0_flowchart-v2-pointEnd)\"></path></g><g class=\"edgeLabels\"><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_A_B_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_B_C_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g></g><g class=\"nodes\"><g class=\"node default  \" id=\"exp-1790536644596-10-0-flowchart-A-0\" data-look=\"classic\" transform=\"translate(59.05859375, 32)\"><rect class=\"basic label-container\" style=\"fill:#e8f5e9 !important;stroke:#388e3c !important\" x=\"-51.05859375\" y=\"-24\" width=\"102.1171875\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-27.05859375, -12)\"><rect></rect><foreignObject width=\"54.1171875\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>📋 Brief</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1790536644596-10-0-flowchart-B-1\" data-look=\"classic\" transform=\"translate(218.70703125, 32)\"><rect class=\"basic label-container\" style=\"fill:#fff3e0 !important;stroke:#ef6c00 !important\" x=\"-58.58984375\" y=\"-24\" width=\"117.1796875\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-34.58984375, -12)\"><rect></rect><foreignObject width=\"69.1796875\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>📄 Casual</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1790536644596-10-0-flowchart-C-3\" data-look=\"classic\" transform=\"translate(410.33984375, 32)\"><rect class=\"basic label-container\" style=\"fill:#fce4ec !important;stroke:#c2185b !important\" x=\"-83.04296875\" y=\"-24\" width=\"166.0859375\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-59.04296875, -12)\"><rect></rect><foreignObject width=\"118.0859375\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>📖 Fully Dressed</p></span></div></foreignObject></g></g></g></g></g><defs><filter id=\"exp-1790536644596-10-0-drop-shadow\" height=\"130%\" width=\"130%\"><feDropShadow dx=\"4\" dy=\"4\" stdDeviation=\"0\" flood-opacity=\"0.06\" flood-color=\"#000000\"></feDropShadow></filter></defs><defs><filter id=\"exp-1790536644596-10-0-drop-shadow-small\" height=\"150%\" width=\"150%\"><feDropShadow dx=\"2\" dy=\"2\" stdDeviation=\"0\" flood-opacity=\"0.06\" flood-color=\"#000000\"></feDropShadow></filter></defs></svg></div>\n<table>\n<thead>\n<tr>\n<th>Рівень</th>\n<th>Обсяг</th>\n<th>Коли застосовувати</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>📋 <strong>Brief</strong></td>\n<td>Одне-два речення</td>\n<td>Початковий аналіз, швидке окреслення обсягу системи</td>\n</tr>\n<tr>\n<td>📄 <strong>Casual</strong></td>\n<td>Кілька абзаців вільного тексту</td>\n<td>Обговорення зі стейкхолдерами, некритичні сценарії</td>\n</tr>\n<tr>\n<td>📖 <strong>Fully Dressed</strong></td>\n<td>Повна специфікація з усіма полями</td>\n<td>Критичні для бізнесу сценарії та складні інтеграції</td>\n</tr>\n</tbody></table>\n<h2>Один сценарій на трьох рівнях</h2>\n<p><strong>Brief:</strong> \"Клієнт обирає адресу та спосіб оплати, підтверджує й оплачує замовлення; система створює замовлення та надсилає підтвердження\".</p>\n<p><strong>Casual:</strong> абзац, який додає до цього умови: що клієнт має бути авторизований, що система перевіряє наявність товару, а при відсутності повідомляє про це і пропонує продовжити з рештою кошика.</p>\n<p><strong>Fully Dressed:</strong> повна специфікація UC-01 із передумовами, дев'ятьма кроками та пронумерованими альтернативами, як на попередніх слайдах.</p>\n<div class=\"note\"><strong>📝 Автор класифікації</strong> <p>Три рівні запропонував Алістер Кокберн у книзі \"Writing Effective Use Cases\". На практиці проєкт зазвичай починають з Brief для всіх сценаріїв, а до Fully Dressed доводять лише ті, від яких залежить бізнес.</p>\n</div>\n\n","<h1>✍️ Правила формулювання</h1>\n<p><strong>Головна ідея:</strong> Майже всі помилки в Use Cases походять з одного джерела: автор сповзає з рівня мети користувача на рівень інтерфейсу або технічної реалізації.</p>\n<p>Перевірка проста: чи залишиться формулювання правильним, якщо замінити веб-сайт на мобільний застосунок або голосового помічника? \"Підтвердити замовлення\" залишиться, а \"клік на кнопку\" втратить сенс. Опис на рівні мети живе довше за будь-який інтерфейс і не змушує переписувати вимоги при редизайні.</p>\n<table>\n<thead>\n<tr>\n<th>❌ Погано</th>\n<th>✅ Добре</th>\n<th>💡 Чому</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>Введення даних</td>\n<td>Зареєструватися в системі</td>\n<td>Мета, а не процес</td>\n</tr>\n<tr>\n<td>Клік на кнопку</td>\n<td>Підтвердити замовлення</td>\n<td>Намір, а не дія в інтерфейсі</td>\n</tr>\n<tr>\n<td>Валідація форми</td>\n<td>Перевірити коректність email</td>\n<td>Зрозуміло без технічних деталей</td>\n</tr>\n<tr>\n<td>Робота з даними</td>\n<td>Експортувати звіт у PDF</td>\n<td>Конкретно, а не загально</td>\n</tr>\n</tbody></table>\n<div class=\"tip\"><strong>💡 Критерії якісного Use Case</strong> <ol>\n<li><strong>Назва</strong> у форматі \"дієслово + об'єкт\"</li>\n<li><strong>Точка зору</strong> актора, а не системи</li>\n<li><strong>Одна мета</strong> користувача на один сценарій</li>\n<li><strong>3-10 кроків</strong> в основному сценарії</li>\n<li><strong>Проста мова</strong> без технічного жаргону</li>\n<li><strong>Можливість протестувати</strong> кожен крок</li>\n</ol>\n</div>\n\n","<h1>⚠️ Типові помилки</h1>\n<p><strong>Головна ідея:</strong> Ці помилки легко виявити на рецензуванні специфікації, якщо читати її очима двох людей: замовника, який має зрозуміти кожен крок без пояснень, і тестувальника, який має перетворити кожен крок на перевірку.</p>\n<div class=\"danger\"><strong>🚫 Занадто технічний опис</strong> <p>❌ \"Система виконує SQL-запит і повертає JSON\"<br>✅ \"Система показує список доступних товарів\"</p>\n</div>\n\n\n\n\n\n<div class=\"danger\"><strong>🚫 Кілька цілей в одному сценарії</strong> <p>❌ \"Авторизуватися, додати товар, оплатити, отримати лист\"<br>✅ Чотири окремі Use Cases, пов'язані через include там, де це потрібно</p>\n</div>\n\n\n\n\n\n<div class=\"danger\"><strong>🚫 Тільки щасливий шлях</strong> <p>Описано основний сценарій, але жодної альтернативи. Така специфікація не каже, що робити при помилці оплати чи відсутності товару.</p>\n</div>\n\n\n\n\n\n<div class=\"danger\"><strong>🚫 Система як актор</strong> <p>❌ \"Актор: Система. Дія: обробляє платіж\"<br>✅ \"Актор: Клієнт. Дія: ініціює оплату замовлення\"</p>\n</div>\n\n\n\n\n\n<div class=\"tip\"><strong>💡 Золоте правило</strong> <p>Якщо сценарій неможливо перетворити на тест-кейс, він написаний неправильно. Крок \"Система обробляє дані\" не перевіриш, а крок \"Система показує підсумок замовлення з вартістю доставки\" перевіряється за хвилину.</p>\n</div>\n\n","<h1>🔍 Use Cases та User Stories</h1>\n<p><strong>Головна ідея:</strong> Це не конкуренти, а інструменти різного масштабу. User Story коротко фіксує потребу, Use Case детально описує, як система її задовольняє.</p>\n<table>\n<thead>\n<tr>\n<th>Характеристика</th>\n<th>🎯 Use Case</th>\n<th>📝 User Story</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Обсяг</strong></td>\n<td>Від абзацу до кількох сторінок</td>\n<td>Одне-два речення</td>\n</tr>\n<tr>\n<td><strong>Фокус</strong></td>\n<td>Усі сценарії взаємодії, включно з помилками</td>\n<td>Цінність для користувача</td>\n</tr>\n<tr>\n<td><strong>Структура</strong></td>\n<td>Формальна, стандартизовані поля</td>\n<td>Вільна, шаблон \"Як ... я хочу ... щоб ...\"</td>\n</tr>\n<tr>\n<td><strong>Коли доречний</strong></td>\n<td>Складні системи, багато інтеграцій, потрібна документація</td>\n<td>Гнучка розробка, часті зміни вимог</td>\n</tr>\n</tbody></table>\n<div class=\"note\"><strong>📝 Приклад поєднання</strong> <p><strong>User Story:</strong> \"Як клієнт, я хочу оформити замовлення онлайн, щоб не витрачати час на похід до магазину\".<br><strong>Use Case UC-01:</strong> детальний опис оформлення з передумовами, дев'ятьма кроками та альтернативами.</p>\n</div>\n\n\n\n<p>На практиці команди часто починають з User Story, щоб зафіксувати потребу і оцінити її цінність, а коли історія потрапляє в розробку, для складних сценаріїв пишуть Use Case або принаймні його основний і альтернативні потоки. Критерії приймання (acceptance criteria) історії при цьому природно перетворюються на кроки та альтернативи сценарію. Для простих історій на кшталт \"змінити аватар\" повний Use Case буде надмірним.</p>\n","<h1>🗺️ Як виявити Use Cases для проєкту</h1>\n<p><strong>Головна ідея:</strong> Use Cases не вигадують, а виводять з цілей акторів. Тому робота починається з акторів, а не з функцій.</p>\n\n<div class=\"mermaid\" data-source=\"graph LR\n    A[1. Визначити акторів] --&gt; B[2. Знайти цілі кожного актора]\n    B --&gt; C[3. Сформулювати UC для кожної цілі]\n    C --&gt; D[4. Деталізувати критичні UC]\n    D --&gt; E[5. Узгодити зі стейкхолдерами]\n    style A fill:#e8f5e9,stroke:#388e3c\n    style B fill:#e8f5e9,stroke:#388e3c\n    style C fill:#e3f2fd,stroke:#1565c0\n    style D fill:#e3f2fd,stroke:#1565c0\n    style E fill:#fff3e0,stroke:#ef6c00\"><svg id=\"exp-1790536644609-14-0\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" class=\"flowchart\" style=\"max-width: 1411.8203125px;\" viewBox=\"0 0 1411.8203125 88\" role=\"graphics-document document\" aria-roledescription=\"flowchart-v2\"><style>#exp-1790536644609-14-0{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#exp-1790536644609-14-0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#exp-1790536644609-14-0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#exp-1790536644609-14-0 .error-icon{fill:#552222;}#exp-1790536644609-14-0 .error-text{fill:#552222;stroke:#552222;}#exp-1790536644609-14-0 .edge-thickness-normal{stroke-width:1px;}#exp-1790536644609-14-0 .edge-thickness-thick{stroke-width:3.5px;}#exp-1790536644609-14-0 .edge-pattern-solid{stroke-dasharray:0;}#exp-1790536644609-14-0 .edge-thickness-invisible{stroke-width:0;fill:none;}#exp-1790536644609-14-0 .edge-pattern-dashed{stroke-dasharray:3;}#exp-1790536644609-14-0 .edge-pattern-dotted{stroke-dasharray:2;}#exp-1790536644609-14-0 .marker{fill:#333333;stroke:#333333;}#exp-1790536644609-14-0 .marker.cross{stroke:#333333;}#exp-1790536644609-14-0 svg{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;}#exp-1790536644609-14-0 p{margin:0;}#exp-1790536644609-14-0 .label{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;color:#333;}#exp-1790536644609-14-0 .cluster-label text{fill:#333;}#exp-1790536644609-14-0 .cluster-label span{color:#333;}#exp-1790536644609-14-0 .cluster-label span p{background-color:transparent;}#exp-1790536644609-14-0 .label text,#exp-1790536644609-14-0 span{fill:#333;color:#333;}#exp-1790536644609-14-0 .node rect,#exp-1790536644609-14-0 .node circle,#exp-1790536644609-14-0 .node ellipse,#exp-1790536644609-14-0 .node polygon,#exp-1790536644609-14-0 .node path{fill:#ECECFF;stroke:#667eea;stroke-width:1px;}#exp-1790536644609-14-0 .rough-node .label text,#exp-1790536644609-14-0 .node .label text,#exp-1790536644609-14-0 .image-shape .label,#exp-1790536644609-14-0 .icon-shape .label{text-anchor:middle;}#exp-1790536644609-14-0 .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#exp-1790536644609-14-0 .rough-node .label,#exp-1790536644609-14-0 .node .label,#exp-1790536644609-14-0 .image-shape .label,#exp-1790536644609-14-0 .icon-shape .label{text-align:center;}#exp-1790536644609-14-0 .node.clickable{cursor:pointer;}#exp-1790536644609-14-0 .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#exp-1790536644609-14-0 .arrowheadPath{fill:#333333;}#exp-1790536644609-14-0 .edgePaths .path{stroke:#333333;stroke-width:1px;}#exp-1790536644609-14-0 .flowchart-link{stroke:#333333;fill:none;}#exp-1790536644609-14-0 .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1790536644609-14-0 .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#exp-1790536644609-14-0 .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1790536644609-14-0 .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#exp-1790536644609-14-0 .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#exp-1790536644609-14-0 .cluster text{fill:#333;}#exp-1790536644609-14-0 .cluster span{color:#333;}#exp-1790536644609-14-0 .node .collapsed-indicator{fill:#aaaa33;stroke:none;opacity:0.6;}#exp-1790536644609-14-0 .node .collapsed-separator{stroke:#aaaa33;stroke-width:0.75px;}#exp-1790536644609-14-0 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#exp-1790536644609-14-0 .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#exp-1790536644609-14-0 rect.text{fill:none;stroke-width:0;}#exp-1790536644609-14-0 .icon-shape,#exp-1790536644609-14-0 .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1790536644609-14-0 .icon-shape p,#exp-1790536644609-14-0 .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#exp-1790536644609-14-0 .icon-shape .label rect,#exp-1790536644609-14-0 .image-shape .label rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1790536644609-14-0 .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#exp-1790536644609-14-0 .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#exp-1790536644609-14-0 .node .neo-node{stroke:#667eea;}#exp-1790536644609-14-0 [data-look=\"neo\"].node rect,#exp-1790536644609-14-0 [data-look=\"neo\"].cluster rect,#exp-1790536644609-14-0 [data-look=\"neo\"].node polygon{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790536644609-14-0 [data-look=\"neo\"].swimlane.cluster rect{filter:none;}#exp-1790536644609-14-0 [data-look=\"neo\"].node path{stroke:#667eea;stroke-width:1px;}#exp-1790536644609-14-0 [data-look=\"neo\"].node .outer-path{filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790536644609-14-0 [data-look=\"neo\"].node .neo-line path{stroke:#667eea;filter:none;}#exp-1790536644609-14-0 [data-look=\"neo\"].node circle{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790536644609-14-0 [data-look=\"neo\"].node circle .state-start{fill:#000000;}#exp-1790536644609-14-0 [data-look=\"neo\"].icon-shape .icon{fill:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790536644609-14-0 [data-look=\"neo\"].icon-shape .icon-neo path{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790536644609-14-0 :root{--mermaid-font-family:\"trebuchet ms\",verdana,arial,sans-serif;}</style><g><marker id=\"exp-1790536644609-14-0_flowchart-v2-pointEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 0 L 10 5 L 0 10 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790536644609-14-0_flowchart-v2-pointStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"4.5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 5 L 10 10 L 10 0 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790536644609-14-0_flowchart-v2-pointEnd-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 11.5 14\" refX=\"11.5\" refY=\"7\" markerUnits=\"userSpaceOnUse\" markerWidth=\"10.5\" markerHeight=\"14\" orient=\"auto\"><path d=\"M 0 0 L 11.5 7 L 0 14 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790536644609-14-0_flowchart-v2-pointStart-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 11.5 14\" refX=\"1\" refY=\"7\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11.5\" markerHeight=\"14\" orient=\"auto\"><polygon points=\"0,7 11.5,14 11.5,0\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></polygon></marker><marker id=\"exp-1790536644609-14-0_flowchart-v2-circleEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"11\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1790536644609-14-0_flowchart-v2-circleStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-1\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1790536644609-14-0_flowchart-v2-circleEnd-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refY=\"5\" refX=\"12.25\" markerUnits=\"userSpaceOnUse\" markerWidth=\"14\" markerHeight=\"14\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1790536644609-14-0_flowchart-v2-circleStart-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-2\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"14\" markerHeight=\"14\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1790536644609-14-0_flowchart-v2-crossEnd\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"12\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790536644609-14-0_flowchart-v2-crossStart\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"-1\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790536644609-14-0_flowchart-v2-crossEnd-margin\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 15 15\" refX=\"17.7\" refY=\"7.5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"12\" markerHeight=\"12\" orient=\"auto\"><path d=\"M 1,1 L 14,14 M 1,14 L 14,1\" class=\"arrowMarkerPath\" style=\"stroke-width: 2.5;\"></path></marker><marker id=\"exp-1790536644609-14-0_flowchart-v2-crossStart-margin\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 15 15\" refX=\"-3.5\" refY=\"7.5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"12\" markerHeight=\"12\" orient=\"auto\"><path d=\"M 1,1 L 14,14 M 1,14 L 14,1\" class=\"arrowMarkerPath\" style=\"stroke-width: 2.5; stroke-dasharray: 1, 0;\"></path></marker><g class=\"root\"><g class=\"clusters\"></g><g class=\"edgePaths\"><path d=\"M211.82,44L215.987,44C220.154,44,228.487,44,236.154,44C243.82,44,250.82,44,254.32,44L257.82,44\" id=\"exp-1790536644609-14-0-L_A_B_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_A_B_0\" data-points=\"W3sieCI6MjExLjgyMDMxMjUsInkiOjQ0fSx7IngiOjIzNi44MjAzMTI1LCJ5Ijo0NH0seyJ4IjoyNjEuODIwMzEyNSwieSI6NDR9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1790536644609-14-0_flowchart-v2-pointEnd)\"></path><path d=\"M509.82,44L513.987,44C518.154,44,526.487,44,534.154,44C541.82,44,548.82,44,552.32,44L555.82,44\" id=\"exp-1790536644609-14-0-L_B_C_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_B_C_0\" data-points=\"W3sieCI6NTA5LjgyMDMxMjUsInkiOjQ0fSx7IngiOjUzNC44MjAzMTI1LCJ5Ijo0NH0seyJ4Ijo1NTkuODIwMzEyNSwieSI6NDR9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1790536644609-14-0_flowchart-v2-pointEnd)\"></path><path d=\"M807.82,44L811.987,44C816.154,44,824.487,44,832.154,44C839.82,44,846.82,44,850.32,44L853.82,44\" id=\"exp-1790536644609-14-0-L_C_D_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_C_D_0\" data-points=\"W3sieCI6ODA3LjgyMDMxMjUsInkiOjQ0fSx7IngiOjgzMi44MjAzMTI1LCJ5Ijo0NH0seyJ4Ijo4NTcuODIwMzEyNSwieSI6NDR9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1790536644609-14-0_flowchart-v2-pointEnd)\"></path><path d=\"M1105.82,44L1109.987,44C1114.154,44,1122.487,44,1130.154,44C1137.82,44,1144.82,44,1148.32,44L1151.82,44\" id=\"exp-1790536644609-14-0-L_D_E_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_D_E_0\" data-points=\"W3sieCI6MTEwNS44MjAzMTI1LCJ5Ijo0NH0seyJ4IjoxMTMwLjgyMDMxMjUsInkiOjQ0fSx7IngiOjExNTUuODIwMzEyNSwieSI6NDR9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1790536644609-14-0_flowchart-v2-pointEnd)\"></path></g><g class=\"edgeLabels\"><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_A_B_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_B_C_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_C_D_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_D_E_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g></g><g class=\"nodes\"><g class=\"node default  \" id=\"exp-1790536644609-14-0-flowchart-A-0\" data-look=\"classic\" transform=\"translate(109.91015625, 44)\"><rect class=\"basic label-container\" style=\"fill:#e8f5e9 !important;stroke:#388e3c !important\" x=\"-101.91015625\" y=\"-24\" width=\"203.8203125\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-77.91015625, -12)\"><rect></rect><foreignObject width=\"155.8203125\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>1. Визначити акторів</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1790536644609-14-0-flowchart-B-1\" data-look=\"classic\" transform=\"translate(385.8203125, 44)\"><rect class=\"basic label-container\" style=\"fill:#e8f5e9 !important;stroke:#388e3c !important\" x=\"-124\" y=\"-36\" width=\"248\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-100, -24)\"><rect></rect><foreignObject width=\"200\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;\"><span class=\"nodeLabel \"><p>2. Знайти цілі кожного актора</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1790536644609-14-0-flowchart-C-3\" data-look=\"classic\" transform=\"translate(683.8203125, 44)\"><rect class=\"basic label-container\" style=\"fill:#e3f2fd !important;stroke:#1565c0 !important\" x=\"-124\" y=\"-36\" width=\"248\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-100, -24)\"><rect></rect><foreignObject width=\"200\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;\"><span class=\"nodeLabel \"><p>3. Сформулювати UC для кожної цілі</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1790536644609-14-0-flowchart-D-5\" data-look=\"classic\" transform=\"translate(981.8203125, 44)\"><rect class=\"basic label-container\" style=\"fill:#e3f2fd !important;stroke:#1565c0 !important\" x=\"-124\" y=\"-36\" width=\"248\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-100, -24)\"><rect></rect><foreignObject width=\"200\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;\"><span class=\"nodeLabel \"><p>4. Деталізувати критичні UC</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1790536644609-14-0-flowchart-E-7\" data-look=\"classic\" transform=\"translate(1279.8203125, 44)\"><rect class=\"basic label-container\" style=\"fill:#fff3e0 !important;stroke:#ef6c00 !important\" x=\"-124\" y=\"-36\" width=\"248\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-100, -24)\"><rect></rect><foreignObject width=\"200\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;\"><span class=\"nodeLabel \"><p>5. Узгодити зі стейкхолдерами</p></span></div></foreignObject></g></g></g></g></g><defs><filter id=\"exp-1790536644609-14-0-drop-shadow\" height=\"130%\" width=\"130%\"><feDropShadow dx=\"4\" dy=\"4\" stdDeviation=\"0\" flood-opacity=\"0.06\" flood-color=\"#000000\"></feDropShadow></filter></defs><defs><filter id=\"exp-1790536644609-14-0-drop-shadow-small\" height=\"150%\" width=\"150%\"><feDropShadow dx=\"2\" dy=\"2\" stdDeviation=\"0\" flood-opacity=\"0.06\" flood-color=\"#000000\"></feDropShadow></filter></defs></svg></div>\n<h2>Приклад проходження</h2>\n<p>Для інтернет-магазину на кроці 1 знаходимо акторів: клієнт, адміністратор, платіжна система, служба доставки. На кроці 2 запитуємо, чого хоче клієнт: знайти товар, купити його, відстежити доставку, повернути товар. На кроці 3 кожна мета стає овалом на діаграмі: \"Знайти товар\", \"Оформити замовлення\", \"Відстежити доставку\", \"Повернути товар\". На кроці 4 з них обираємо \"Оформити замовлення\" як критичний і пишемо Fully Dressed, а \"Відстежити доставку\" залишаємо на рівні Brief. На кроці 5 показуємо результат власнику магазину: він, наприклад, згадує, що повернення можливе лише протягом 14 днів, і це стає передумовою відповідного сценарію.</p>\n<div class=\"tip\"><strong>💡 Стартове запитання</strong> <p>\"Навіщо користувач прийшов до нашої системи?\" Кожна змістовна відповідь є кандидатом на окремий Use Case. Відповіді на кшталт \"натиснути кнопку\" або \"ввести пароль\" не є метою, це кроки всередині якогось сценарію.</p>\n</div>\n\n\n\n\n\n<div class=\"note\"><strong>📝 Що деталізувати першим</strong> <p>До рівня Fully Dressed доводять сценарії, які приносять бізнесу найбільшу цінність, виконуються найчастіше або без яких система не працює. Решту можна залишити на рівні Brief або Casual.</p>\n</div>\n\n","<h1>🏨 Комплексний приклад: бронювання готелю</h1>\n<p><strong>Головна ідея:</strong> Ця діаграма збирає все разом: двох первинних акторів, двох вторинних, обидва типи відношень і сценарій, доступний без авторизації. Така структура типова для будь-яких систем бронювання: готелі, авіаквитки, оренда авто.</p>\n\n<img src=\"https://www.plantuml.com/plantuml/svg/VPJFRjD04CRl-nIZS6u5gPCKL4KrLSmL2V40Yxq4g_w3xBMWGaXDUqLD9L2HE83w1gPD86gQy0gpRyJindPSX-8SdF5ylszcnoFlfv8dCWi3bXxwqLkUy12uA-FaXJmA1F1t8er3KKk-ukxXC8cpo3k8WpY11uwjVqqSFZ2Ww-c6sd6iGMULYnDF9DLpkzVkieyrdomLBa_5VKw3NSToTZUTBFlnGziY9nQ8rn9a38a_V2F1ynFXIZ-E65jrsCBFwaADr8dwr0AUmhDCfBBAdUC4RzK5BWhDCURg19Vgs6XjB_IZIli3vpfBwb-um1pK26SQmYdUOcw0v_me555bFmYv7sZTb8olT0cZCeyPqutoQ4ZpR-5btGhm9-cNrDGPNc5EnHPg37XDVMd5N9srYd6LmzFDwHfJ4itLcFId99q1eKjorAcPAVtou543_4e5xfHhW0NMRc3dT1upA9pXRtLQWdI8SK7iD8Zl-6SrG5AP4lyuP85Q3VGIRmWShSly3-uqu6_w57LqFPESxkLSkWti2wac9JAfWXlwHsyIw31BUh5pChwkF7fw7ys2mTPMtmox7hNlH1rcrgk8keoH0BQtTR03Js1lpu_S8FD4lr_BM1kPphrChyYqJKQyboBoAC6qYovQBgjMw7Yrbjfn7UqJGv-Dlm00\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n<div class=\"info\"><strong>ℹ️ Як читати діаграму</strong> <ul>\n<li>👤 <strong>Гість</strong> переглядає номери без авторизації, але бронювання та скасування потребують входу в систему, тому обидва включають UC \"Авторизуватися\"</li>\n<li>💳 <strong>Оплата</strong> є невід'ємною частиною бронювання, тому це include, а не окремий крок гостя</li>\n<li>🎁 <strong>Додаткові послуги</strong> (сніданок, трансфер) необов'язкові, тому це extend, і стрілка йде від розширення до базового UC</li>\n<li>📧 <strong>Платіжна система та Email сервіс</strong> - вторинні актори: система сама звертається до них під час виконання сценаріїв</li>\n<li>🛠️ <strong>Адміністратор</strong> працює з окремим сценарієм керування номерами, який не перетинається з клієнтськими</li>\n</ul>\n</div>\n\n","<h1>🎓 Ключові висновки</h1>\n<div class=\"success\"><strong>✅ Що потрібно запам'ятати</strong> <ol>\n<li>🎯 <strong>Use Case</strong> описує взаємодію актора з системою заради конкретної мети: ЩО робить система, а не ЯК</li>\n<li>🎭 <strong>Актор - це роль</strong>, а не людина; первинний ініціює сценарій, вторинний надає сервіс</li>\n<li>📊 <strong>Діаграма</strong> дає огляд, <strong>специфікація</strong> дає деталі; одне без іншого неповне</li>\n<li>🔀 <strong>Альтернативні сценарії</strong> визначають надійність системи і зазвичай займають більшу частину специфікації</li>\n<li>📥 <strong>Include</strong> - обов'язкова частина, 📤 <strong>extend</strong> - опціональне доповнення, стрілки спрямовані протилежно</li>\n<li>📏 <strong>Рівень деталізації</strong> обирають за важливістю сценарію: Brief, Casual або Fully Dressed</li>\n<li>✍️ Пишіть з точки зору <strong>мети користувача</strong>, а не інтерфейсу чи реалізації</li>\n<li>🧪 Якісний Use Case завжди можна перетворити на <strong>тест-кейс</strong></li>\n</ol>\n</div>\n\n","<h1>❓ Контрольні питання</h1>\n<ol>\n<li>🤔 Що таке Use Case і чим він відрізняється від простого переліку функцій системи?</li>\n<li>🎭 Чому актор - це роль, а не конкретна людина? Наведіть приклад первинного, вторинного та офстейдж-актора.</li>\n<li>📊 Які елементи містить Use Case діаграма і що показує прямокутник на ній?</li>\n<li>📝 Перелічіть обов'язкові поля специфікації Use Case та поясніть призначення передумов і результату.</li>\n<li>🔀 Навіщо потрібні альтернативні сценарії і як вони прив'язуються до кроків основного?</li>\n<li>🔗 Поясніть різницю між include та extend. У якому напрямку спрямована стрілка в кожному випадку?</li>\n<li>📏 Які три рівні деталізації Use Case існують і коли застосовується кожен?</li>\n<li>✍️ Назвіть три типові помилки при написанні Use Cases і поясніть, як їх уникнути.</li>\n<li>🔍 Чим Use Case відрізняється від User Story і як їх можна поєднувати?</li>\n<li>🧪 Сформулюйте Use Case \"Зареєструватися в системі\" з основним сценарієм і двома альтернативними.</li>\n</ol>\n","<h1>📚 Глосарій термінів</h1>\n<table>\n<thead>\n<tr>\n<th>Термін</th>\n<th>English</th>\n<th>Визначення</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>Сценарій використання</td>\n<td>Use Case</td>\n<td>Опис взаємодії актора з системою для досягнення конкретної мети</td>\n</tr>\n<tr>\n<td>Актор</td>\n<td>Actor</td>\n<td>Роль користувача або зовнішньої системи, що взаємодіє з системою</td>\n</tr>\n<tr>\n<td>Первинний актор</td>\n<td>Primary Actor</td>\n<td>Актор, який ініціює сценарій і отримує від нього цінність</td>\n</tr>\n<tr>\n<td>Вторинний актор</td>\n<td>Secondary Actor</td>\n<td>Актор, до якого система звертається під час виконання сценарію</td>\n</tr>\n<tr>\n<td>Передумова</td>\n<td>Precondition</td>\n<td>Стан системи, який має виконуватись до початку сценарію</td>\n</tr>\n<tr>\n<td>Основний сценарій</td>\n<td>Main Flow / Happy Path</td>\n<td>Послідовність кроків без помилок і відхилень</td>\n</tr>\n<tr>\n<td>Альтернативний сценарій</td>\n<td>Alternative Flow</td>\n<td>Поведінка системи при відхиленні від основного шляху</td>\n</tr>\n<tr>\n<td>Результат</td>\n<td>Postcondition</td>\n<td>Стан системи після успішного завершення сценарію</td>\n</tr>\n<tr>\n<td>Включення</td>\n<td>Include</td>\n<td>Обов'язкове виконання одного Use Case як частини іншого</td>\n</tr>\n<tr>\n<td>Розширення</td>\n<td>Extend</td>\n<td>Опціональне доповнення базового Use Case за певної умови</td>\n</tr>\n<tr>\n<td>Офстейдж-актор</td>\n<td>Off-stage Actor</td>\n<td>Актор, зацікавлений у результаті, але не залучений до взаємодії</td>\n</tr>\n<tr>\n<td>Точка розширення</td>\n<td>Extension Point</td>\n<td>Місце в базовому Use Case, де за умови підключається розширення</td>\n</tr>\n<tr>\n<td>Виняток</td>\n<td>Exception</td>\n<td>Альтернативний сценарій, спричинений збоєм або помилкою</td>\n</tr>\n<tr>\n<td>Межа системи</td>\n<td>System Boundary</td>\n<td>Прямокутник на діаграмі, що відокремлює систему від акторів</td>\n</tr>\n<tr>\n<td>Стейкхолдер</td>\n<td>Stakeholder</td>\n<td>Особа або організація, зацікавлена в результаті проєкту</td>\n</tr>\n</tbody></table>\n","<h1>📝 Глосарій абревіатур</h1>\n<table>\n<thead>\n<tr>\n<th>Абревіатура</th>\n<th>Розшифровка</th>\n<th>Переклад</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>UC</td>\n<td>Use Case</td>\n<td>Сценарій використання</td>\n</tr>\n<tr>\n<td>UML</td>\n<td>Unified Modeling Language</td>\n<td>Уніфікована мова моделювання</td>\n</tr>\n<tr>\n<td>UI</td>\n<td>User Interface</td>\n<td>Інтерфейс користувача</td>\n</tr>\n<tr>\n<td>PDF</td>\n<td>Portable Document Format</td>\n<td>Формат переносних документів</td>\n</tr>\n<tr>\n<td>SQL</td>\n<td>Structured Query Language</td>\n<td>Мова структурованих запитів</td>\n</tr>\n<tr>\n<td>JSON</td>\n<td>JavaScript Object Notation</td>\n<td>Текстовий формат обміну даними</td>\n</tr>\n</tbody></table>\n"];let currentSlideIndex=0;
+function renderMath(root){if(typeof renderMathInElement!=="function"||!root)return;try{renderMathInElement(root,{delimiters:[{left:"$$",right:"$$",display:true},{left:"\\[",right:"\\]",display:true},{left:"$",right:"$",display:false},{left:"\\(",right:"\\)",display:false}],throwOnError:false,strict:"ignore",ignoredTags:["script","noscript","style","textarea","pre","code"]});}catch(e){console.warn("Math render error:",e);}}
+function showSlide(i){if(i<0||i>=slides.length)return;currentSlideIndex=i;const el=document.getElementById("current-slide");el.innerHTML=slides[i];el.scrollTop=0;renderMath(el);document.getElementById("progress-bar").style.width=((i+1)/slides.length*100)+"%";document.getElementById("slide-number").textContent=(i+1)+" / "+slides.length;updateSidebarActive();}
+function nextSlide(){if(currentSlideIndex<slides.length-1)showSlide(currentSlideIndex+1);}
+function previousSlide(){if(currentSlideIndex>0)showSlide(currentSlideIndex-1);}
+function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open");}
+function toggleHelp(){document.getElementById("help-overlay").classList.toggle("hidden");}
+function toggleFullscreen(){if(!document.fullscreenElement){const pc=document.getElementById("presentation-container");if(pc.requestFullscreen)pc.requestFullscreen();else if(pc.webkitRequestFullscreen)pc.webkitRequestFullscreen();else if(pc.msRequestFullscreen)pc.msRequestFullscreen();else if(pc.mozRequestFullScreen)pc.mozRequestFullScreen();}else{if(document.exitFullscreen)document.exitFullscreen();else if(document.webkitExitFullscreen)document.webkitExitFullscreen();else if(document.msExitFullscreen)document.msExitFullscreen();else if(document.mozCancelFullScreen)document.mozCancelFullScreen();}}
+function generateSidebar(){const sc=document.getElementById("sidebar-content");sc.innerHTML="";slides.forEach((html,idx)=>{const t=document.createElement("div");t.className="slide-thumbnail";if(idx===0)t.classList.add("active");const tmp=document.createElement("div");tmp.innerHTML=html;const title=tmp.querySelector("h1,h2");const titleText=title?title.textContent:("Слайд "+(idx+1));const textContent=tmp.textContent.replace(/s+/g," ").trim();const preview=textContent.substring(0,100)+(textContent.length>100?"...":"");t.innerHTML="<div class=\"slide-thumbnail-number\">"+(idx+1)+"</div><div class=\"slide-thumbnail-title\">"+titleText+"</div><div class=\"slide-thumbnail-content\">"+preview+"</div>";t.onclick=()=>{showSlide(idx);if(window.innerWidth<1024)toggleSidebar();};sc.appendChild(t);});}
+function updateSidebarActive(){document.querySelectorAll(".slide-thumbnail").forEach((th,idx)=>{if(idx===currentSlideIndex){th.classList.add("active");th.scrollIntoView({behavior:"smooth",block:"nearest"});}else th.classList.remove("active");});}
+document.addEventListener("keydown",e=>{switch(e.key){case"ArrowLeft":previousSlide();break;case"ArrowRight":case" ":e.preventDefault();nextSlide();break;case"f":case"F":toggleFullscreen();break;case"s":case"S":toggleSidebar();break;case"?":toggleHelp();break;case"Escape":const sb=document.getElementById("sidebar");const ho=document.getElementById("help-overlay");if(sb.classList.contains("open"))toggleSidebar();else if(!ho.classList.contains("hidden"))ho.classList.add("hidden");break;}});
+generateSidebar();showSlide(0);</script></body></html>
