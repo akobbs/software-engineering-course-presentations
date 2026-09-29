@@ -1,0 +1,752 @@
+<!DOCTYPE html><html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Основи об&#039;єктно-орієнтованого проєктування</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"><style>:root {
+            --presentation-bg: linear-gradient(135deg, #4f46e5 0%, #312e81 100%);
+            /* Кольори теми - шкали Tailwind CSS, задаються разом із фоном (див. BG_PRESETS / applyBackground):
+               --heading       заголовки h1 (slate-900)
+               --accent        декоративний акцент: лінії, маркери, рамки (500)
+               --accent-2      підзаголовки h2 (700)
+               --accent-strong заливки з білим текстом та дрібний акцентний текст (700)
+               --accent-tint   світлий фон парних рядків і активних елементів (50) */
+            --heading: #0f172a;
+            --accent: #6366f1;
+            --accent-2: #4338ca;
+            --accent-strong: #4338ca;
+            --accent-tint: #eef2ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--presentation-bg);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #editor-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #editor-container.hidden {
+            display: none;
+        }
+
+        #editor-header {
+            background: #2d3748;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #editor-header h2 {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        #editor-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--accent-strong);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #4a5568;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2d3748;
+        }
+
+        #markdown-input {
+            flex: 1;
+            padding: 2rem;
+            background: #1a202c;
+            color: #e2e8f0;
+            border: none;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+        }
+
+        #markdown-input:focus {
+            outline: none;
+        }
+
+        .slide-container {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .slide {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 3rem;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .slide::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .slide::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+        }
+
+        .slide h1 {
+            color: var(--heading);
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 45%, transparent 100%) left bottom / 100% 4px no-repeat;
+            padding-bottom: 0.5rem;
+        }
+
+        .slide h2 {
+            color: var(--accent-2);
+            font-size: 2rem;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .slide h3 {
+            color: #4a5568;
+            font-size: 1.5rem;
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        .slide p {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .slide ul, .slide ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .slide li {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide pre {
+            background: #282c34;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+
+        .slide pre code {
+            background: transparent;
+            color: #abb2bf;
+        }
+
+        .slide code {
+            font-family: 'Courier New', Consolas, Monaco, monospace;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        .slide h1 code, .slide h2 code, .slide h3 code {
+            font-size: 0.85em;
+            background: rgba(237, 242, 247, 0.5);
+            padding: 0.1em 0.3em;
+            border-radius: 3px;
+        }
+
+        .slide p code {
+            background: #edf2f7;
+            color: #e53e3e;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .slide blockquote {
+            border-left: 4px solid var(--accent);
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            color: #4a5568;
+        }
+
+        .slide img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .slide table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .slide th, .slide td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .slide th {
+            background: var(--accent-strong);
+            color: white;
+            font-weight: 600;
+        }
+
+        .slide tr:nth-child(even) {
+            background: var(--accent-tint);
+        }
+
+        .slide li::marker {
+            color: var(--accent);
+        }
+
+        .note {
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .note strong {
+            color: #c53030;
+        }
+
+        .warning {
+            background: #fffaf0;
+            border-left: 4px solid #f6ad55;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .warning strong {
+            color: #c05621;
+        }
+
+        .info {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .info strong {
+            color: #2c5282;
+        }
+
+        .success {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .success strong {
+            color: #22543d;
+        }
+
+        .danger {
+            background: #fff5f5;
+            border-left: 4px solid #f56565;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .danger strong {
+            color: #742a2a;
+        }
+
+        .tip {
+            background: #fefcbf;
+            border-left: 4px solid #ecc94b;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .tip strong {
+            color: #744210;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: white;
+            transition: width 0.3s;
+        }
+
+        .slide-number {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            color: var(--accent-strong);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #sidebar {
+            position: fixed;
+            right: -320px;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+            transition: right 0.3s ease;
+            z-index: 200;
+            padding: 1rem;
+        }
+
+        #sidebar.open {
+            right: 0;
+        }
+
+        #sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 3px;
+        }
+
+        #sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        #sidebar-header h3 {
+            color: var(--accent-strong);
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        #sidebar-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #4a5568;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        #sidebar-close:hover {
+            color: var(--accent-strong);
+        }
+
+        .slide-thumbnail {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+
+        .slide-thumbnail:hover {
+            border-color: var(--accent);
+            box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 20%, transparent);
+            transform: translateX(-4px);
+        }
+
+        .slide-thumbnail.active {
+            border-color: var(--accent);
+            background: var(--accent-tint);
+            box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 30%, transparent);
+        }
+
+        .slide-thumbnail-number {
+            display: inline-block;
+            background: var(--accent-strong);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide-thumbnail-content {
+            font-size: 0.85rem;
+            color: #2d3748;
+            line-height: 1.4;
+            max-height: 4.2rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slide-thumbnail-content::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 50%;
+            height: 1.4rem;
+            background: linear-gradient(to right, transparent, white);
+        }
+
+        .slide-thumbnail.active .slide-thumbnail-content::after {
+            background: linear-gradient(to right, transparent, var(--accent-tint));
+        }
+
+        .slide-thumbnail-title {
+            font-weight: 600;
+            color: var(--accent-strong);
+            margin-bottom: 0.25rem;
+        }
+
+        #sidebar-toggle {
+            position: fixed;
+            right: 1rem;
+            top: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 8px;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 150;
+        }
+
+        #sidebar-toggle:hover {
+            background: white;
+            transform: scale(1.05);
+        }
+
+        .mermaid {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            overflow: visible; /* щоб не обрізати тіні / розширені ноди */
+        }
+
+        /* Запобігаємо обрізанню останньої літери в нодах Mermaid через зміну font-weight після розрахунку розміру */
+        .mermaid svg { overflow: visible !important; }
+        /* перестраховка проти обрізання foreignObject (на випадок інших діаграм) */
+        .mermaid svg foreignObject { overflow: visible !important; }
+
+        /* Ізоляція підписів Mermaid від типографіки слайду.
+           Mermaid рендерить підписи як HTML (<p>, <li>, <code>) всередині foreignObject і міряє їх
+           без стилів слайду. Без цього скидання правила .slide p / .slide li збільшують шрифт
+           і міжрядковий інтервал уже після розрахунку розмірів - і текст вилазить за межі блоків. */
+        .mermaid svg p,
+        .mermaid svg li,
+        .mermaid svg ul,
+        .mermaid svg ol {
+            font-size: inherit;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            color: inherit;
+        }
+        .mermaid svg code {
+            font-size: inherit;
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        .plantuml-diagram {
+            max-width: 100%;
+            height: auto;
+            margin: 1.5rem auto;
+            display: block;
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #help-overlay {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            transition: opacity 0.3s;
+        }
+
+        #help-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #help-overlay kbd {
+            background: #2d3748;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.85em;
+        }
+
+        .mermaid-error {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            padding: 1rem;
+            border-radius: 6px;
+            color: #742a2a;
+            margin: 1.5rem 0;
+        }
+
+        .mermaid-error pre {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+        }
+
+        /* Вибір фону презентації */
+        #bg-picker {
+            position: fixed;
+            bottom: 6rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(360px, calc(100vw - 2rem));
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            padding: 1rem 1.1rem 1.1rem;
+            z-index: 160;
+            color: #2d3748;
+        }
+
+        #bg-picker.hidden {
+            display: none;
+        }
+
+        #bg-picker h4 {
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .bg-swatches {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .bg-swatch {
+            aspect-ratio: 16 / 10;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+            transition: transform 0.15s;
+        }
+
+        /* Мініатюра теми: фон + маленька «картка слайду» з акцентною лінією */
+        .bg-swatch {
+            position: relative;
+        }
+
+        .bg-swatch::after {
+            content: '';
+            position: absolute;
+            left: 22%;
+            right: 22%;
+            top: 30%;
+            bottom: 30%;
+            border-radius: 3px;
+            background:
+                linear-gradient(90deg, var(--sw-accent), transparent) 18% 38% / 55% 3px no-repeat,
+                white;
+        }
+
+        .bg-swatch:hover {
+            transform: scale(1.06);
+        }
+
+        .bg-swatch.active {
+            border-color: #2d3748;
+            box-shadow: 0 0 0 2px white inset;
+        }
+
+        .bg-custom {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.85rem;
+            flex-wrap: wrap;
+        }
+
+        .bg-custom input[type="color"] {
+            width: 38px;
+            height: 30px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 2px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .bg-custom .bg-hint {
+            color: #718096;
+            font-size: 0.75rem;
+            width: 100%;
+        }
+
+        /* Повноекранний режим - зберігаємо обраний фон */
+        #presentation-container:fullscreen {
+            background: var(--presentation-bg);
+        }
+
+        #presentation-container:-webkit-full-screen {
+            background: var(--presentation-bg);
+        }
+
+        #presentation-container:-moz-full-screen {
+            background: var(--presentation-bg);
+        }
+
+        #presentation-container:-ms-fullscreen {
+            background: var(--presentation-bg);
+        }
+#presentation-container:fullscreen,#presentation-container:-webkit-full-screen,#presentation-container:-moz-full-screen,#presentation-container:-ms-fullscreen{background:var(--presentation-bg)!important;}:root{--presentation-bg:linear-gradient(135deg, #0d9488 0%, #134e4a 100%);--heading:#0f172a;--accent:#14b8a6;--accent-2:#0f766e;--accent-strong:#0f766e;--accent-tint:#f0fdfa;}</style></head><body><div id="presentation-container"><div class="progress"><div class="progress-bar" id="progress-bar"></div></div><button id="sidebar-toggle" onclick="toggleSidebar()" title="Навігація слайдами (S)">☰</button><div id="sidebar"><div id="sidebar-header"><h3>📑 Слайди</h3><button id="sidebar-close" onclick="toggleSidebar()">✕</button></div><div id="sidebar-content"></div></div><div class="slide-container"><div class="slide" id="current-slide"></div></div><div class="controls"><button class="control-btn" onclick="previousSlide()" title="Попередній (←)">←</button><button class="control-btn" onclick="nextSlide()" title="Наступний (→)">→</button><button class="control-btn" onclick="toggleFullscreen()" title="Повноекранний режим (F)">⛶</button><button class="control-btn" onclick="toggleHelp()" title="Допомога (?)">?</button></div><div class="slide-number" id="slide-number">1 / 20</div><div id="help-overlay" class="hidden"><strong>Гарячі клавіші:</strong><br><kbd>←</kbd> <kbd>→</kbd> Навігація<br><kbd>F</kbd> Повноекранний режим<br><kbd>S</kbd> Sidebar<br><kbd>?</kbd> Допомога<br><kbd>Esc</kbd> Закрити</div></div><script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script><script>const slides=["<h1>Основи об'єктно-орієнтованого проєктування</h1>\n<p><strong>Курс:</strong> Основи інженерії програмного забезпечення<br><strong>Лектор:</strong> Кобилянський Антон</p>\n","<h2>📋 План лекції</h2>\n<ol>\n<li>🧩 Парадигма ООП та причини її появи</li>\n<li>🏗️ Клас і об'єкт</li>\n<li>🏛️ Чотири стовпи ООП: інкапсуляція, наслідування, поліморфізм, абстракція</li>\n<li>🔗 Як принципи працюють разом в одній системі</li>\n<li>🧱 Композиція замість наслідування</li>\n<li>🎯 Програмування через інтерфейси</li>\n<li>⚠️ Типові помилки об'єктно-орієнтованого проєктування</li>\n<li>✅ Висновки та контрольні питання</li>\n</ol>\n","<h1>🧩 Що таке ООП?</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>ООП</strong> (Object-Oriented Programming / Об'єктно-орієнтоване програмування) - парадигма програмування, у якій програма будується як сукупність об'єктів, що поєднують дані (стан) і поведінку (методи) та взаємодіють між собою через виклики методів.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Замість того щоб описувати послідовність дій над спільними даними, ми описуємо сутності предметної області (замовлення, клієнт, платіж) і доручаємо кожній з них відповідати за власні дані.</p>\n<h2>🕰️ Як з'явилась парадигма</h2>\n\n<div class=\"mermaid\" data-source=\"timeline\n    title Ключові віхи розвитку ООП\n    1957 : FORTRAN, процедурний підхід\n    1967 : Simula 67, перші класи, об'єкти та наслідування\n    1970-ті : Smalltalk, мова, де все є об'єктом\n    1985 : C++, ООП у промисловій розробці\n    1995 : Java, ООП стає основною парадигмою індустрії\"><svg id=\"exp-1790663092133-2-0\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" style=\"max-width: 1390px;\" viewBox=\"100 -62.5 1390 530.9000244140625\" role=\"graphics-document document\" aria-roledescription=\"timeline\"><style>#exp-1790663092133-2-0{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#exp-1790663092133-2-0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#exp-1790663092133-2-0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#exp-1790663092133-2-0 .error-icon{fill:#552222;}#exp-1790663092133-2-0 .error-text{fill:#552222;stroke:#552222;}#exp-1790663092133-2-0 .edge-thickness-normal{stroke-width:1px;}#exp-1790663092133-2-0 .edge-thickness-thick{stroke-width:3.5px;}#exp-1790663092133-2-0 .edge-pattern-solid{stroke-dasharray:0;}#exp-1790663092133-2-0 .edge-thickness-invisible{stroke-width:0;fill:none;}#exp-1790663092133-2-0 .edge-pattern-dashed{stroke-dasharray:3;}#exp-1790663092133-2-0 .edge-pattern-dotted{stroke-dasharray:2;}#exp-1790663092133-2-0 .marker{fill:#333333;stroke:#333333;}#exp-1790663092133-2-0 .marker.cross{stroke:#333333;}#exp-1790663092133-2-0 svg{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;}#exp-1790663092133-2-0 p{margin:0;}#exp-1790663092133-2-0 .edge{stroke-width:3;}#exp-1790663092133-2-0 .section--1 rect,#exp-1790663092133-2-0 .section--1 path,#exp-1790663092133-2-0 .section--1 circle,#exp-1790663092133-2-0 .section--1 path{fill:hsl(240, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .section--1 text{fill:#ffffff;}#exp-1790663092133-2-0 .node-icon--1{font-size:40px;color:#ffffff;}#exp-1790663092133-2-0 .section-edge--1{stroke:hsl(240, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .edge-depth--1{stroke-width:17;}#exp-1790663092133-2-0 .section--1 line{stroke:hsl(60, 100%, 86.2745098039%);stroke-width:3;}#exp-1790663092133-2-0 .lineWrapper line{stroke:#ffffff;}#exp-1790663092133-2-0 .disabled,#exp-1790663092133-2-0 .disabled circle,#exp-1790663092133-2-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1790663092133-2-0 .disabled text{fill:#aaaa33;}#exp-1790663092133-2-0 .section-0 rect,#exp-1790663092133-2-0 .section-0 path,#exp-1790663092133-2-0 .section-0 circle,#exp-1790663092133-2-0 .section-0 path{fill:hsl(60, 100%, 73.5294117647%);}#exp-1790663092133-2-0 .section-0 text{fill:black;}#exp-1790663092133-2-0 .node-icon-0{font-size:40px;color:black;}#exp-1790663092133-2-0 .section-edge-0{stroke:hsl(60, 100%, 73.5294117647%);}#exp-1790663092133-2-0 .edge-depth-0{stroke-width:14;}#exp-1790663092133-2-0 .section-0 line{stroke:hsl(240, 100%, 83.5294117647%);stroke-width:3;}#exp-1790663092133-2-0 .lineWrapper line{stroke:black;}#exp-1790663092133-2-0 .disabled,#exp-1790663092133-2-0 .disabled circle,#exp-1790663092133-2-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1790663092133-2-0 .disabled text{fill:#aaaa33;}#exp-1790663092133-2-0 .section-1 rect,#exp-1790663092133-2-0 .section-1 path,#exp-1790663092133-2-0 .section-1 circle,#exp-1790663092133-2-0 .section-1 path{fill:hsl(80, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .section-1 text{fill:black;}#exp-1790663092133-2-0 .node-icon-1{font-size:40px;color:black;}#exp-1790663092133-2-0 .section-edge-1{stroke:hsl(80, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .edge-depth-1{stroke-width:11;}#exp-1790663092133-2-0 .section-1 line{stroke:hsl(260, 100%, 86.2745098039%);stroke-width:3;}#exp-1790663092133-2-0 .lineWrapper line{stroke:black;}#exp-1790663092133-2-0 .disabled,#exp-1790663092133-2-0 .disabled circle,#exp-1790663092133-2-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1790663092133-2-0 .disabled text{fill:#aaaa33;}#exp-1790663092133-2-0 .section-2 rect,#exp-1790663092133-2-0 .section-2 path,#exp-1790663092133-2-0 .section-2 circle,#exp-1790663092133-2-0 .section-2 path{fill:hsl(270, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .section-2 text{fill:#ffffff;}#exp-1790663092133-2-0 .node-icon-2{font-size:40px;color:#ffffff;}#exp-1790663092133-2-0 .section-edge-2{stroke:hsl(270, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .edge-depth-2{stroke-width:8;}#exp-1790663092133-2-0 .section-2 line{stroke:hsl(90, 100%, 86.2745098039%);stroke-width:3;}#exp-1790663092133-2-0 .lineWrapper line{stroke:#ffffff;}#exp-1790663092133-2-0 .disabled,#exp-1790663092133-2-0 .disabled circle,#exp-1790663092133-2-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1790663092133-2-0 .disabled text{fill:#aaaa33;}#exp-1790663092133-2-0 .section-3 rect,#exp-1790663092133-2-0 .section-3 path,#exp-1790663092133-2-0 .section-3 circle,#exp-1790663092133-2-0 .section-3 path{fill:hsl(300, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .section-3 text{fill:black;}#exp-1790663092133-2-0 .node-icon-3{font-size:40px;color:black;}#exp-1790663092133-2-0 .section-edge-3{stroke:hsl(300, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .edge-depth-3{stroke-width:5;}#exp-1790663092133-2-0 .section-3 line{stroke:hsl(120, 100%, 86.2745098039%);stroke-width:3;}#exp-1790663092133-2-0 .lineWrapper line{stroke:black;}#exp-1790663092133-2-0 .disabled,#exp-1790663092133-2-0 .disabled circle,#exp-1790663092133-2-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1790663092133-2-0 .disabled text{fill:#aaaa33;}#exp-1790663092133-2-0 .section-4 rect,#exp-1790663092133-2-0 .section-4 path,#exp-1790663092133-2-0 .section-4 circle,#exp-1790663092133-2-0 .section-4 path{fill:hsl(330, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .section-4 text{fill:black;}#exp-1790663092133-2-0 .node-icon-4{font-size:40px;color:black;}#exp-1790663092133-2-0 .section-edge-4{stroke:hsl(330, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .edge-depth-4{stroke-width:2;}#exp-1790663092133-2-0 .section-4 line{stroke:hsl(150, 100%, 86.2745098039%);stroke-width:3;}#exp-1790663092133-2-0 .lineWrapper line{stroke:black;}#exp-1790663092133-2-0 .disabled,#exp-1790663092133-2-0 .disabled circle,#exp-1790663092133-2-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1790663092133-2-0 .disabled text{fill:#aaaa33;}#exp-1790663092133-2-0 .section-5 rect,#exp-1790663092133-2-0 .section-5 path,#exp-1790663092133-2-0 .section-5 circle,#exp-1790663092133-2-0 .section-5 path{fill:hsl(0, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .section-5 text{fill:black;}#exp-1790663092133-2-0 .node-icon-5{font-size:40px;color:black;}#exp-1790663092133-2-0 .section-edge-5{stroke:hsl(0, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .edge-depth-5{stroke-width:-1;}#exp-1790663092133-2-0 .section-5 line{stroke:hsl(180, 100%, 86.2745098039%);stroke-width:3;}#exp-1790663092133-2-0 .lineWrapper line{stroke:black;}#exp-1790663092133-2-0 .disabled,#exp-1790663092133-2-0 .disabled circle,#exp-1790663092133-2-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1790663092133-2-0 .disabled text{fill:#aaaa33;}#exp-1790663092133-2-0 .section-6 rect,#exp-1790663092133-2-0 .section-6 path,#exp-1790663092133-2-0 .section-6 circle,#exp-1790663092133-2-0 .section-6 path{fill:hsl(30, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .section-6 text{fill:black;}#exp-1790663092133-2-0 .node-icon-6{font-size:40px;color:black;}#exp-1790663092133-2-0 .section-edge-6{stroke:hsl(30, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .edge-depth-6{stroke-width:-4;}#exp-1790663092133-2-0 .section-6 line{stroke:hsl(210, 100%, 86.2745098039%);stroke-width:3;}#exp-1790663092133-2-0 .lineWrapper line{stroke:black;}#exp-1790663092133-2-0 .disabled,#exp-1790663092133-2-0 .disabled circle,#exp-1790663092133-2-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1790663092133-2-0 .disabled text{fill:#aaaa33;}#exp-1790663092133-2-0 .section-7 rect,#exp-1790663092133-2-0 .section-7 path,#exp-1790663092133-2-0 .section-7 circle,#exp-1790663092133-2-0 .section-7 path{fill:hsl(90, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .section-7 text{fill:black;}#exp-1790663092133-2-0 .node-icon-7{font-size:40px;color:black;}#exp-1790663092133-2-0 .section-edge-7{stroke:hsl(90, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .edge-depth-7{stroke-width:-7;}#exp-1790663092133-2-0 .section-7 line{stroke:hsl(270, 100%, 86.2745098039%);stroke-width:3;}#exp-1790663092133-2-0 .lineWrapper line{stroke:black;}#exp-1790663092133-2-0 .disabled,#exp-1790663092133-2-0 .disabled circle,#exp-1790663092133-2-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1790663092133-2-0 .disabled text{fill:#aaaa33;}#exp-1790663092133-2-0 .section-8 rect,#exp-1790663092133-2-0 .section-8 path,#exp-1790663092133-2-0 .section-8 circle,#exp-1790663092133-2-0 .section-8 path{fill:hsl(150, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .section-8 text{fill:black;}#exp-1790663092133-2-0 .node-icon-8{font-size:40px;color:black;}#exp-1790663092133-2-0 .section-edge-8{stroke:hsl(150, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .edge-depth-8{stroke-width:-10;}#exp-1790663092133-2-0 .section-8 line{stroke:hsl(330, 100%, 86.2745098039%);stroke-width:3;}#exp-1790663092133-2-0 .lineWrapper line{stroke:black;}#exp-1790663092133-2-0 .disabled,#exp-1790663092133-2-0 .disabled circle,#exp-1790663092133-2-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1790663092133-2-0 .disabled text{fill:#aaaa33;}#exp-1790663092133-2-0 .section-9 rect,#exp-1790663092133-2-0 .section-9 path,#exp-1790663092133-2-0 .section-9 circle,#exp-1790663092133-2-0 .section-9 path{fill:hsl(180, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .section-9 text{fill:black;}#exp-1790663092133-2-0 .node-icon-9{font-size:40px;color:black;}#exp-1790663092133-2-0 .section-edge-9{stroke:hsl(180, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .edge-depth-9{stroke-width:-13;}#exp-1790663092133-2-0 .section-9 line{stroke:hsl(0, 100%, 86.2745098039%);stroke-width:3;}#exp-1790663092133-2-0 .lineWrapper line{stroke:black;}#exp-1790663092133-2-0 .disabled,#exp-1790663092133-2-0 .disabled circle,#exp-1790663092133-2-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1790663092133-2-0 .disabled text{fill:#aaaa33;}#exp-1790663092133-2-0 .section-10 rect,#exp-1790663092133-2-0 .section-10 path,#exp-1790663092133-2-0 .section-10 circle,#exp-1790663092133-2-0 .section-10 path{fill:hsl(210, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .section-10 text{fill:black;}#exp-1790663092133-2-0 .node-icon-10{font-size:40px;color:black;}#exp-1790663092133-2-0 .section-edge-10{stroke:hsl(210, 100%, 76.2745098039%);}#exp-1790663092133-2-0 .edge-depth-10{stroke-width:-16;}#exp-1790663092133-2-0 .section-10 line{stroke:hsl(30, 100%, 86.2745098039%);stroke-width:3;}#exp-1790663092133-2-0 .lineWrapper line{stroke:black;}#exp-1790663092133-2-0 .disabled,#exp-1790663092133-2-0 .disabled circle,#exp-1790663092133-2-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1790663092133-2-0 .disabled text{fill:#aaaa33;}#exp-1790663092133-2-0 .section-root rect,#exp-1790663092133-2-0 .section-root path,#exp-1790663092133-2-0 .section-root circle{fill:hsl(240, 100%, 46.2745098039%);}#exp-1790663092133-2-0 .section-root text{fill:#ffffff;}#exp-1790663092133-2-0 .icon-container{height:100%;display:flex;justify-content:center;align-items:center;}#exp-1790663092133-2-0 .edge{fill:none;}#exp-1790663092133-2-0 .eventWrapper{filter:brightness(120%);}#exp-1790663092133-2-0 .node .neo-node{stroke:#667eea;}#exp-1790663092133-2-0 [data-look=\"neo\"].node rect,#exp-1790663092133-2-0 [data-look=\"neo\"].cluster rect,#exp-1790663092133-2-0 [data-look=\"neo\"].node polygon{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790663092133-2-0 [data-look=\"neo\"].swimlane.cluster rect{filter:none;}#exp-1790663092133-2-0 [data-look=\"neo\"].node path{stroke:#667eea;stroke-width:1px;}#exp-1790663092133-2-0 [data-look=\"neo\"].node .outer-path{filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790663092133-2-0 [data-look=\"neo\"].node .neo-line path{stroke:#667eea;filter:none;}#exp-1790663092133-2-0 [data-look=\"neo\"].node circle{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790663092133-2-0 [data-look=\"neo\"].node circle .state-start{fill:#000000;}#exp-1790663092133-2-0 [data-look=\"neo\"].icon-shape .icon{fill:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790663092133-2-0 [data-look=\"neo\"].icon-shape .icon-neo path{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790663092133-2-0 :root{--mermaid-font-family:\"trebuchet ms\",verdana,arial,sans-serif;}</style><g></g><g></g><defs><marker id=\"exp-1790663092133-2-0-arrowhead\" refX=\"5\" refY=\"2\" markerWidth=\"6\" markerHeight=\"4\" orient=\"auto\"><path d=\"M 0,0 V 4 L6,2 Z\"></path></marker></defs><g class=\"taskWrapper\" transform=\"translate(200, 50)\"><g class=\"timeline-node section--1\"><g><path id=\"exp-1790663092133-2-0-node-0\" class=\"node-bkg node-undefined\" d=\"M0 62.8 v-57.8 q0,-5,5,-5 h180 q5,0,5,5 v62.8 H0 Z\"></path><line class=\"node-line--1\" x1=\"0\" y1=\"67.8\" x2=\"190\" y2=\"67.8\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">1957</tspan></text></g></g></g><g class=\"lineWrapper\"><line x1=\"295\" y1=\"117.8\" x2=\"295\" y2=\"418.3999954223633\" stroke-width=\"2\" stroke=\"black\" marker-end=\"url(#exp-1790663092133-2-0-arrowhead)\" stroke-dasharray=\"5,5\"></line></g><g class=\"eventWrapper\" transform=\"translate(200, 250)\"><g class=\"timeline-node section--1\"><g><path id=\"exp-1790663092133-2-0-node-1\" class=\"node-bkg node-undefined\" d=\"M0 77.99999694824218 v-72.99999694824218 q0,-5,5,-5 h180 q5,0,5,5 v77.99999694824218 H0 Z\"></path><line class=\"node-line--1\" x1=\"0\" y1=\"82.99999694824218\" x2=\"190\" y2=\"82.99999694824218\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">FORTRAN,</tspan><tspan x=\"0\" dy=\"1.1em\">процедурний</tspan><tspan x=\"0\" dy=\"1.1em\">підхід</tspan></text></g></g></g><g class=\"taskWrapper\" transform=\"translate(400, 50)\"><g class=\"timeline-node section-0\"><g><path id=\"exp-1790663092133-2-0-node-2\" class=\"node-bkg node-undefined\" d=\"M0 62.8 v-57.8 q0,-5,5,-5 h180 q5,0,5,5 v62.8 H0 Z\"></path><line class=\"node-line-0\" x1=\"0\" y1=\"67.8\" x2=\"190\" y2=\"67.8\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">1967</tspan></text></g></g></g><g class=\"lineWrapper\"><line x1=\"495\" y1=\"117.8\" x2=\"495\" y2=\"418.3999954223633\" stroke-width=\"2\" stroke=\"black\" marker-end=\"url(#exp-1790663092133-2-0-arrowhead)\" stroke-dasharray=\"5,5\"></line></g><g class=\"eventWrapper\" transform=\"translate(400, 250)\"><g class=\"timeline-node section-0\"><g><path id=\"exp-1790663092133-2-0-node-3\" class=\"node-bkg node-undefined\" d=\"M0 77.99999694824218 v-72.99999694824218 q0,-5,5,-5 h180 q5,0,5,5 v77.99999694824218 H0 Z\"></path><line class=\"node-line-0\" x1=\"0\" y1=\"82.99999694824218\" x2=\"190\" y2=\"82.99999694824218\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">Simula   67,   перші</tspan><tspan x=\"0\" dy=\"1.1em\">класи,   об'єкти   та</tspan><tspan x=\"0\" dy=\"1.1em\">наслідування</tspan></text></g></g></g><g class=\"taskWrapper\" transform=\"translate(600, 50)\"><g class=\"timeline-node section-1\"><g><path id=\"exp-1790663092133-2-0-node-4\" class=\"node-bkg node-undefined\" d=\"M0 62.8 v-57.8 q0,-5,5,-5 h180 q5,0,5,5 v62.8 H0 Z\"></path><line class=\"node-line-1\" x1=\"0\" y1=\"67.8\" x2=\"190\" y2=\"67.8\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">1970-ті</tspan></text></g></g></g><g class=\"lineWrapper\"><line x1=\"695\" y1=\"117.8\" x2=\"695\" y2=\"418.3999954223633\" stroke-width=\"2\" stroke=\"black\" marker-end=\"url(#exp-1790663092133-2-0-arrowhead)\" stroke-dasharray=\"5,5\"></line></g><g class=\"eventWrapper\" transform=\"translate(600, 250)\"><g class=\"timeline-node section-1\"><g><path id=\"exp-1790663092133-2-0-node-5\" class=\"node-bkg node-undefined\" d=\"M0 60.39999847412109 v-55.39999847412109 q0,-5,5,-5 h180 q5,0,5,5 v60.39999847412109 H0 Z\"></path><line class=\"node-line-1\" x1=\"0\" y1=\"65.39999847412109\" x2=\"190\" y2=\"65.39999847412109\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">Smalltalk,   мова,   де</tspan><tspan x=\"0\" dy=\"1.1em\">все   є   об'єктом</tspan></text></g></g></g><g class=\"taskWrapper\" transform=\"translate(800, 50)\"><g class=\"timeline-node section-2\"><g><path id=\"exp-1790663092133-2-0-node-6\" class=\"node-bkg node-undefined\" d=\"M0 62.8 v-57.8 q0,-5,5,-5 h180 q5,0,5,5 v62.8 H0 Z\"></path><line class=\"node-line-2\" x1=\"0\" y1=\"67.8\" x2=\"190\" y2=\"67.8\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">1985</tspan></text></g></g></g><g class=\"lineWrapper\"><line x1=\"895\" y1=\"117.8\" x2=\"895\" y2=\"418.3999954223633\" stroke-width=\"2\" stroke=\"black\" marker-end=\"url(#exp-1790663092133-2-0-arrowhead)\" stroke-dasharray=\"5,5\"></line></g><g class=\"eventWrapper\" transform=\"translate(800, 250)\"><g class=\"timeline-node section-2\"><g><path id=\"exp-1790663092133-2-0-node-7\" class=\"node-bkg node-undefined\" d=\"M0 77.99999694824218 v-72.99999694824218 q0,-5,5,-5 h180 q5,0,5,5 v77.99999694824218 H0 Z\"></path><line class=\"node-line-2\" x1=\"0\" y1=\"82.99999694824218\" x2=\"190\" y2=\"82.99999694824218\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">C++,   ООП   у</tspan><tspan x=\"0\" dy=\"1.1em\">промисловій</tspan><tspan x=\"0\" dy=\"1.1em\">розробці</tspan></text></g></g></g><g class=\"taskWrapper\" transform=\"translate(1000, 50)\"><g class=\"timeline-node section-3\"><g><path id=\"exp-1790663092133-2-0-node-8\" class=\"node-bkg node-undefined\" d=\"M0 62.8 v-57.8 q0,-5,5,-5 h180 q5,0,5,5 v62.8 H0 Z\"></path><line class=\"node-line-3\" x1=\"0\" y1=\"67.8\" x2=\"190\" y2=\"67.8\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">1995</tspan></text></g></g></g><g class=\"lineWrapper\"><line x1=\"1095\" y1=\"117.8\" x2=\"1095\" y2=\"418.3999954223633\" stroke-width=\"2\" stroke=\"black\" marker-end=\"url(#exp-1790663092133-2-0-arrowhead)\" stroke-dasharray=\"5,5\"></line></g><g class=\"eventWrapper\" transform=\"translate(1000, 250)\"><g class=\"timeline-node section-3\"><g><path id=\"exp-1790663092133-2-0-node-9\" class=\"node-bkg node-undefined\" d=\"M0 95.59999542236328 v-90.59999542236328 q0,-5,5,-5 h180 q5,0,5,5 v95.59999542236328 H0 Z\"></path><line class=\"node-line-3\" x1=\"0\" y1=\"100.59999542236328\" x2=\"190\" y2=\"100.59999542236328\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">Java,   ООП   стає</tspan><tspan x=\"0\" dy=\"1.1em\">основною</tspan><tspan x=\"0\" dy=\"1.1em\">парадигмою</tspan><tspan x=\"0\" dy=\"1.1em\">індустрії</tspan></text></g></g></g><text x=\"345\" font-size=\"4ex\" font-weight=\"bold\" y=\"20\">Ключові віхи розвитку ООП</text><g class=\"lineWrapper\"><line x1=\"150\" y1=\"167.8\" x2=\"1440\" y2=\"167.8\" stroke-width=\"4\" stroke=\"black\" marker-end=\"url(#exp-1790663092133-2-0-arrowhead)\"></line></g></svg></div>\n<div class=\"note\"><strong>📝 Історична довідка</strong> <p>Мову Simula 67 створили норвезькі науковці Ole-Johan Dahl та Kristen Nygaard для задач імітаційного моделювання. Саме в ній уперше з'явились поняття класу, об'єкта та наслідування, які пізніше розвинули Smalltalk, C++ і Java. 📜</p>\n</div>\n\n","<h1>⚖️ Процедурний vs об'єктний підхід</h1>\n<p><strong>Головна ідея:</strong> ООП з'явилось як відповідь на зростання розміру програм. Коли дані доступні будь-якій функції, кожна зміна структури даних може зламати код у непередбачуваному місці.</p>\n\n<div class=\"mermaid\" data-source=\"graph LR\n    subgraph P[&quot;📝 Процедурний підхід&quot;]\n        D[(&quot;🗄️ Спільні дані&quot;)] --&gt; F1[&quot;⚙️ Функція 1&quot;]\n        D --&gt; F2[&quot;⚙️ Функція 2&quot;]\n        D --&gt; F3[&quot;⚙️ Функція 3&quot;]\n    end\n    subgraph O[&quot;🎯 Об'єктний підхід&quot;]\n        O1[&quot;🛒 Order&lt;br/&gt;дані + методи&quot;] --&gt;|&quot;виклик методу&quot;| O2[&quot;👤 Customer&lt;br/&gt;дані + методи&quot;]\n        O1 --&gt;|&quot;виклик методу&quot;| O3[&quot;💳 Payment&lt;br/&gt;дані + методи&quot;]\n    end\n    style D fill:#fce4ec,stroke:#c2185b\n    style O1 fill:#e8f5e9,stroke:#388e3c\n    style O2 fill:#e8f5e9,stroke:#388e3c\n    style O3 fill:#e8f5e9,stroke:#388e3c\"><svg id=\"exp-1790663092146-3-0\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" class=\"flowchart\" style=\"max-width: 611.2421875px;\" viewBox=\"0 0 611.2421875 655.0133056640625\" role=\"graphics-document document\" aria-roledescription=\"flowchart-v2\"><style>#exp-1790663092146-3-0{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#exp-1790663092146-3-0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#exp-1790663092146-3-0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#exp-1790663092146-3-0 .error-icon{fill:#552222;}#exp-1790663092146-3-0 .error-text{fill:#552222;stroke:#552222;}#exp-1790663092146-3-0 .edge-thickness-normal{stroke-width:1px;}#exp-1790663092146-3-0 .edge-thickness-thick{stroke-width:3.5px;}#exp-1790663092146-3-0 .edge-pattern-solid{stroke-dasharray:0;}#exp-1790663092146-3-0 .edge-thickness-invisible{stroke-width:0;fill:none;}#exp-1790663092146-3-0 .edge-pattern-dashed{stroke-dasharray:3;}#exp-1790663092146-3-0 .edge-pattern-dotted{stroke-dasharray:2;}#exp-1790663092146-3-0 .marker{fill:#333333;stroke:#333333;}#exp-1790663092146-3-0 .marker.cross{stroke:#333333;}#exp-1790663092146-3-0 svg{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;}#exp-1790663092146-3-0 p{margin:0;}#exp-1790663092146-3-0 .label{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;color:#333;}#exp-1790663092146-3-0 .cluster-label text{fill:#333;}#exp-1790663092146-3-0 .cluster-label span{color:#333;}#exp-1790663092146-3-0 .cluster-label span p{background-color:transparent;}#exp-1790663092146-3-0 .label text,#exp-1790663092146-3-0 span{fill:#333;color:#333;}#exp-1790663092146-3-0 .node rect,#exp-1790663092146-3-0 .node circle,#exp-1790663092146-3-0 .node ellipse,#exp-1790663092146-3-0 .node polygon,#exp-1790663092146-3-0 .node path{fill:#ECECFF;stroke:#667eea;stroke-width:1px;}#exp-1790663092146-3-0 .rough-node .label text,#exp-1790663092146-3-0 .node .label text,#exp-1790663092146-3-0 .image-shape .label,#exp-1790663092146-3-0 .icon-shape .label{text-anchor:middle;}#exp-1790663092146-3-0 .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#exp-1790663092146-3-0 .rough-node .label,#exp-1790663092146-3-0 .node .label,#exp-1790663092146-3-0 .image-shape .label,#exp-1790663092146-3-0 .icon-shape .label{text-align:center;}#exp-1790663092146-3-0 .node.clickable{cursor:pointer;}#exp-1790663092146-3-0 .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#exp-1790663092146-3-0 .arrowheadPath{fill:#333333;}#exp-1790663092146-3-0 .edgePaths .path{stroke:#333333;stroke-width:1px;}#exp-1790663092146-3-0 .flowchart-link{stroke:#333333;fill:none;}#exp-1790663092146-3-0 .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1790663092146-3-0 .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#exp-1790663092146-3-0 .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1790663092146-3-0 .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#exp-1790663092146-3-0 .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#exp-1790663092146-3-0 .cluster text{fill:#333;}#exp-1790663092146-3-0 .cluster span{color:#333;}#exp-1790663092146-3-0 .node .collapsed-indicator{fill:#aaaa33;stroke:none;opacity:0.6;}#exp-1790663092146-3-0 .node .collapsed-separator{stroke:#aaaa33;stroke-width:0.75px;}#exp-1790663092146-3-0 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#exp-1790663092146-3-0 .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#exp-1790663092146-3-0 rect.text{fill:none;stroke-width:0;}#exp-1790663092146-3-0 .icon-shape,#exp-1790663092146-3-0 .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1790663092146-3-0 .icon-shape p,#exp-1790663092146-3-0 .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#exp-1790663092146-3-0 .icon-shape .label rect,#exp-1790663092146-3-0 .image-shape .label rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1790663092146-3-0 .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#exp-1790663092146-3-0 .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#exp-1790663092146-3-0 .node .neo-node{stroke:#667eea;}#exp-1790663092146-3-0 [data-look=\"neo\"].node rect,#exp-1790663092146-3-0 [data-look=\"neo\"].cluster rect,#exp-1790663092146-3-0 [data-look=\"neo\"].node polygon{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790663092146-3-0 [data-look=\"neo\"].swimlane.cluster rect{filter:none;}#exp-1790663092146-3-0 [data-look=\"neo\"].node path{stroke:#667eea;stroke-width:1px;}#exp-1790663092146-3-0 [data-look=\"neo\"].node .outer-path{filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790663092146-3-0 [data-look=\"neo\"].node .neo-line path{stroke:#667eea;filter:none;}#exp-1790663092146-3-0 [data-look=\"neo\"].node circle{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790663092146-3-0 [data-look=\"neo\"].node circle .state-start{fill:#000000;}#exp-1790663092146-3-0 [data-look=\"neo\"].icon-shape .icon{fill:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790663092146-3-0 [data-look=\"neo\"].icon-shape .icon-neo path{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790663092146-3-0 :root{--mermaid-font-family:\"trebuchet ms\",verdana,arial,sans-serif;}</style><g><marker id=\"exp-1790663092146-3-0_flowchart-v2-pointEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 0 L 10 5 L 0 10 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790663092146-3-0_flowchart-v2-pointStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"4.5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 5 L 10 10 L 10 0 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790663092146-3-0_flowchart-v2-pointEnd-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 11.5 14\" refX=\"11.5\" refY=\"7\" markerUnits=\"userSpaceOnUse\" markerWidth=\"10.5\" markerHeight=\"14\" orient=\"auto\"><path d=\"M 0 0 L 11.5 7 L 0 14 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790663092146-3-0_flowchart-v2-pointStart-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 11.5 14\" refX=\"1\" refY=\"7\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11.5\" markerHeight=\"14\" orient=\"auto\"><polygon points=\"0,7 11.5,14 11.5,0\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></polygon></marker><marker id=\"exp-1790663092146-3-0_flowchart-v2-circleEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"11\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1790663092146-3-0_flowchart-v2-circleStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-1\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1790663092146-3-0_flowchart-v2-circleEnd-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refY=\"5\" refX=\"12.25\" markerUnits=\"userSpaceOnUse\" markerWidth=\"14\" markerHeight=\"14\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1790663092146-3-0_flowchart-v2-circleStart-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-2\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"14\" markerHeight=\"14\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1790663092146-3-0_flowchart-v2-crossEnd\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"12\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790663092146-3-0_flowchart-v2-crossStart\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"-1\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790663092146-3-0_flowchart-v2-crossEnd-margin\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 15 15\" refX=\"17.7\" refY=\"7.5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"12\" markerHeight=\"12\" orient=\"auto\"><path d=\"M 1,1 L 14,14 M 1,14 L 14,1\" class=\"arrowMarkerPath\" style=\"stroke-width: 2.5;\"></path></marker><marker id=\"exp-1790663092146-3-0_flowchart-v2-crossStart-margin\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 15 15\" refX=\"-3.5\" refY=\"7.5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"12\" markerHeight=\"12\" orient=\"auto\"><path d=\"M 1,1 L 14,14 M 1,14 L 14,1\" class=\"arrowMarkerPath\" style=\"stroke-width: 2.5; stroke-dasharray: 1, 0;\"></path></marker><g class=\"root\"><g class=\"clusters\"></g><g class=\"edgePaths\"></g><g class=\"edgeLabels\"></g><g class=\"nodes\"><g class=\"root\" transform=\"translate(84.65234375, 0)\"><g class=\"clusters\"><g class=\"cluster \" id=\"exp-1790663092146-3-0-O\" data-look=\"classic\"><rect style=\"\" x=\"8\" y=\"8\" width=\"425.9375\" height=\"318\"></rect><g class=\"cluster-label \" transform=\"translate(147.51953125, 8)\"><foreignObject width=\"146.8984375\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5;\"><span class=\"nodeLabel \"><p>🎯 Об'єктний підхід</p></span></div></foreignObject></g></g></g><g class=\"edgePaths\"><path d=\"M178.238,117.5L168.446,125.75C158.654,134,139.069,150.5,129.277,166.333C119.484,182.167,119.484,197.333,119.484,204.917L119.484,212.5\" id=\"exp-1790663092146-3-0-L_O1_O2_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_O1_O2_0\" data-points=\"W3sieCI6MTc4LjIzODQ4Njg0MjEwNTI2LCJ5IjoxMTcuNX0seyJ4IjoxMTkuNDg0Mzc1LCJ5IjoxNjd9LHsieCI6MTE5LjQ4NDM3NSwieSI6MjE2LjV9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1790663092146-3-0_flowchart-v2-pointEnd)\"></path><path d=\"M263.699,117.5L273.491,125.75C283.284,134,302.868,150.5,312.661,166.333C322.453,182.167,322.453,197.333,322.453,204.917L322.453,212.5\" id=\"exp-1790663092146-3-0-L_O1_O3_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_O1_O3_0\" data-points=\"W3sieCI6MjYzLjY5OTAxMzE1Nzg5NDc0LCJ5IjoxMTcuNX0seyJ4IjozMjIuNDUzMTI1LCJ5IjoxNjd9LHsieCI6MzIyLjQ1MzEyNSwieSI6MjE2LjV9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1790663092146-3-0_flowchart-v2-pointEnd)\"></path></g><g class=\"edgeLabels\"><g class=\"edgeLabel\" transform=\"translate(119.484375, 167)\"><g class=\"label\" data-id=\"L_O1_O2_0\" transform=\"translate(-55.80859375, -12)\"><foreignObject width=\"111.6171875\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"><p>виклик методу</p></span></div></foreignObject></g></g><g class=\"edgeLabel\" transform=\"translate(322.453125, 167)\"><g class=\"label\" data-id=\"L_O1_O3_0\" transform=\"translate(-55.80859375, -12)\"><foreignObject width=\"111.6171875\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"><p>виклик методу</p></span></div></foreignObject></g></g></g><g class=\"nodes\"><g class=\"node default  \" id=\"exp-1790663092146-3-0-flowchart-O1-6\" data-look=\"classic\" transform=\"translate(220.96875, 81.5)\"><rect class=\"basic label-container\" style=\"fill:#e8f5e9 !important;stroke:#388e3c !important\" x=\"-76.484375\" y=\"-36\" width=\"152.96875\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-52.484375, -24)\"><rect></rect><foreignObject width=\"104.96875\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🛒 Order<br>дані + методи</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1790663092146-3-0-flowchart-O2-7\" data-look=\"classic\" transform=\"translate(119.484375, 252.5)\"><rect class=\"basic label-container\" style=\"fill:#e8f5e9 !important;stroke:#388e3c !important\" x=\"-76.484375\" y=\"-36\" width=\"152.96875\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-52.484375, -24)\"><rect></rect><foreignObject width=\"104.96875\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>👤 Customer<br>дані + методи</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1790663092146-3-0-flowchart-O3-9\" data-look=\"classic\" transform=\"translate(322.453125, 252.5)\"><rect class=\"basic label-container\" style=\"fill:#e8f5e9 !important;stroke:#388e3c !important\" x=\"-76.484375\" y=\"-36\" width=\"152.96875\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-52.484375, -24)\"><rect></rect><foreignObject width=\"104.96875\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>💳 Payment<br>дані + методи</p></span></div></foreignObject></g></g></g></g><g class=\"root\" transform=\"translate(0, 368)\"><g class=\"clusters\"><g class=\"cluster \" id=\"exp-1790663092146-3-0-P\" data-look=\"classic\"><rect style=\"\" x=\"8\" y=\"8\" width=\"595.2421875\" height=\"271.01329803466797\"></rect><g class=\"cluster-label \" transform=\"translate(219.16796875, 8)\"><foreignObject width=\"172.90625\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5;\"><span class=\"nodeLabel \"><p>📝 Процедурний підхід</p></span></div></foreignObject></g></g></g><g class=\"edgePaths\"><path d=\"M243.418,105.572L221.693,113.979C199.967,122.386,156.517,139.2,134.792,153.19C113.066,167.18,113.066,178.347,113.066,183.93L113.066,189.513\" id=\"exp-1790663092146-3-0-L_D_F1_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_D_F1_0\" data-points=\"W3sieCI6MjQzLjQxNzk2ODc1LCJ5IjoxMDUuNTcyMDgzMjEyMTkxNzZ9LHsieCI6MTEzLjA2NjQwNjI1LCJ5IjoxNTYuMDEzMjk4MDM0NjY3OTd9LHsieCI6MTEzLjA2NjQwNjI1LCJ5IjoxOTMuNTEzMjk4MDM0NjY3OTd9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1790663092146-3-0_flowchart-v2-pointEnd)\"></path><path d=\"M304.316,118.513L304.316,124.763C304.316,131.013,304.316,143.513,304.316,155.347C304.316,167.18,304.316,178.347,304.316,183.93L304.316,189.513\" id=\"exp-1790663092146-3-0-L_D_F2_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_D_F2_0\" data-points=\"W3sieCI6MzA0LjMxNjQwNjI1LCJ5IjoxMTguNTEzMjk4MDM0NjY3OTd9LHsieCI6MzA0LjMxNjQwNjI1LCJ5IjoxNTYuMDEzMjk4MDM0NjY3OTd9LHsieCI6MzA0LjMxNjQwNjI1LCJ5IjoxOTMuNTEzMjk4MDM0NjY3OTd9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1790663092146-3-0_flowchart-v2-pointEnd)\"></path><path d=\"M365.215,105.412L387.158,113.846C409.1,122.279,452.986,139.146,474.928,153.163C496.871,167.18,496.871,178.347,496.871,183.93L496.871,189.513\" id=\"exp-1790663092146-3-0-L_D_F3_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_D_F3_0\" data-points=\"W3sieCI6MzY1LjIxNDg0Mzc1LCJ5IjoxMDUuNDEyNDExNTQ3ODY5ODh9LHsieCI6NDk2Ljg3MTA5Mzc1LCJ5IjoxNTYuMDEzMjk4MDM0NjY3OTd9LHsieCI6NDk2Ljg3MTA5Mzc1LCJ5IjoxOTMuNTEzMjk4MDM0NjY3OTd9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1790663092146-3-0_flowchart-v2-pointEnd)\"></path></g><g class=\"edgeLabels\"><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_D_F1_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_D_F2_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_D_F3_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g></g><g class=\"nodes\"><g class=\"node default  \" id=\"exp-1790663092146-3-0-flowchart-D-0\" data-look=\"classic\" transform=\"translate(304.31640625, 82.00664901733398)\"><path d=\"M0,12.337765115542894 a60.8984375,12.337765115542894 0,0,0 121.796875,0 a60.8984375,12.337765115542894 0,0,0 -121.796875,0 l0,48.337765115542894 a60.8984375,12.337765115542894 0,0,0 121.796875,0 l0,-48.337765115542894\" class=\"basic label-container outer-path\" style=\"fill:#fce4ec !important;stroke:#c2185b !important\" label-offset-y=\"12.337765115542894\" transform=\"translate(-60.8984375, -36.50664767331434)\"></path><g class=\"label\" style=\"\" transform=\"translate(-54.8984375, -4)\"><rect></rect><foreignObject width=\"109.796875\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🗄️ Спільні дані</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1790663092146-3-0-flowchart-F1-1\" data-look=\"classic\" transform=\"translate(113.06640625, 217.51329803466797)\"><rect class=\"basic label-container\" style=\"\" x=\"-70.06640625\" y=\"-24\" width=\"140.1328125\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-46.06640625, -12)\"><rect></rect><foreignObject width=\"92.1328125\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>⚙️ Функція 1</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1790663092146-3-0-flowchart-F2-3\" data-look=\"classic\" transform=\"translate(304.31640625, 217.51329803466797)\"><rect class=\"basic label-container\" style=\"\" x=\"-71.18359375\" y=\"-24\" width=\"142.3671875\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-47.18359375, -12)\"><rect></rect><foreignObject width=\"94.3671875\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>⚙️ Функція 2</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1790663092146-3-0-flowchart-F3-5\" data-look=\"classic\" transform=\"translate(496.87109375, 217.51329803466797)\"><rect class=\"basic label-container\" style=\"\" x=\"-71.37109375\" y=\"-24\" width=\"142.7421875\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-47.37109375, -12)\"><rect></rect><foreignObject width=\"94.7421875\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>⚙️ Функція 3</p></span></div></foreignObject></g></g></g></g></g></g></g><defs><filter id=\"exp-1790663092146-3-0-drop-shadow\" height=\"130%\" width=\"130%\"><feDropShadow dx=\"4\" dy=\"4\" stdDeviation=\"0\" flood-opacity=\"0.06\" flood-color=\"#000000\"></feDropShadow></filter></defs><defs><filter id=\"exp-1790663092146-3-0-drop-shadow-small\" height=\"150%\" width=\"150%\"><feDropShadow dx=\"2\" dy=\"2\" stdDeviation=\"0\" flood-opacity=\"0.06\" flood-color=\"#000000\"></feDropShadow></filter></defs></svg></div>\n<table>\n<thead>\n<tr>\n<th>Аспект</th>\n<th>📝 Процедурний підхід</th>\n<th>🎯 Об'єктний підхід</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Одиниця організації</strong></td>\n<td>Функція</td>\n<td>Об'єкт (дані + поведінка)</td>\n</tr>\n<tr>\n<td><strong>Доступ до даних</strong></td>\n<td>Дані зазвичай доступні багатьом функціям</td>\n<td>Лише методи самого об'єкта</td>\n</tr>\n<tr>\n<td><strong>Вплив змін</strong></td>\n<td>Зміна даних зачіпає багато функцій</td>\n<td>Зміни локалізовані всередині класу</td>\n</tr>\n<tr>\n<td><strong>Питання при проєктуванні</strong></td>\n<td>\"Які дії треба виконати?\"</td>\n<td>\"Які сутності відповідають за дії?\"</td>\n</tr>\n</tbody></table>\n<div class=\"tip\"><strong>💡 Важливо</strong> <p>Процедурний підхід не є \"поганим\": для невеликих скриптів і обчислювальних задач він природний. Переваги ООП проявляються у великих системах з багатьма сутностями, які довго розвиваються командою. 📈</p>\n</div>\n\n","<h1>🏗️ Клас і об'єкт</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Клас</strong> (Class) - опис структури та поведінки, спільних для групи об'єктів: які поля вони мають і які методи можна над ними викликати.<br><strong>Об'єкт</strong> (Object) - конкретний екземпляр класу, створений під час виконання програми, з власними значеннями полів.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Клас відповідає на питання \"яким буває товар\", об'єкт відповідає на питання \"який саме це товар\". Клас один, об'єктів може бути скільки завгодно.</p>\n<table>\n<thead>\n<tr>\n<th>Аспект</th>\n<th>🏗️ Клас</th>\n<th>📦 Об'єкт</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Коли існує</strong></td>\n<td>Описується у коді програми</td>\n<td>Створюється під час виконання</td>\n</tr>\n<tr>\n<td><strong>Що містить</strong></td>\n<td>Перелік полів і методів</td>\n<td>Конкретні значення полів (стан)</td>\n</tr>\n<tr>\n<td><strong>Кількість</strong></td>\n<td>Один для кожного типу</td>\n<td>Необмежена</td>\n</tr>\n<tr>\n<td><strong>Аналогія</strong></td>\n<td>📐 Креслення будинку</td>\n<td>🏠 Збудований за кресленням будинок</td>\n</tr>\n</tbody></table>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Product</span> {\n    <span class=\"hljs-keyword\">private</span> String name;       <span class=\"hljs-comment\">// поле (стан)</span>\n    <span class=\"hljs-keyword\">private</span> <span class=\"hljs-type\">double</span> price;\n\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">Product</span><span class=\"hljs-params\">(String name, <span class=\"hljs-type\">double</span> price)</span> {   <span class=\"hljs-comment\">// конструктор</span>\n        <span class=\"hljs-built_in\">this</span>.name = name;\n        <span class=\"hljs-built_in\">this</span>.price = price;\n    }\n\n    <span class=\"hljs-keyword\">public</span> String <span class=\"hljs-title function_\">describe</span><span class=\"hljs-params\">()</span> {                    <span class=\"hljs-comment\">// метод (поведінка)</span>\n        <span class=\"hljs-keyword\">return</span> name + <span class=\"hljs-string\">\": \"</span> + price + <span class=\"hljs-string\">\" грн\"</span>;\n    }\n}\n\n<span class=\"hljs-type\">Product</span> <span class=\"hljs-variable\">laptop</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Product</span>(<span class=\"hljs-string\">\"Ноутбук\"</span>, <span class=\"hljs-number\">32000</span>);   <span class=\"hljs-comment\">// перший об'єкт</span>\n<span class=\"hljs-type\">Product</span> <span class=\"hljs-variable\">mouse</span>  <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Product</span>(<span class=\"hljs-string\">\"Миша\"</span>, <span class=\"hljs-number\">650</span>);        <span class=\"hljs-comment\">// другий об'єкт</span>\nSystem.out.println(mouse.describe());             <span class=\"hljs-comment\">// Миша: 650.0 грн</span></code></pre><div class=\"note\"><strong>📝 Зверніть увагу</strong> <p>Обидва об'єкти мають однаковий набір методів, але різний стан. Метод <code>describe()</code> один, а результат залежить від того, на якому об'єкті його викликано. 🎯</p>\n</div>\n\n","<h1>🏛️ Чотири стовпи ООП</h1>\n<p><strong>Головна ідея:</strong> Чотири принципи ООП не є окремими \"фічами мови\". Кожен з них вирішує конкретну проблему проєктування, і в добре спроєктованій системі вони працюють разом.</p>\n\n<div class=\"mermaid\" data-source=\"graph TD\n    A[&quot;🎯 ООП&quot;] --&gt; B[&quot;📦 Інкапсуляція&quot;]\n    A --&gt; C[&quot;🧬 Наслідування&quot;]\n    A --&gt; D[&quot;🎭 Поліморфізм&quot;]\n    A --&gt; E[&quot;🎨 Абстракція&quot;]\n    B --&gt; B1[&quot;Захист стану об'єкта&quot;]\n    C --&gt; C1[&quot;Повторне використання коду&quot;]\n    D --&gt; D1[&quot;Один виклик, різні реалізації&quot;]\n    E --&gt; E1[&quot;Лише суттєві деталі&quot;]\n    style A fill:#e3f2fd,stroke:#1565c0,stroke-width:2px\n    style B fill:#e8f5e9,stroke:#388e3c\n    style C fill:#fff9c4,stroke:#f9a825\n    style D fill:#fce4ec,stroke:#c2185b\n    style E fill:#f3e5f5,stroke:#7b1fa2\"><svg id=\"exp-1790663092170-5-0\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" class=\"flowchart\" style=\"max-width: 1067.2265625px;\" viewBox=\"0 0 1067.2265625 284\" role=\"graphics-document document\" aria-roledescription=\"flowchart-v2\"><style>#exp-1790663092170-5-0{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#exp-1790663092170-5-0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#exp-1790663092170-5-0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#exp-1790663092170-5-0 .error-icon{fill:#552222;}#exp-1790663092170-5-0 .error-text{fill:#552222;stroke:#552222;}#exp-1790663092170-5-0 .edge-thickness-normal{stroke-width:1px;}#exp-1790663092170-5-0 .edge-thickness-thick{stroke-width:3.5px;}#exp-1790663092170-5-0 .edge-pattern-solid{stroke-dasharray:0;}#exp-1790663092170-5-0 .edge-thickness-invisible{stroke-width:0;fill:none;}#exp-1790663092170-5-0 .edge-pattern-dashed{stroke-dasharray:3;}#exp-1790663092170-5-0 .edge-pattern-dotted{stroke-dasharray:2;}#exp-1790663092170-5-0 .marker{fill:#333333;stroke:#333333;}#exp-1790663092170-5-0 .marker.cross{stroke:#333333;}#exp-1790663092170-5-0 svg{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;}#exp-1790663092170-5-0 p{margin:0;}#exp-1790663092170-5-0 .label{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;color:#333;}#exp-1790663092170-5-0 .cluster-label text{fill:#333;}#exp-1790663092170-5-0 .cluster-label span{color:#333;}#exp-1790663092170-5-0 .cluster-label span p{background-color:transparent;}#exp-1790663092170-5-0 .label text,#exp-1790663092170-5-0 span{fill:#333;color:#333;}#exp-1790663092170-5-0 .node rect,#exp-1790663092170-5-0 .node circle,#exp-1790663092170-5-0 .node ellipse,#exp-1790663092170-5-0 .node polygon,#exp-1790663092170-5-0 .node path{fill:#ECECFF;stroke:#667eea;stroke-width:1px;}#exp-1790663092170-5-0 .rough-node .label text,#exp-1790663092170-5-0 .node .label text,#exp-1790663092170-5-0 .image-shape .label,#exp-1790663092170-5-0 .icon-shape .label{text-anchor:middle;}#exp-1790663092170-5-0 .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#exp-1790663092170-5-0 .rough-node .label,#exp-1790663092170-5-0 .node .label,#exp-1790663092170-5-0 .image-shape .label,#exp-1790663092170-5-0 .icon-shape .label{text-align:center;}#exp-1790663092170-5-0 .node.clickable{cursor:pointer;}#exp-1790663092170-5-0 .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#exp-1790663092170-5-0 .arrowheadPath{fill:#333333;}#exp-1790663092170-5-0 .edgePaths .path{stroke:#333333;stroke-width:1px;}#exp-1790663092170-5-0 .flowchart-link{stroke:#333333;fill:none;}#exp-1790663092170-5-0 .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1790663092170-5-0 .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#exp-1790663092170-5-0 .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1790663092170-5-0 .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#exp-1790663092170-5-0 .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#exp-1790663092170-5-0 .cluster text{fill:#333;}#exp-1790663092170-5-0 .cluster span{color:#333;}#exp-1790663092170-5-0 .node .collapsed-indicator{fill:#aaaa33;stroke:none;opacity:0.6;}#exp-1790663092170-5-0 .node .collapsed-separator{stroke:#aaaa33;stroke-width:0.75px;}#exp-1790663092170-5-0 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#exp-1790663092170-5-0 .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#exp-1790663092170-5-0 rect.text{fill:none;stroke-width:0;}#exp-1790663092170-5-0 .icon-shape,#exp-1790663092170-5-0 .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#exp-1790663092170-5-0 .icon-shape p,#exp-1790663092170-5-0 .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#exp-1790663092170-5-0 .icon-shape .label rect,#exp-1790663092170-5-0 .image-shape .label rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#exp-1790663092170-5-0 .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#exp-1790663092170-5-0 .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#exp-1790663092170-5-0 .node .neo-node{stroke:#667eea;}#exp-1790663092170-5-0 [data-look=\"neo\"].node rect,#exp-1790663092170-5-0 [data-look=\"neo\"].cluster rect,#exp-1790663092170-5-0 [data-look=\"neo\"].node polygon{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790663092170-5-0 [data-look=\"neo\"].swimlane.cluster rect{filter:none;}#exp-1790663092170-5-0 [data-look=\"neo\"].node path{stroke:#667eea;stroke-width:1px;}#exp-1790663092170-5-0 [data-look=\"neo\"].node .outer-path{filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790663092170-5-0 [data-look=\"neo\"].node .neo-line path{stroke:#667eea;filter:none;}#exp-1790663092170-5-0 [data-look=\"neo\"].node circle{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790663092170-5-0 [data-look=\"neo\"].node circle .state-start{fill:#000000;}#exp-1790663092170-5-0 [data-look=\"neo\"].icon-shape .icon{fill:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790663092170-5-0 [data-look=\"neo\"].icon-shape .icon-neo path{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1790663092170-5-0 :root{--mermaid-font-family:\"trebuchet ms\",verdana,arial,sans-serif;}</style><g><marker id=\"exp-1790663092170-5-0_flowchart-v2-pointEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 0 L 10 5 L 0 10 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790663092170-5-0_flowchart-v2-pointStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"4.5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 5 L 10 10 L 10 0 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790663092170-5-0_flowchart-v2-pointEnd-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 11.5 14\" refX=\"11.5\" refY=\"7\" markerUnits=\"userSpaceOnUse\" markerWidth=\"10.5\" markerHeight=\"14\" orient=\"auto\"><path d=\"M 0 0 L 11.5 7 L 0 14 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790663092170-5-0_flowchart-v2-pointStart-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 11.5 14\" refX=\"1\" refY=\"7\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11.5\" markerHeight=\"14\" orient=\"auto\"><polygon points=\"0,7 11.5,14 11.5,0\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></polygon></marker><marker id=\"exp-1790663092170-5-0_flowchart-v2-circleEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"11\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1790663092170-5-0_flowchart-v2-circleStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-1\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1790663092170-5-0_flowchart-v2-circleEnd-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refY=\"5\" refX=\"12.25\" markerUnits=\"userSpaceOnUse\" markerWidth=\"14\" markerHeight=\"14\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1790663092170-5-0_flowchart-v2-circleStart-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-2\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"14\" markerHeight=\"14\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1790663092170-5-0_flowchart-v2-crossEnd\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"12\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790663092170-5-0_flowchart-v2-crossStart\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"-1\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1790663092170-5-0_flowchart-v2-crossEnd-margin\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 15 15\" refX=\"17.7\" refY=\"7.5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"12\" markerHeight=\"12\" orient=\"auto\"><path d=\"M 1,1 L 14,14 M 1,14 L 14,1\" class=\"arrowMarkerPath\" style=\"stroke-width: 2.5;\"></path></marker><marker id=\"exp-1790663092170-5-0_flowchart-v2-crossStart-margin\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 15 15\" refX=\"-3.5\" refY=\"7.5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"12\" markerHeight=\"12\" orient=\"auto\"><path d=\"M 1,1 L 14,14 M 1,14 L 14,1\" class=\"arrowMarkerPath\" style=\"stroke-width: 2.5; stroke-dasharray: 1, 0;\"></path></marker><g class=\"root\"><g class=\"clusters\"></g><g class=\"edgePaths\"><path d=\"M485.938,37.981L423.531,45.151C361.125,52.321,236.313,66.66,173.906,77.33C111.5,88,111.5,95,111.5,98.5L111.5,102\" id=\"exp-1790663092170-5-0-L_A_B_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_A_B_0\" data-points=\"W3sieCI6NDg1LjkzNzUsInkiOjM3Ljk4MTM4OTIxNDUzNjkzfSx7IngiOjExMS41LCJ5Ijo4MX0seyJ4IjoxMTEuNSwieSI6MTA2fV0=\" data-look=\"classic\" marker-end=\"url(#exp-1790663092170-5-0_flowchart-v2-pointEnd)\"></path><path d=\"M485.938,49.121L469.781,54.434C453.625,59.747,421.313,70.374,405.156,79.187C389,88,389,95,389,98.5L389,102\" id=\"exp-1790663092170-5-0-L_A_C_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_A_C_0\" data-points=\"W3sieCI6NDg1LjkzNzUsInkiOjQ5LjEyMTIyNDgzMjIxNDc2NH0seyJ4IjozODksInkiOjgxfSx7IngiOjM4OSwieSI6MTA2fV0=\" data-look=\"classic\" marker-end=\"url(#exp-1790663092170-5-0_flowchart-v2-pointEnd)\"></path><path d=\"M590.063,49.121L606.219,54.434C622.375,59.747,654.688,70.374,670.844,79.187C687,88,687,95,687,98.5L687,102\" id=\"exp-1790663092170-5-0-L_A_D_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_A_D_0\" data-points=\"W3sieCI6NTkwLjA2MjUsInkiOjQ5LjEyMTIyNDgzMjIxNDc2NH0seyJ4Ijo2ODcsInkiOjgxfSx7IngiOjY4NywieSI6MTA2fV0=\" data-look=\"classic\" marker-end=\"url(#exp-1790663092170-5-0_flowchart-v2-pointEnd)\"></path><path d=\"M590.063,38.044L651.738,45.203C713.413,52.362,836.763,66.681,898.438,77.341C960.113,88,960.113,95,960.113,98.5L960.113,102\" id=\"exp-1790663092170-5-0-L_A_E_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_A_E_0\" data-points=\"W3sieCI6NTkwLjA2MjUsInkiOjM4LjA0MzU0OTQ3NjY4NDQ2fSx7IngiOjk2MC4xMTMyODEyNSwieSI6ODF9LHsieCI6OTYwLjExMzI4MTI1LCJ5IjoxMDZ9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1790663092170-5-0_flowchart-v2-pointEnd)\"></path><path d=\"M111.5,154L111.5,158.167C111.5,162.333,111.5,170.667,111.5,180.333C111.5,190,111.5,201,111.5,206.5L111.5,212\" id=\"exp-1790663092170-5-0-L_B_B1_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_B_B1_0\" data-points=\"W3sieCI6MTExLjUsInkiOjE1NH0seyJ4IjoxMTEuNSwieSI6MTc5fSx7IngiOjExMS41LCJ5IjoyMTZ9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1790663092170-5-0_flowchart-v2-pointEnd)\"></path><path d=\"M389,154L389,158.167C389,162.333,389,170.667,389,178.333C389,186,389,193,389,196.5L389,200\" id=\"exp-1790663092170-5-0-L_C_C1_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_C_C1_0\" data-points=\"W3sieCI6Mzg5LCJ5IjoxNTR9LHsieCI6Mzg5LCJ5IjoxNzl9LHsieCI6Mzg5LCJ5IjoyMDR9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1790663092170-5-0_flowchart-v2-pointEnd)\"></path><path d=\"M687,154L687,158.167C687,162.333,687,170.667,687,178.333C687,186,687,193,687,196.5L687,200\" id=\"exp-1790663092170-5-0-L_D_D1_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_D_D1_0\" data-points=\"W3sieCI6Njg3LCJ5IjoxNTR9LHsieCI6Njg3LCJ5IjoxNzl9LHsieCI6Njg3LCJ5IjoyMDR9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1790663092170-5-0_flowchart-v2-pointEnd)\"></path><path d=\"M960.113,154L960.113,158.167C960.113,162.333,960.113,170.667,960.113,180.333C960.113,190,960.113,201,960.113,206.5L960.113,212\" id=\"exp-1790663092170-5-0-L_E_E1_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_E_E1_0\" data-points=\"W3sieCI6OTYwLjExMzI4MTI1LCJ5IjoxNTR9LHsieCI6OTYwLjExMzI4MTI1LCJ5IjoxNzl9LHsieCI6OTYwLjExMzI4MTI1LCJ5IjoyMTZ9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1790663092170-5-0_flowchart-v2-pointEnd)\"></path></g><g class=\"edgeLabels\"><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_A_B_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_A_C_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_A_D_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_A_E_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_B_B1_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_C_C1_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_D_D1_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_E_E1_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g></g><g class=\"nodes\"><g class=\"node default  \" id=\"exp-1790663092170-5-0-flowchart-A-0\" data-look=\"classic\" transform=\"translate(538, 32)\"><rect class=\"basic label-container\" style=\"fill:#e3f2fd !important;stroke:#1565c0 !important;stroke-width:2px !important\" x=\"-52.0625\" y=\"-24\" width=\"104.125\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-28.0625, -12)\"><rect></rect><foreignObject width=\"56.125\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🎯 ООП</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1790663092170-5-0-flowchart-B-1\" data-look=\"classic\" transform=\"translate(111.5, 130)\"><rect class=\"basic label-container\" style=\"fill:#e8f5e9 !important;stroke:#388e3c !important\" x=\"-81.52734375\" y=\"-24\" width=\"163.0546875\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-57.52734375, -12)\"><rect></rect><foreignObject width=\"115.0546875\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>📦 Інкапсуляція</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1790663092170-5-0-flowchart-C-3\" data-look=\"classic\" transform=\"translate(389, 130)\"><rect class=\"basic label-container\" style=\"fill:#fff9c4 !important;stroke:#f9a825 !important\" x=\"-85.9375\" y=\"-24\" width=\"171.875\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-61.9375, -12)\"><rect></rect><foreignObject width=\"123.875\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🧬 Наслідування</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1790663092170-5-0-flowchart-D-5\" data-look=\"classic\" transform=\"translate(687, 130)\"><rect class=\"basic label-container\" style=\"fill:#fce4ec !important;stroke:#c2185b !important\" x=\"-83.75\" y=\"-24\" width=\"167.5\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-59.75, -12)\"><rect></rect><foreignObject width=\"119.5\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🎭 Поліморфізм</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1790663092170-5-0-flowchart-E-7\" data-look=\"classic\" transform=\"translate(960.11328125, 130)\"><rect class=\"basic label-container\" style=\"fill:#f3e5f5 !important;stroke:#7b1fa2 !important\" x=\"-76.06640625\" y=\"-24\" width=\"152.1328125\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-52.06640625, -12)\"><rect></rect><foreignObject width=\"104.1328125\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🎨 Абстракція</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1790663092170-5-0-flowchart-B1-9\" data-look=\"classic\" transform=\"translate(111.5, 240)\"><rect class=\"basic label-container\" style=\"\" x=\"-103.5\" y=\"-24\" width=\"207\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-79.5, -12)\"><rect></rect><foreignObject width=\"159\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>Захист стану об'єкта</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1790663092170-5-0-flowchart-C1-11\" data-look=\"classic\" transform=\"translate(389, 240)\"><rect class=\"basic label-container\" style=\"\" x=\"-124\" y=\"-36\" width=\"248\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-100, -24)\"><rect></rect><foreignObject width=\"200\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;\"><span class=\"nodeLabel \"><p>Повторне використання коду</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1790663092170-5-0-flowchart-D1-13\" data-look=\"classic\" transform=\"translate(687, 240)\"><rect class=\"basic label-container\" style=\"\" x=\"-124\" y=\"-36\" width=\"248\" height=\"72\"></rect><g class=\"label\" style=\"\" transform=\"translate(-100, -24)\"><rect></rect><foreignObject width=\"200\" height=\"48\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;\"><span class=\"nodeLabel \"><p>Один виклик, різні реалізації</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1790663092170-5-0-flowchart-E1-15\" data-look=\"classic\" transform=\"translate(960.11328125, 240)\"><rect class=\"basic label-container\" style=\"\" x=\"-99.11328125\" y=\"-24\" width=\"198.2265625\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-75.11328125, -12)\"><rect></rect><foreignObject width=\"150.2265625\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>Лише суттєві деталі</p></span></div></foreignObject></g></g></g></g></g><defs><filter id=\"exp-1790663092170-5-0-drop-shadow\" height=\"130%\" width=\"130%\"><feDropShadow dx=\"4\" dy=\"4\" stdDeviation=\"0\" flood-opacity=\"0.06\" flood-color=\"#000000\"></feDropShadow></filter></defs><defs><filter id=\"exp-1790663092170-5-0-drop-shadow-small\" height=\"150%\" width=\"150%\"><feDropShadow dx=\"2\" dy=\"2\" stdDeviation=\"0\" flood-opacity=\"0.06\" flood-color=\"#000000\"></feDropShadow></filter></defs></svg></div>\n<table>\n<thead>\n<tr>\n<th>Принцип</th>\n<th>Яку проблему вирішує</th>\n<th>Ключове питання</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>📦 <strong>Інкапсуляція</strong></td>\n<td>Некоректні зміни даних ззовні</td>\n<td>Хто має право змінювати стан?</td>\n</tr>\n<tr>\n<td>🧬 <strong>Наслідування</strong></td>\n<td>Дублювання спільного коду у схожих класах</td>\n<td>Що спільного мають ці класи?</td>\n</tr>\n<tr>\n<td>🎭 <strong>Поліморфізм</strong></td>\n<td>Ланцюжки <code>if/switch</code> за типом об'єкта</td>\n<td>Як працювати з різними типами однаково?</td>\n</tr>\n<tr>\n<td>🎨 <strong>Абстракція</strong></td>\n<td>Залежність від деталей реалізації</td>\n<td>Що важливо знати користувачу класу?</td>\n</tr>\n</tbody></table>\n","<h1>📦 Інкапсуляція</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Інкапсуляція</strong> (Encapsulation) - об'єднання даних і методів роботи з ними в одному класі та приховування внутрішнього стану, доступ до якого надається лише через контрольований публічний інтерфейс.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Об'єкт сам відповідає за коректність свого стану. Зовнішній код не може \"підкрутити\" поле напряму, він може лише попросити об'єкт виконати дію, а об'єкт перевірить, чи вона допустима.</p>\n<h2>🚗 Аналогія</h2>\n<p>Водій керує автомобілем через кермо, педалі та перемикач передач. Доступу до системи впорскування палива він не має, тому не може випадково її розладнати, а виробник може змінити двигун, не змінюючи органи керування.</p>\n<h2>🔐 Модифікатори доступу в Java</h2>\n<table>\n<thead>\n<tr>\n<th>Модифікатор</th>\n<th>Клас</th>\n<th>Пакет</th>\n<th>Підклас</th>\n<th>Усі</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><code>private</code></td>\n<td>✅</td>\n<td>❌</td>\n<td>❌</td>\n<td>❌</td>\n</tr>\n<tr>\n<td>без модифікатора (package-private)</td>\n<td>✅</td>\n<td>✅</td>\n<td>❌</td>\n<td>❌</td>\n</tr>\n<tr>\n<td><code>protected</code></td>\n<td>✅</td>\n<td>✅</td>\n<td>✅</td>\n<td>❌</td>\n</tr>\n<tr>\n<td><code>public</code></td>\n<td>✅</td>\n<td>✅</td>\n<td>✅</td>\n<td>✅</td>\n</tr>\n</tbody></table>\n<div class=\"tip\"><strong>💡 Практичне правило</strong> <p>Починайте з найсуворішого рівня доступу: поля <code>private</code>, а публічними робіть лише ті методи, які справді потрібні іншим класам. Відкрити доступ пізніше легко, закрити його без поломки чужого коду складно. 🔒</p>\n</div>\n\n","<h1>📦 Інкапсуляція на практиці</h1>\n<p><strong>Головна ідея:</strong> Інкапсуляція захищає <strong>інваріанти</strong> класу, тобто умови, які мають виконуватись завжди. Для банківського рахунку інваріант звучить так: баланс ніколи не буває від'ємним.</p>\n<h2>❌ Без інкапсуляції</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">BankAccount</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-type\">double</span> balance;          <span class=\"hljs-comment\">// будь-хто може змінити поле</span>\n}\n\n<span class=\"hljs-type\">BankAccount</span> <span class=\"hljs-variable\">account</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">BankAccount</span>();\naccount.balance = -<span class=\"hljs-number\">5000</span>;            <span class=\"hljs-comment\">// 😱 некоректний стан, і ніхто його не помітив</span></code></pre><h2>✅ З інкапсуляцією</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">BankAccount</span> {\n    <span class=\"hljs-keyword\">private</span> <span class=\"hljs-type\">double</span> balance;         <span class=\"hljs-comment\">// стан прихований</span>\n\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-type\">double</span> <span class=\"hljs-title function_\">getBalance</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">return</span> balance;\n    }\n\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">deposit</span><span class=\"hljs-params\">(<span class=\"hljs-type\">double</span> amount)</span> {\n        <span class=\"hljs-keyword\">if</span> (amount &lt;= <span class=\"hljs-number\">0</span>) {\n            <span class=\"hljs-keyword\">throw</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">IllegalArgumentException</span>(<span class=\"hljs-string\">\"Сума поповнення має бути додатною\"</span>);\n        }\n        balance += amount;\n    }\n\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">withdraw</span><span class=\"hljs-params\">(<span class=\"hljs-type\">double</span> amount)</span> {\n        <span class=\"hljs-keyword\">if</span> (amount &lt;= <span class=\"hljs-number\">0</span> || amount &gt; balance) {\n            <span class=\"hljs-keyword\">throw</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">IllegalArgumentException</span>(<span class=\"hljs-string\">\"Некоректна сума або недостатньо коштів\"</span>);\n        }\n        balance -= amount;\n    }\n}</code></pre><div class=\"warning\"><strong>⚠️ Поширена помилка</strong> <p>Геттер і сеттер для кожного поля без жодної перевірки формально \"приховують\" дані, але фактично нічого не захищають. Метод <code>setBalance(double)</code> без валідації нічим не кращий за публічне поле. Публічний інтерфейс має описувати <strong>дії</strong> (<code>deposit</code>, <code>withdraw</code>), а не просто відкривати поля. ⚠️</p>\n</div>\n\n","<h1>🧬 Наслідування</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Наслідування</strong> (Inheritance) - механізм створення нового класу (підкласу) на основі існуючого (суперкласу), за якого підклас отримує поля і методи суперкласу та може додавати власні або змінювати успадковану поведінку.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Наслідування виражає відношення <strong>\"є\"</strong> (is-a). <code>EmailNotification</code> є різновидом <code>Notification</code>, тому має все, що має будь-яке сповіщення, плюс власну специфіку.</p>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Notification</span> {                       <span class=\"hljs-comment\">// суперклас</span>\n    <span class=\"hljs-keyword\">private</span> <span class=\"hljs-keyword\">final</span> String recipient;\n\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">Notification</span><span class=\"hljs-params\">(String recipient)</span> {\n        <span class=\"hljs-built_in\">this</span>.recipient = recipient;\n    }\n\n    <span class=\"hljs-keyword\">protected</span> String <span class=\"hljs-title function_\">getRecipient</span><span class=\"hljs-params\">()</span> {             <span class=\"hljs-comment\">// доступ лише для підкласів</span>\n        <span class=\"hljs-keyword\">return</span> recipient;\n    }\n\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">send</span><span class=\"hljs-params\">(String message)</span> {\n        System.out.println(<span class=\"hljs-string\">\"Сповіщення для \"</span> + recipient + <span class=\"hljs-string\">\": \"</span> + message);\n    }\n}\n\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">EmailNotification</span> <span class=\"hljs-keyword\">extends</span> <span class=\"hljs-title class_\">Notification</span> {   <span class=\"hljs-comment\">// підклас</span>\n    <span class=\"hljs-keyword\">private</span> <span class=\"hljs-keyword\">final</span> String subject;\n\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">EmailNotification</span><span class=\"hljs-params\">(String email, String subject)</span> {\n        <span class=\"hljs-built_in\">super</span>(email);                             <span class=\"hljs-comment\">// виклик конструктора суперкласу</span>\n        <span class=\"hljs-built_in\">this</span>.subject = subject;\n    }\n\n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">send</span><span class=\"hljs-params\">(String message)</span> {            <span class=\"hljs-comment\">// перевизначення поведінки</span>\n        System.out.println(<span class=\"hljs-string\">\"📧 [\"</span> + subject + <span class=\"hljs-string\">\"] \"</span> + getRecipient() + <span class=\"hljs-string\">\": \"</span> + message);\n    }\n}</code></pre><div class=\"tip\"><strong>💡 Перевірка \"є\"</strong> <p>Перед тим як успадковувати, сформулюйте речення \"B є різновидом A\". Якщо воно звучить природно (\"SMS-сповіщення є сповіщенням\"), наслідування доречне. Якщо ні (\"Замовлення є списком товарів\"), потрібен інший механізм. ✅</p>\n</div>\n\n\n\n\n\n<div class=\"warning\"><strong>⚠️ Застереження</strong> <p>Кожен рівень наслідування посилює зв'язок між класами: зміна суперкласу впливає на всіх нащадків. Глибокі ієрархії важко читати й небезпечно змінювати, тому на практиці їх намагаються тримати пласкими. 🪜</p>\n</div>\n\n","<h1>🎭 Поліморфізм</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Поліморфізм</strong> (Polymorphism) - здатність коду працювати з об'єктами різних класів через спільний тип, при цьому для кожного об'єкта виконується реалізація методу, визначена його фактичним класом.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Код, що надсилає сповіщення, не повинен знати, чи це email, SMS чи push. Він викликає <code>send()</code>, а правильну реалізацію обирає сам об'єкт під час виконання програми.</p>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\">List&lt;Notification&gt; queue = List.of(\n    <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">EmailNotification</span>(<span class=\"hljs-string\">\"student@college.edu.ua\"</span>, <span class=\"hljs-string\">\"Розклад\"</span>),\n    <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">SmsNotification</span>(<span class=\"hljs-string\">\"+380671234567\"</span>),\n    <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">PushNotification</span>(<span class=\"hljs-string\">\"device-42\"</span>)\n);\n\n<span class=\"hljs-keyword\">for</span> (Notification n : queue) {\n    n.send(<span class=\"hljs-string\">\"Пару перенесено на 10:30\"</span>);   <span class=\"hljs-comment\">// реалізація визначається під час виконання</span>\n}</code></pre><h2>🔀 Два види поліморфізму в Java</h2>\n<table>\n<thead>\n<tr>\n<th>Вид</th>\n<th>Механізм</th>\n<th>Коли обирається метод</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>⚡ <strong>Динамічний</strong></td>\n<td>Перевизначення (overriding) методу в підкласі, <code>@Override</code></td>\n<td>Під час виконання</td>\n</tr>\n<tr>\n<td>📝 <strong>Статичний</strong></td>\n<td>Перевантаження (overloading): однакове ім'я, різні параметри</td>\n<td>Під час компіляції</td>\n</tr>\n</tbody></table>\n<div class=\"success\"><strong>✅ Практична цінність</strong> <p>Щоб додати Telegram-сповіщення, достатньо створити новий клас <code>TelegramNotification</code>. Цикл розсилки та весь код, що працює з <code>Notification</code>, залишаються без змін. Без поліморфізму довелося б дописувати ще одну гілку в кожен <code>if/switch</code> за типом. 🚀</p>\n</div>\n\n","<h1>🎨 Абстракція</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Абстракція</strong> (Abstraction) - виділення суттєвих для задачі характеристик і поведінки об'єкта та відкидання несуттєвих деталей реалізації.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Абстракція описує, <strong>що</strong> робить об'єкт, і приховує, <strong>як</strong> він це робить. Коду оформлення замовлення важливо, що оплату можна провести, а не те, як саме формується запит до банку.</p>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">interface</span> <span class=\"hljs-title class_\">PaymentProcessor</span> {               <span class=\"hljs-comment\">// контракт: ЩО вміє процесор</span>\n    <span class=\"hljs-type\">boolean</span> <span class=\"hljs-title function_\">pay</span><span class=\"hljs-params\">(<span class=\"hljs-type\">double</span> amount)</span>;\n}\n\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">CardPayment</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">PaymentProcessor</span> {\n    <span class=\"hljs-keyword\">private</span> <span class=\"hljs-keyword\">final</span> String cardToken;               <span class=\"hljs-comment\">// деталь реалізації прихована</span>\n\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">CardPayment</span><span class=\"hljs-params\">(String cardToken)</span> {\n        <span class=\"hljs-built_in\">this</span>.cardToken = cardToken;\n    }\n\n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-type\">boolean</span> <span class=\"hljs-title function_\">pay</span><span class=\"hljs-params\">(<span class=\"hljs-type\">double</span> amount)</span> {       <span class=\"hljs-comment\">// ЯК саме проводиться оплата</span>\n        <span class=\"hljs-comment\">// запит до платіжного шлюзу з використанням cardToken</span>\n        <span class=\"hljs-keyword\">return</span> <span class=\"hljs-literal\">true</span>;\n    }\n}</code></pre><h2>🛠️ Інструменти абстракції в Java</h2>\n<table>\n<thead>\n<tr>\n<th>Характеристика</th>\n<th>🎭 Абстрактний клас</th>\n<th>⚙️ Інтерфейс</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Стан (поля)</strong></td>\n<td>✅ Може мати поля екземпляра</td>\n<td>❌ Лише константи</td>\n</tr>\n<tr>\n<td><strong>Реалізація методів</strong></td>\n<td>✅ Звичайні й абстрактні методи</td>\n<td>⚙️ <code>default</code> і <code>static</code> (з Java 8), <code>private</code> (з Java 9)</td>\n</tr>\n<tr>\n<td><strong>Наслідування</strong></td>\n<td>Лише один суперклас</td>\n<td>Клас може реалізувати кілька інтерфейсів</td>\n</tr>\n<tr>\n<td><strong>Призначення</strong></td>\n<td>Спільна основа споріднених класів</td>\n<td>Контракт поведінки для будь-яких класів</td>\n</tr>\n</tbody></table>\n<div class=\"note\"><strong>📝 Зв'язок із попереднім прикладом</strong> <p>Загального \"сповіщення взагалі\" не існує, тому в реальному проєкті клас <code>Notification</code> доцільно оголосити абстрактним, а метод <code>send()</code> зробити абстрактним методом. 🎯</p>\n</div>\n\n","<h1>🔗 Чотири стовпи в одній системі</h1>\n<p><strong>Головна ідея:</strong> Принципи ООП найкраще видно не окремо, а разом. Розвинемо приклад з оплатою: з'явився другий спосіб оплати, тому спільну перевірку суми винесено в абстрактний клас <code>BasePayment</code>, а <code>CardPayment</code> тепер реалізує лише власне списання коштів <code>charge()</code>.</p>\n\n<img src=\"https://www.plantuml.com/plantuml/svg/fPDFQm8n4CNl-oa2NYnbnRROmo95tLRegOA5dcUJgORD9iiagrZrkpUwkx1_e0XDRc-6txpC8pFhW5oHgS2cKkT0a36kmDgvSoIJmk4xDtejVv2D6oq9y7H3fj0YDieG6opdbzk5i6F0_5bqkz-Ube_Brx9cI21L-iFaUHAFh_gSoEpRyZa8f7P8ty2HhU2GeNOhCXojzLtbg7kMms48cH_c8YPCaIYyYrXYZ4BG5mGarX5mLpbSWCMALI46R0TA2d3Ov-oC5BVCAJd7UjQPyItG1lyqLlg9WKJRJyYurpvDYZfYQv-AtbJycw5Ve1IwBdP_LVy5_hY4jqRQIHz9pSthJA9UIjNk-1PvQWetl8OVbPXwlHxU2tTw6esQKGNDsAQdC6pkhLzilJzecGx3bxxB6MhX_yGl\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n<table>\n<thead>\n<tr>\n<th>Принцип</th>\n<th>Де проявляється у схемі</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🎨 <strong>Абстракція</strong></td>\n<td><code>PaymentProcessor</code> описує лише операцію <code>pay()</code>, не розкриваючи деталей</td>\n</tr>\n<tr>\n<td>🧬 <strong>Наслідування</strong></td>\n<td><code>CardPayment</code> і <code>WalletPayment</code> отримують спільну перевірку <code>validate()</code> від <code>BasePayment</code></td>\n</tr>\n<tr>\n<td>🎭 <strong>Поліморфізм</strong></td>\n<td><code>OrderService</code> викликає <code>pay()</code>, не знаючи, який саме клас оплати йому передали</td>\n</tr>\n<tr>\n<td>📦 <strong>Інкапсуляція</strong></td>\n<td>Токени оплати <code>private</code> і недоступні жодному іншому класу</td>\n</tr>\n</tbody></table>\n","<h1>🧱 Композиція vs наслідування</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Композиція</strong> (Composition) - спосіб побудови класу, за якого він містить інші об'єкти як свої складові та делегує їм частину поведінки. Композиція виражає відношення <strong>\"має\"</strong> (has-a).</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Наслідування фіксує поведінку на етапі написання коду і жорстко зв'язує класи. Композиція дозволяє збирати поведінку з незалежних частин і замінювати їх.</p>\n<table>\n<thead>\n<tr>\n<th>Аспект</th>\n<th>🧬 Наслідування (is-a)</th>\n<th>🧱 Композиція (has-a)</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Приклад відношення</strong></td>\n<td>Car <strong>є</strong> Vehicle</td>\n<td>Car <strong>має</strong> Engine</td>\n</tr>\n<tr>\n<td><strong>Зв'язок між класами</strong></td>\n<td>Сильний</td>\n<td>Слабкий</td>\n</tr>\n<tr>\n<td><strong>Зміна поведінки</strong></td>\n<td>Лише створенням нового підкласу</td>\n<td>Заміною складової, навіть під час виконання</td>\n</tr>\n<tr>\n<td><strong>Ризик</strong></td>\n<td>Підклас отримує непотрібні методи</td>\n<td>Більше дрібних класів</td>\n</tr>\n</tbody></table>\n<h2>❌ Проблема: успадкована поведінка, яка не підходить</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Bird</span> {\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">fly</span><span class=\"hljs-params\">()</span> { System.out.println(<span class=\"hljs-string\">\"Лечу\"</span>); }\n}\n\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Penguin</span> <span class=\"hljs-keyword\">extends</span> <span class=\"hljs-title class_\">Bird</span> {\n    <span class=\"hljs-meta\">@Override</span>\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">fly</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-keyword\">throw</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">UnsupportedOperationException</span>(<span class=\"hljs-string\">\"Пінгвіни не літають\"</span>);  <span class=\"hljs-comment\">// ❌</span>\n    }\n}</code></pre><div class=\"note\"><strong>📝 Про термін</strong> <p>Тут \"композиція\" вжито в широкому сенсі, як його використовує книга \"Design Patterns\": об'єкт будується з інших об'єктів. У нотації UML розрізняють вужчі види зв'язку \"має\": композицію (частина не існує без цілого) та агрегацію (частина існує незалежно). 📐</p>\n</div>\n\n\n\n\n\n<div class=\"warning\"><strong>⚠️ Чому це проблема</strong> <p>Будь-який код, що працює з <code>Bird</code>, очікує, що <code>fly()</code> виконається. Підклас <code>Penguin</code> порушує це очікування, і помилка проявиться лише під час виконання. 🐧</p>\n</div>\n\n","<h1>🧱 Композиція: рішення</h1>\n<p><strong>Головна ідея:</strong> Змінну поведінку виносимо в окремий компонент з власним інтерфейсом, а птах лише <strong>має</strong> посилання на цей компонент і делегує йому виклик.</p>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">interface</span> <span class=\"hljs-title class_\">FlyBehavior</span> {\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">fly</span><span class=\"hljs-params\">()</span>;\n}\n\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Flying</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">FlyBehavior</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">fly</span><span class=\"hljs-params\">()</span> { System.out.println(<span class=\"hljs-string\">\"🦅 Лечу\"</span>); }\n}\n\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">NoFlying</span> <span class=\"hljs-keyword\">implements</span> <span class=\"hljs-title class_\">FlyBehavior</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">fly</span><span class=\"hljs-params\">()</span> { System.out.println(<span class=\"hljs-string\">\"🐧 Не літаю, але добре плаваю\"</span>); }\n}\n\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Bird</span> {\n    <span class=\"hljs-keyword\">private</span> FlyBehavior flyBehavior;              <span class=\"hljs-comment\">// композиція: птах МАЄ поведінку</span>\n\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">Bird</span><span class=\"hljs-params\">(FlyBehavior flyBehavior)</span> {\n        <span class=\"hljs-built_in\">this</span>.flyBehavior = flyBehavior;\n    }\n\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">performFly</span><span class=\"hljs-params\">()</span> {\n        flyBehavior.fly();                        <span class=\"hljs-comment\">// делегування</span>\n    }\n\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">setFlyBehavior</span><span class=\"hljs-params\">(FlyBehavior flyBehavior)</span> {\n        <span class=\"hljs-built_in\">this</span>.flyBehavior = flyBehavior;           <span class=\"hljs-comment\">// заміна поведінки під час виконання</span>\n    }\n}\n\n<span class=\"hljs-type\">Bird</span> <span class=\"hljs-variable\">eagle</span>   <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Bird</span>(<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Flying</span>());\n<span class=\"hljs-type\">Bird</span> <span class=\"hljs-variable\">penguin</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Bird</span>(<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">NoFlying</span>());</code></pre><div class=\"success\"><strong>✅ Принцип із класичної літератури</strong> <p>У книзі \"Design Patterns\" (Gamma, Helm, Johnson, Vlissides, 1994), яку часто називають книгою <strong>GoF</strong>, цей підхід сформульовано як <strong>\"Favor object composition over class inheritance\"</strong>: надавайте перевагу композиції об'єктів над наслідуванням класів. 📘</p>\n</div>\n\n\n\n\n\n<div class=\"tip\"><strong>💡 Як обирати</strong> <p><strong>Наслідування:</strong> між класами справжнє відношення \"є\", і поведінка суперкласу повністю підходить нащадкам.<br><strong>Композиція:</strong> потрібно поєднувати кілька поведінок, змінювати їх або повторно використовувати в незв'язаних класах.</p>\n</div>\n\n","<h1>🎯 Програмування через інтерфейси</h1>\n<div class=\"info\"><strong>ℹ️ Принцип</strong> <p><strong>\"Program to an interface, not an implementation\"</strong> - клас має залежати від абстракції (інтерфейсу), а не від конкретного класу-реалізації. Цей принцип також сформульовано в книзі \"Design Patterns\".</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Якщо <code>OrderService</code> сам створює <code>CardPayment</code>, він назавжди прив'язаний до оплати карткою. Якщо ж він отримує будь-який <code>PaymentProcessor</code> ззовні, спосіб оплати можна змінити без жодної правки в <code>OrderService</code>.</p>\n<h2>❌ Залежність від реалізації</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">OrderService</span> {\n    <span class=\"hljs-keyword\">private</span> <span class=\"hljs-keyword\">final</span> <span class=\"hljs-type\">CardPayment</span> <span class=\"hljs-variable\">processor</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">CardPayment</span>(<span class=\"hljs-string\">\"tok_123\"</span>);  <span class=\"hljs-comment\">// жорстка прив'язка</span>\n}</code></pre><h2>✅ Залежність від абстракції</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">OrderService</span> {\n    <span class=\"hljs-keyword\">private</span> <span class=\"hljs-keyword\">final</span> PaymentProcessor processor;     <span class=\"hljs-comment\">// тип змінної: інтерфейс</span>\n\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-title function_\">OrderService</span><span class=\"hljs-params\">(PaymentProcessor processor)</span> {   <span class=\"hljs-comment\">// залежність передається ззовні</span>\n        <span class=\"hljs-built_in\">this</span>.processor = processor;\n    }\n\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">checkout</span><span class=\"hljs-params\">(Order order)</span> {\n        <span class=\"hljs-keyword\">if</span> (!processor.pay(order.total())) {\n            <span class=\"hljs-keyword\">throw</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">IllegalStateException</span>(<span class=\"hljs-string\">\"Оплату відхилено\"</span>);\n        }\n    }\n}\n\n<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">OrderService</span>(<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">CardPayment</span>(<span class=\"hljs-string\">\"tok_123\"</span>));      <span class=\"hljs-comment\">// оплата карткою</span>\n<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">OrderService</span>(<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">WalletPayment</span>(<span class=\"hljs-string\">\"wal_456\"</span>));    <span class=\"hljs-comment\">// оплата гаманцем</span>\n<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">OrderService</span>(<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">FakePaymentProcessor</span>());      <span class=\"hljs-comment\">// заглушка для модульних тестів 🧪</span></code></pre><div class=\"note\"><strong>📝 Dependency Injection</strong> <p>Передавання залежностей ззовні (через конструктор або сеттер) називають <strong>DI</strong> (Dependency Injection / Впровадження залежностей). На цьому підході побудовані поширені фреймворки, зокрема Spring у Java та NestJS у TypeScript. 🔌</p>\n</div>\n\n","<h1>⚠️ Типові помилки ООП-проєктування</h1>\n<div class=\"danger\"><strong>🚫 Анти-патерн</strong> <p><strong>Анти-патерн</strong> (Anti-pattern) - поширене проєктне рішення, яке спочатку здається зручним, але зі зростанням системи призводить до проблем із підтримкою, тестуванням і змінами.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> Більшість типових помилок є прямим порушенням одного з принципів, розглянутих вище. Знаючи принцип, легко розпізнати його порушення.</p>\n<table>\n<thead>\n<tr>\n<th>Помилка</th>\n<th>Як проявляється</th>\n<th>Порушений принцип</th>\n<th>Як виправити</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🐘 <strong>God Object</strong></td>\n<td>Один клас відповідає за UI, базу даних, мережу і бізнес-логіку</td>\n<td>Єдина відповідальність</td>\n<td>Розділити на класи з однією чіткою відповідальністю</td>\n</tr>\n<tr>\n<td>🔓 <strong>Відкритий стан</strong></td>\n<td>Публічні поля або сеттери без перевірок</td>\n<td>📦 Інкапсуляція</td>\n<td><code>private</code> поля, методи-дії з валідацією</td>\n</tr>\n<tr>\n<td>🪜 <strong>Глибока ієрархія</strong></td>\n<td>Багато рівнів наслідування, підкласи з \"непотрібними\" методами</td>\n<td>🧬 Наслідування</td>\n<td>Пласкі ієрархії, композиція</td>\n</tr>\n<tr>\n<td>🔀 <strong>Перевірки типу</strong></td>\n<td>Ланцюжки <code>if (x instanceof ...)</code> у бізнес-логіці</td>\n<td>🎭 Поліморфізм</td>\n<td>Винести поведінку в перевизначені методи</td>\n</tr>\n<tr>\n<td>🔗 <strong>Жорстке зв'язування</strong></td>\n<td><code>new КонкретнийКлас()</code> всередині бізнес-логіки</td>\n<td>🎨 Абстракція</td>\n<td>Залежність від інтерфейсів, DI</td>\n</tr>\n<tr>\n<td>📋 <strong>Copy-Paste</strong></td>\n<td>Однакова логіка скопійована в кілька класів</td>\n<td>Повторне використання</td>\n<td>Винести спільне в метод, базовий клас або компонент</td>\n</tr>\n</tbody></table>\n<div class=\"tip\"><strong>💡 Правило</strong> <p>Виправити проєктну помилку на етапі проєктування коштує кількох хвилин обговорення. Виправити її в коді, від якого вже залежать інші модулі, означає рефакторинг і ризик регресій. 🛠️</p>\n</div>\n\n","<h1>✅ Ключові висновки</h1>\n<div class=\"success\"><strong>✅ Що потрібно запам'ятати</strong> <ol>\n<li>🧩 <strong>ООП</strong> організовує програму навколо об'єктів, які поєднують дані й поведінку та відповідають за власний стан</li>\n<li>🏗️ <strong>Клас</strong> описує структуру і поведінку, <strong>об'єкт</strong> є його конкретним екземпляром зі своїм станом</li>\n<li>📦 <strong>Інкапсуляція</strong> захищає інваріанти класу: стан змінюється лише через методи з перевірками</li>\n<li>🧬 <strong>Наслідування</strong> доречне лише для справжнього відношення \"є\" і посилює зв'язок між класами</li>\n<li>🎭 <strong>Поліморфізм</strong> дозволяє працювати з різними класами через спільний тип без перевірок типу</li>\n<li>🎨 <strong>Абстракція</strong> відділяє \"що робить\" від \"як робить\" за допомогою інтерфейсів і абстрактних класів</li>\n<li>🧱 <strong>Композиція</strong> гнучкіша за наслідування, коли поведінку потрібно поєднувати або змінювати</li>\n<li>🎯 <strong>Програмування через інтерфейси</strong> та DI роблять код розширюваним і тестованим</li>\n</ol>\n</div>\n\n","<h1>❓ Контрольні питання</h1>\n<ol>\n<li><p>🧩 Яку проблему процедурного підходу вирішує ООП? У яких задачах процедурний підхід залишається доречним?</p>\n</li>\n<li><p>🏗️ Чим клас відрізняється від об'єкта? Чому два об'єкти одного класу можуть по-різному реагувати на виклик того самого методу?</p>\n</li>\n<li><p>📦 Що таке інваріант класу і як інкапсуляція допомагає його зберегти? Чому набір геттерів і сеттерів без перевірок не забезпечує інкапсуляції?</p>\n</li>\n<li><p>🧬 Яке відношення між класами виражає наслідування? Наведіть приклад, коли наслідування застосовано помилково.</p>\n</li>\n<li><p>🎭 У чому різниця між перевизначенням (overriding) та перевантаженням (overloading) методу? На якому етапі обирається реалізація в кожному випадку?</p>\n</li>\n<li><p>🎨 Чим абстрактний клас відрізняється від інтерфейсу в Java? Коли доцільно обрати кожен з них?</p>\n</li>\n<li><p>🧱🎯 Поясніть принципи \"Favor composition over inheritance\" та \"Program to an interface, not an implementation\". Як вони впливають на тестованість коду?</p>\n</li>\n</ol>\n","<h1>📚 Глосарій термінів</h1>\n<table>\n<thead>\n<tr>\n<th>Термін</th>\n<th>Англійською</th>\n<th>Визначення</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Клас</strong></td>\n<td>Class</td>\n<td>Опис структури та поведінки, спільних для групи об'єктів</td>\n</tr>\n<tr>\n<td><strong>Об'єкт</strong></td>\n<td>Object</td>\n<td>Конкретний екземпляр класу з власним станом</td>\n</tr>\n<tr>\n<td><strong>Стан</strong></td>\n<td>State</td>\n<td>Сукупність значень полів об'єкта в певний момент часу</td>\n</tr>\n<tr>\n<td><strong>Інкапсуляція</strong></td>\n<td>Encapsulation</td>\n<td>Приховування стану та надання доступу лише через контрольований інтерфейс</td>\n</tr>\n<tr>\n<td><strong>Інваріант</strong></td>\n<td>Invariant</td>\n<td>Умова, яка має виконуватись для об'єкта протягом усього його існування</td>\n</tr>\n<tr>\n<td><strong>Наслідування</strong></td>\n<td>Inheritance</td>\n<td>Створення підкласу на основі суперкласу з успадкуванням полів і методів</td>\n</tr>\n<tr>\n<td><strong>Поліморфізм</strong></td>\n<td>Polymorphism</td>\n<td>Виконання різних реалізацій методу через спільний тип</td>\n</tr>\n<tr>\n<td><strong>Перевизначення</strong></td>\n<td>Overriding</td>\n<td>Заміна реалізації успадкованого методу в підкласі</td>\n</tr>\n<tr>\n<td><strong>Перевантаження</strong></td>\n<td>Overloading</td>\n<td>Кілька методів з однаковим ім'ям і різними параметрами</td>\n</tr>\n<tr>\n<td><strong>Абстракція</strong></td>\n<td>Abstraction</td>\n<td>Виділення суттєвого та приховування деталей реалізації</td>\n</tr>\n<tr>\n<td><strong>Інтерфейс</strong></td>\n<td>Interface</td>\n<td>Контракт, що описує набір операцій без стану</td>\n</tr>\n<tr>\n<td><strong>Абстрактний клас</strong></td>\n<td>Abstract Class</td>\n<td>Клас, екземпляр якого не можна створити, основа для підкласів</td>\n</tr>\n<tr>\n<td><strong>Композиція</strong></td>\n<td>Composition</td>\n<td>Побудова класу з інших об'єктів з делегуванням їм поведінки (has-a)</td>\n</tr>\n<tr>\n<td><strong>Анти-патерн</strong></td>\n<td>Anti-pattern</td>\n<td>Поширене рішення, що з часом призводить до проблем</td>\n</tr>\n</tbody></table>\n","<h1>🔤 Глосарій абревіатур</h1>\n<table>\n<thead>\n<tr>\n<th>Абревіатура</th>\n<th>Розшифровка</th>\n<th>Українською</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>ООП / OOP</strong></td>\n<td>Object-Oriented Programming</td>\n<td>Об'єктно-орієнтоване програмування</td>\n</tr>\n<tr>\n<td><strong>DI</strong></td>\n<td>Dependency Injection</td>\n<td>Впровадження залежностей</td>\n</tr>\n<tr>\n<td><strong>UI</strong></td>\n<td>User Interface</td>\n<td>Інтерфейс користувача</td>\n</tr>\n<tr>\n<td><strong>GoF</strong></td>\n<td>Gang of Four</td>\n<td>\"Банда чотирьох\": автори книги \"Design Patterns\" (Gamma, Helm, Johnson, Vlissides)</td>\n</tr>\n</tbody></table>\n"];let currentSlideIndex=0;
+function renderMath(root){if(typeof renderMathInElement!=="function"||!root)return;try{renderMathInElement(root,{delimiters:[{left:"$$",right:"$$",display:true},{left:"\\[",right:"\\]",display:true},{left:"$",right:"$",display:false},{left:"\\(",right:"\\)",display:false}],throwOnError:false,strict:"ignore",ignoredTags:["script","noscript","style","textarea","pre","code"]});}catch(e){console.warn("Math render error:",e);}}
+function showSlide(i){if(i<0||i>=slides.length)return;currentSlideIndex=i;const el=document.getElementById("current-slide");el.innerHTML=slides[i];el.scrollTop=0;renderMath(el);document.getElementById("progress-bar").style.width=((i+1)/slides.length*100)+"%";document.getElementById("slide-number").textContent=(i+1)+" / "+slides.length;updateSidebarActive();}
+function nextSlide(){if(currentSlideIndex<slides.length-1)showSlide(currentSlideIndex+1);}
+function previousSlide(){if(currentSlideIndex>0)showSlide(currentSlideIndex-1);}
+function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open");}
+function toggleHelp(){document.getElementById("help-overlay").classList.toggle("hidden");}
+function toggleFullscreen(){if(!document.fullscreenElement){const pc=document.getElementById("presentation-container");if(pc.requestFullscreen)pc.requestFullscreen();else if(pc.webkitRequestFullscreen)pc.webkitRequestFullscreen();else if(pc.msRequestFullscreen)pc.msRequestFullscreen();else if(pc.mozRequestFullScreen)pc.mozRequestFullScreen();}else{if(document.exitFullscreen)document.exitFullscreen();else if(document.webkitExitFullscreen)document.webkitExitFullscreen();else if(document.msExitFullscreen)document.msExitFullscreen();else if(document.mozCancelFullScreen)document.mozCancelFullScreen();}}
+function generateSidebar(){const sc=document.getElementById("sidebar-content");sc.innerHTML="";slides.forEach((html,idx)=>{const t=document.createElement("div");t.className="slide-thumbnail";if(idx===0)t.classList.add("active");const tmp=document.createElement("div");tmp.innerHTML=html;const title=tmp.querySelector("h1,h2");const titleText=title?title.textContent:("Слайд "+(idx+1));const textContent=tmp.textContent.replace(/s+/g," ").trim();const preview=textContent.substring(0,100)+(textContent.length>100?"...":"");t.innerHTML="<div class=\"slide-thumbnail-number\">"+(idx+1)+"</div><div class=\"slide-thumbnail-title\">"+titleText+"</div><div class=\"slide-thumbnail-content\">"+preview+"</div>";t.onclick=()=>{showSlide(idx);if(window.innerWidth<1024)toggleSidebar();};sc.appendChild(t);});}
+function updateSidebarActive(){document.querySelectorAll(".slide-thumbnail").forEach((th,idx)=>{if(idx===currentSlideIndex){th.classList.add("active");th.scrollIntoView({behavior:"smooth",block:"nearest"});}else th.classList.remove("active");});}
+document.addEventListener("keydown",e=>{switch(e.key){case"ArrowLeft":previousSlide();break;case"ArrowRight":case" ":e.preventDefault();nextSlide();break;case"f":case"F":toggleFullscreen();break;case"s":case"S":toggleSidebar();break;case"?":toggleHelp();break;case"Escape":const sb=document.getElementById("sidebar");const ho=document.getElementById("help-overlay");if(sb.classList.contains("open"))toggleSidebar();else if(!ho.classList.contains("hidden"))ho.classList.add("hidden");break;}});
+generateSidebar();showSlide(0);</script></body></html>
