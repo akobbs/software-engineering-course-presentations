@@ -1,0 +1,752 @@
+<!DOCTYPE html><html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>TDD: розробка через тестування</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"><style>:root {
+            --presentation-bg: linear-gradient(135deg, #4f46e5 0%, #312e81 100%);
+            /* Кольори теми - шкали Tailwind CSS, задаються разом із фоном (див. BG_PRESETS / applyBackground):
+               --heading       заголовки h1 (slate-900)
+               --accent        декоративний акцент: лінії, маркери, рамки (500)
+               --accent-2      підзаголовки h2 (700)
+               --accent-strong заливки з білим текстом та дрібний акцентний текст (700)
+               --accent-tint   світлий фон парних рядків і активних елементів (50) */
+            --heading: #0f172a;
+            --accent: #6366f1;
+            --accent-2: #4338ca;
+            --accent-strong: #4338ca;
+            --accent-tint: #eef2ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--presentation-bg);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #editor-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #editor-container.hidden {
+            display: none;
+        }
+
+        #editor-header {
+            background: #2d3748;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #editor-header h2 {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        #editor-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--accent-strong);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #4a5568;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2d3748;
+        }
+
+        #markdown-input {
+            flex: 1;
+            padding: 2rem;
+            background: #1a202c;
+            color: #e2e8f0;
+            border: none;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+        }
+
+        #markdown-input:focus {
+            outline: none;
+        }
+
+        .slide-container {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .slide {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 3rem;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .slide::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .slide::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+        }
+
+        .slide h1 {
+            color: var(--heading);
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 45%, transparent 100%) left bottom / 100% 4px no-repeat;
+            padding-bottom: 0.5rem;
+        }
+
+        .slide h2 {
+            color: var(--accent-2);
+            font-size: 2rem;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .slide h3 {
+            color: #4a5568;
+            font-size: 1.5rem;
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        .slide p {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .slide ul, .slide ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .slide li {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide pre {
+            background: #282c34;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+
+        .slide pre code {
+            background: transparent;
+            color: #abb2bf;
+        }
+
+        .slide code {
+            font-family: 'Courier New', Consolas, Monaco, monospace;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        .slide h1 code, .slide h2 code, .slide h3 code {
+            font-size: 0.85em;
+            background: rgba(237, 242, 247, 0.5);
+            padding: 0.1em 0.3em;
+            border-radius: 3px;
+        }
+
+        .slide p code {
+            background: #edf2f7;
+            color: #e53e3e;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .slide blockquote {
+            border-left: 4px solid var(--accent);
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            color: #4a5568;
+        }
+
+        .slide img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .slide table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .slide th, .slide td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .slide th {
+            background: var(--accent-strong);
+            color: white;
+            font-weight: 600;
+        }
+
+        .slide tr:nth-child(even) {
+            background: var(--accent-tint);
+        }
+
+        .slide li::marker {
+            color: var(--accent);
+        }
+
+        .note {
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .note strong {
+            color: #c53030;
+        }
+
+        .warning {
+            background: #fffaf0;
+            border-left: 4px solid #f6ad55;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .warning strong {
+            color: #c05621;
+        }
+
+        .info {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .info strong {
+            color: #2c5282;
+        }
+
+        .success {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .success strong {
+            color: #22543d;
+        }
+
+        .danger {
+            background: #fff5f5;
+            border-left: 4px solid #f56565;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .danger strong {
+            color: #742a2a;
+        }
+
+        .tip {
+            background: #fefcbf;
+            border-left: 4px solid #ecc94b;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 5px;
+        }
+
+        .tip strong {
+            color: #744210;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: white;
+            transition: width 0.3s;
+        }
+
+        .slide-number {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            color: var(--accent-strong);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #sidebar {
+            position: fixed;
+            right: -320px;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+            transition: right 0.3s ease;
+            z-index: 200;
+            padding: 1rem;
+        }
+
+        #sidebar.open {
+            right: 0;
+        }
+
+        #sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 3px;
+        }
+
+        #sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        #sidebar-header h3 {
+            color: var(--accent-strong);
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        #sidebar-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #4a5568;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        #sidebar-close:hover {
+            color: var(--accent-strong);
+        }
+
+        .slide-thumbnail {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+
+        .slide-thumbnail:hover {
+            border-color: var(--accent);
+            box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 20%, transparent);
+            transform: translateX(-4px);
+        }
+
+        .slide-thumbnail.active {
+            border-color: var(--accent);
+            background: var(--accent-tint);
+            box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 30%, transparent);
+        }
+
+        .slide-thumbnail-number {
+            display: inline-block;
+            background: var(--accent-strong);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .slide-thumbnail-content {
+            font-size: 0.85rem;
+            color: #2d3748;
+            line-height: 1.4;
+            max-height: 4.2rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slide-thumbnail-content::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 50%;
+            height: 1.4rem;
+            background: linear-gradient(to right, transparent, white);
+        }
+
+        .slide-thumbnail.active .slide-thumbnail-content::after {
+            background: linear-gradient(to right, transparent, var(--accent-tint));
+        }
+
+        .slide-thumbnail-title {
+            font-weight: 600;
+            color: var(--accent-strong);
+            margin-bottom: 0.25rem;
+        }
+
+        #sidebar-toggle {
+            position: fixed;
+            right: 1rem;
+            top: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 8px;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 150;
+        }
+
+        #sidebar-toggle:hover {
+            background: white;
+            transform: scale(1.05);
+        }
+
+        .mermaid {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            overflow: visible; /* щоб не обрізати тіні / розширені ноди */
+        }
+
+        /* Запобігаємо обрізанню останньої літери в нодах Mermaid через зміну font-weight після розрахунку розміру */
+        .mermaid svg { overflow: visible !important; }
+        /* перестраховка проти обрізання foreignObject (на випадок інших діаграм) */
+        .mermaid svg foreignObject { overflow: visible !important; }
+
+        /* Ізоляція підписів Mermaid від типографіки слайду.
+           Mermaid рендерить підписи як HTML (<p>, <li>, <code>) всередині foreignObject і міряє їх
+           без стилів слайду. Без цього скидання правила .slide p / .slide li збільшують шрифт
+           і міжрядковий інтервал уже після розрахунку розмірів - і текст вилазить за межі блоків. */
+        .mermaid svg p,
+        .mermaid svg li,
+        .mermaid svg ul,
+        .mermaid svg ol {
+            font-size: inherit;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            color: inherit;
+        }
+        .mermaid svg code {
+            font-size: inherit;
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        .plantuml-diagram {
+            max-width: 100%;
+            height: auto;
+            margin: 1.5rem auto;
+            display: block;
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #help-overlay {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            transition: opacity 0.3s;
+        }
+
+        #help-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #help-overlay kbd {
+            background: #2d3748;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.85em;
+        }
+
+        .mermaid-error {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            padding: 1rem;
+            border-radius: 6px;
+            color: #742a2a;
+            margin: 1.5rem 0;
+        }
+
+        .mermaid-error pre {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+        }
+
+        /* Вибір фону презентації */
+        #bg-picker {
+            position: fixed;
+            bottom: 6rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(360px, calc(100vw - 2rem));
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            padding: 1rem 1.1rem 1.1rem;
+            z-index: 160;
+            color: #2d3748;
+        }
+
+        #bg-picker.hidden {
+            display: none;
+        }
+
+        #bg-picker h4 {
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .bg-swatches {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .bg-swatch {
+            aspect-ratio: 16 / 10;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+            transition: transform 0.15s;
+        }
+
+        /* Мініатюра теми: фон + маленька «картка слайду» з акцентною лінією */
+        .bg-swatch {
+            position: relative;
+        }
+
+        .bg-swatch::after {
+            content: '';
+            position: absolute;
+            left: 22%;
+            right: 22%;
+            top: 30%;
+            bottom: 30%;
+            border-radius: 3px;
+            background:
+                linear-gradient(90deg, var(--sw-accent), transparent) 18% 38% / 55% 3px no-repeat,
+                white;
+        }
+
+        .bg-swatch:hover {
+            transform: scale(1.06);
+        }
+
+        .bg-swatch.active {
+            border-color: #2d3748;
+            box-shadow: 0 0 0 2px white inset;
+        }
+
+        .bg-custom {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.85rem;
+            flex-wrap: wrap;
+        }
+
+        .bg-custom input[type="color"] {
+            width: 38px;
+            height: 30px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 2px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .bg-custom .bg-hint {
+            color: #718096;
+            font-size: 0.75rem;
+            width: 100%;
+        }
+
+        /* Повноекранний режим - зберігаємо обраний фон */
+        #presentation-container:fullscreen {
+            background: var(--presentation-bg);
+        }
+
+        #presentation-container:-webkit-full-screen {
+            background: var(--presentation-bg);
+        }
+
+        #presentation-container:-moz-full-screen {
+            background: var(--presentation-bg);
+        }
+
+        #presentation-container:-ms-fullscreen {
+            background: var(--presentation-bg);
+        }
+#presentation-container:fullscreen,#presentation-container:-webkit-full-screen,#presentation-container:-moz-full-screen,#presentation-container:-ms-fullscreen{background:var(--presentation-bg)!important;}:root{--presentation-bg:linear-gradient(135deg, #0d9488 0%, #134e4a 100%);--heading:#0f172a;--accent:#14b8a6;--accent-2:#0f766e;--accent-strong:#0f766e;--accent-tint:#f0fdfa;}</style></head><body><div id="presentation-container"><div class="progress"><div class="progress-bar" id="progress-bar"></div></div><button id="sidebar-toggle" onclick="toggleSidebar()" title="Навігація слайдами (S)">☰</button><div id="sidebar"><div id="sidebar-header"><h3>📑 Слайди</h3><button id="sidebar-close" onclick="toggleSidebar()">✕</button></div><div id="sidebar-content"></div></div><div class="slide-container"><div class="slide" id="current-slide"></div></div><div class="controls"><button class="control-btn" onclick="previousSlide()" title="Попередній (←)">←</button><button class="control-btn" onclick="nextSlide()" title="Наступний (→)">→</button><button class="control-btn" onclick="toggleFullscreen()" title="Повноекранний режим (F)">⛶</button><button class="control-btn" onclick="toggleHelp()" title="Допомога (?)">?</button></div><div class="slide-number" id="slide-number">1 / 24</div><div id="help-overlay" class="hidden"><strong>Гарячі клавіші:</strong><br><kbd>←</kbd> <kbd>→</kbd> Навігація<br><kbd>F</kbd> Повноекранний режим<br><kbd>S</kbd> Sidebar<br><kbd>?</kbd> Допомога<br><kbd>Esc</kbd> Закрити</div></div><script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script><script>const slides=["<h1>TDD: розробка через тестування</h1>\n<p><strong>Курс:</strong> Основи інженерії програмного забезпечення<br><strong>Лектор:</strong> Кобилянський Антон</p>\n","<h2>📋 План лекції</h2>\n<ol>\n<li>🎯 Що таке TDD та чому це дизайн-методологія</li>\n<li>📜 Історія підходу: від NASA до Kent Beck</li>\n<li>🔄 Цикл Red-Green-Refactor</li>\n<li>⚖️ Три закони TDD</li>\n<li>💻 Практичний приклад: FizzBuzz крок за кроком</li>\n<li>🏆 Принципи якісних тестів: FIRST та назви тестів</li>\n<li>🚫 Антипатерни тестування</li>\n<li>✨ Переваги, обмеження та сфера застосування</li>\n<li>🛠️ Інструменти для TDD</li>\n<li>📝 Висновки, контрольні питання, глосарій</li>\n</ol>\n","<h1>🎯 Що таке TDD?</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>TDD (Test-Driven Development / Розробка через тестування)</strong> - методологія розробки програмного забезпечення, у якій тести пишуться <strong>до</strong> продакшен-коду, який вони перевіряють. Код з'являється лише як відповідь на вже написаний падаючий тест.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> 💡 спочатку відповідаємо на питання <em>що</em> має робити код, і лише потім вирішуємо, <em>як</em> це реалізувати.</p>\n<h2>🧠 Зміна способу мислення</h2>\n<table>\n<thead>\n<tr>\n<th>Традиційний підхід (test-last)</th>\n<th>TDD-підхід (test-first)</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>📝 Код → Тест → Виправлення</td>\n<td>🧪 Тест → Код → Рефакторинг</td>\n</tr>\n<tr>\n<td>🤔 Питання \"Як це реалізувати?\"</td>\n<td>🎯 Питання \"Що це має робити?\"</td>\n</tr>\n<tr>\n<td>🐛 Дефекти виявляються пізно</td>\n<td>✅ Дефекти запобігаються одразу</td>\n</tr>\n<tr>\n<td>📉 Покриття тестами неповне</td>\n<td>📈 Покриття близьке до 100% за дизайном</td>\n</tr>\n</tbody></table>\n<div class=\"tip\"><strong>💡 Ключова думка</strong> <p>TDD - це не техніка тестування, а <strong>дизайн-методологія</strong>. Вимога написати тест першим змушує спроєктувати інтерфейс і поведінку модуля ще до його реалізації. Як наслідок, код виходить модульним, зі слабкою зв'язаністю та чіткими контрактами.</p>\n</div>\n\n","<h1>📜 Історія TDD</h1>\n<div class=\"success\"><strong>✅ Kent Beck</strong> <p><strong>Кент Бек</strong> (Kent Beck) - американський програміст, автор Extreme Programming, творець сімейства xUnit-фреймворків. Систематизував і популяризував TDD у книзі <strong>\"Test-Driven Development: By Example\"</strong> (2002).</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> ідея \"спочатку тест\" не нова, але саме Kent Beck перетворив її на чітку дисципліну з правилами та ритмом.</p>\n\n<div class=\"mermaid\" data-source=\"timeline\n    title Еволюція підходу test-first\n    1960-ті : Проєкт Mercury (NASA)\n            : Тести пишуться до коду\n    1994 : SUnit для Smalltalk\n         : Kent Beck створює перший xUnit\n    1997 : JUnit для Java\n         : Kent Beck та Erich Gamma\n    1999 : Extreme Programming\n         : TDD стає ключовою практикою XP\n    2002 : TDD by Example\n         : Класична книга Kent Beck\"><svg id=\"exp-1794152945656-3-0\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" style=\"max-width: 1390px;\" viewBox=\"100 -62.5 1390 588.7000122070312\" role=\"graphics-document document\" aria-roledescription=\"timeline\"><style>#exp-1794152945656-3-0{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#exp-1794152945656-3-0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#exp-1794152945656-3-0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#exp-1794152945656-3-0 .error-icon{fill:#552222;}#exp-1794152945656-3-0 .error-text{fill:#552222;stroke:#552222;}#exp-1794152945656-3-0 .edge-thickness-normal{stroke-width:1px;}#exp-1794152945656-3-0 .edge-thickness-thick{stroke-width:3.5px;}#exp-1794152945656-3-0 .edge-pattern-solid{stroke-dasharray:0;}#exp-1794152945656-3-0 .edge-thickness-invisible{stroke-width:0;fill:none;}#exp-1794152945656-3-0 .edge-pattern-dashed{stroke-dasharray:3;}#exp-1794152945656-3-0 .edge-pattern-dotted{stroke-dasharray:2;}#exp-1794152945656-3-0 .marker{fill:#333333;stroke:#333333;}#exp-1794152945656-3-0 .marker.cross{stroke:#333333;}#exp-1794152945656-3-0 svg{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;}#exp-1794152945656-3-0 p{margin:0;}#exp-1794152945656-3-0 .edge{stroke-width:3;}#exp-1794152945656-3-0 .section--1 rect,#exp-1794152945656-3-0 .section--1 path,#exp-1794152945656-3-0 .section--1 circle,#exp-1794152945656-3-0 .section--1 path{fill:hsl(240, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .section--1 text{fill:#ffffff;}#exp-1794152945656-3-0 .node-icon--1{font-size:40px;color:#ffffff;}#exp-1794152945656-3-0 .section-edge--1{stroke:hsl(240, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .edge-depth--1{stroke-width:17;}#exp-1794152945656-3-0 .section--1 line{stroke:hsl(60, 100%, 86.2745098039%);stroke-width:3;}#exp-1794152945656-3-0 .lineWrapper line{stroke:#ffffff;}#exp-1794152945656-3-0 .disabled,#exp-1794152945656-3-0 .disabled circle,#exp-1794152945656-3-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1794152945656-3-0 .disabled text{fill:#aaaa33;}#exp-1794152945656-3-0 .section-0 rect,#exp-1794152945656-3-0 .section-0 path,#exp-1794152945656-3-0 .section-0 circle,#exp-1794152945656-3-0 .section-0 path{fill:hsl(60, 100%, 73.5294117647%);}#exp-1794152945656-3-0 .section-0 text{fill:black;}#exp-1794152945656-3-0 .node-icon-0{font-size:40px;color:black;}#exp-1794152945656-3-0 .section-edge-0{stroke:hsl(60, 100%, 73.5294117647%);}#exp-1794152945656-3-0 .edge-depth-0{stroke-width:14;}#exp-1794152945656-3-0 .section-0 line{stroke:hsl(240, 100%, 83.5294117647%);stroke-width:3;}#exp-1794152945656-3-0 .lineWrapper line{stroke:black;}#exp-1794152945656-3-0 .disabled,#exp-1794152945656-3-0 .disabled circle,#exp-1794152945656-3-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1794152945656-3-0 .disabled text{fill:#aaaa33;}#exp-1794152945656-3-0 .section-1 rect,#exp-1794152945656-3-0 .section-1 path,#exp-1794152945656-3-0 .section-1 circle,#exp-1794152945656-3-0 .section-1 path{fill:hsl(80, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .section-1 text{fill:black;}#exp-1794152945656-3-0 .node-icon-1{font-size:40px;color:black;}#exp-1794152945656-3-0 .section-edge-1{stroke:hsl(80, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .edge-depth-1{stroke-width:11;}#exp-1794152945656-3-0 .section-1 line{stroke:hsl(260, 100%, 86.2745098039%);stroke-width:3;}#exp-1794152945656-3-0 .lineWrapper line{stroke:black;}#exp-1794152945656-3-0 .disabled,#exp-1794152945656-3-0 .disabled circle,#exp-1794152945656-3-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1794152945656-3-0 .disabled text{fill:#aaaa33;}#exp-1794152945656-3-0 .section-2 rect,#exp-1794152945656-3-0 .section-2 path,#exp-1794152945656-3-0 .section-2 circle,#exp-1794152945656-3-0 .section-2 path{fill:hsl(270, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .section-2 text{fill:#ffffff;}#exp-1794152945656-3-0 .node-icon-2{font-size:40px;color:#ffffff;}#exp-1794152945656-3-0 .section-edge-2{stroke:hsl(270, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .edge-depth-2{stroke-width:8;}#exp-1794152945656-3-0 .section-2 line{stroke:hsl(90, 100%, 86.2745098039%);stroke-width:3;}#exp-1794152945656-3-0 .lineWrapper line{stroke:#ffffff;}#exp-1794152945656-3-0 .disabled,#exp-1794152945656-3-0 .disabled circle,#exp-1794152945656-3-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1794152945656-3-0 .disabled text{fill:#aaaa33;}#exp-1794152945656-3-0 .section-3 rect,#exp-1794152945656-3-0 .section-3 path,#exp-1794152945656-3-0 .section-3 circle,#exp-1794152945656-3-0 .section-3 path{fill:hsl(300, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .section-3 text{fill:black;}#exp-1794152945656-3-0 .node-icon-3{font-size:40px;color:black;}#exp-1794152945656-3-0 .section-edge-3{stroke:hsl(300, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .edge-depth-3{stroke-width:5;}#exp-1794152945656-3-0 .section-3 line{stroke:hsl(120, 100%, 86.2745098039%);stroke-width:3;}#exp-1794152945656-3-0 .lineWrapper line{stroke:black;}#exp-1794152945656-3-0 .disabled,#exp-1794152945656-3-0 .disabled circle,#exp-1794152945656-3-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1794152945656-3-0 .disabled text{fill:#aaaa33;}#exp-1794152945656-3-0 .section-4 rect,#exp-1794152945656-3-0 .section-4 path,#exp-1794152945656-3-0 .section-4 circle,#exp-1794152945656-3-0 .section-4 path{fill:hsl(330, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .section-4 text{fill:black;}#exp-1794152945656-3-0 .node-icon-4{font-size:40px;color:black;}#exp-1794152945656-3-0 .section-edge-4{stroke:hsl(330, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .edge-depth-4{stroke-width:2;}#exp-1794152945656-3-0 .section-4 line{stroke:hsl(150, 100%, 86.2745098039%);stroke-width:3;}#exp-1794152945656-3-0 .lineWrapper line{stroke:black;}#exp-1794152945656-3-0 .disabled,#exp-1794152945656-3-0 .disabled circle,#exp-1794152945656-3-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1794152945656-3-0 .disabled text{fill:#aaaa33;}#exp-1794152945656-3-0 .section-5 rect,#exp-1794152945656-3-0 .section-5 path,#exp-1794152945656-3-0 .section-5 circle,#exp-1794152945656-3-0 .section-5 path{fill:hsl(0, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .section-5 text{fill:black;}#exp-1794152945656-3-0 .node-icon-5{font-size:40px;color:black;}#exp-1794152945656-3-0 .section-edge-5{stroke:hsl(0, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .edge-depth-5{stroke-width:-1;}#exp-1794152945656-3-0 .section-5 line{stroke:hsl(180, 100%, 86.2745098039%);stroke-width:3;}#exp-1794152945656-3-0 .lineWrapper line{stroke:black;}#exp-1794152945656-3-0 .disabled,#exp-1794152945656-3-0 .disabled circle,#exp-1794152945656-3-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1794152945656-3-0 .disabled text{fill:#aaaa33;}#exp-1794152945656-3-0 .section-6 rect,#exp-1794152945656-3-0 .section-6 path,#exp-1794152945656-3-0 .section-6 circle,#exp-1794152945656-3-0 .section-6 path{fill:hsl(30, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .section-6 text{fill:black;}#exp-1794152945656-3-0 .node-icon-6{font-size:40px;color:black;}#exp-1794152945656-3-0 .section-edge-6{stroke:hsl(30, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .edge-depth-6{stroke-width:-4;}#exp-1794152945656-3-0 .section-6 line{stroke:hsl(210, 100%, 86.2745098039%);stroke-width:3;}#exp-1794152945656-3-0 .lineWrapper line{stroke:black;}#exp-1794152945656-3-0 .disabled,#exp-1794152945656-3-0 .disabled circle,#exp-1794152945656-3-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1794152945656-3-0 .disabled text{fill:#aaaa33;}#exp-1794152945656-3-0 .section-7 rect,#exp-1794152945656-3-0 .section-7 path,#exp-1794152945656-3-0 .section-7 circle,#exp-1794152945656-3-0 .section-7 path{fill:hsl(90, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .section-7 text{fill:black;}#exp-1794152945656-3-0 .node-icon-7{font-size:40px;color:black;}#exp-1794152945656-3-0 .section-edge-7{stroke:hsl(90, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .edge-depth-7{stroke-width:-7;}#exp-1794152945656-3-0 .section-7 line{stroke:hsl(270, 100%, 86.2745098039%);stroke-width:3;}#exp-1794152945656-3-0 .lineWrapper line{stroke:black;}#exp-1794152945656-3-0 .disabled,#exp-1794152945656-3-0 .disabled circle,#exp-1794152945656-3-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1794152945656-3-0 .disabled text{fill:#aaaa33;}#exp-1794152945656-3-0 .section-8 rect,#exp-1794152945656-3-0 .section-8 path,#exp-1794152945656-3-0 .section-8 circle,#exp-1794152945656-3-0 .section-8 path{fill:hsl(150, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .section-8 text{fill:black;}#exp-1794152945656-3-0 .node-icon-8{font-size:40px;color:black;}#exp-1794152945656-3-0 .section-edge-8{stroke:hsl(150, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .edge-depth-8{stroke-width:-10;}#exp-1794152945656-3-0 .section-8 line{stroke:hsl(330, 100%, 86.2745098039%);stroke-width:3;}#exp-1794152945656-3-0 .lineWrapper line{stroke:black;}#exp-1794152945656-3-0 .disabled,#exp-1794152945656-3-0 .disabled circle,#exp-1794152945656-3-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1794152945656-3-0 .disabled text{fill:#aaaa33;}#exp-1794152945656-3-0 .section-9 rect,#exp-1794152945656-3-0 .section-9 path,#exp-1794152945656-3-0 .section-9 circle,#exp-1794152945656-3-0 .section-9 path{fill:hsl(180, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .section-9 text{fill:black;}#exp-1794152945656-3-0 .node-icon-9{font-size:40px;color:black;}#exp-1794152945656-3-0 .section-edge-9{stroke:hsl(180, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .edge-depth-9{stroke-width:-13;}#exp-1794152945656-3-0 .section-9 line{stroke:hsl(0, 100%, 86.2745098039%);stroke-width:3;}#exp-1794152945656-3-0 .lineWrapper line{stroke:black;}#exp-1794152945656-3-0 .disabled,#exp-1794152945656-3-0 .disabled circle,#exp-1794152945656-3-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1794152945656-3-0 .disabled text{fill:#aaaa33;}#exp-1794152945656-3-0 .section-10 rect,#exp-1794152945656-3-0 .section-10 path,#exp-1794152945656-3-0 .section-10 circle,#exp-1794152945656-3-0 .section-10 path{fill:hsl(210, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .section-10 text{fill:black;}#exp-1794152945656-3-0 .node-icon-10{font-size:40px;color:black;}#exp-1794152945656-3-0 .section-edge-10{stroke:hsl(210, 100%, 76.2745098039%);}#exp-1794152945656-3-0 .edge-depth-10{stroke-width:-16;}#exp-1794152945656-3-0 .section-10 line{stroke:hsl(30, 100%, 86.2745098039%);stroke-width:3;}#exp-1794152945656-3-0 .lineWrapper line{stroke:black;}#exp-1794152945656-3-0 .disabled,#exp-1794152945656-3-0 .disabled circle,#exp-1794152945656-3-0 .disabled text{fill:hsl(80, 100%, 96.2745098039%);}#exp-1794152945656-3-0 .disabled text{fill:#aaaa33;}#exp-1794152945656-3-0 .section-root rect,#exp-1794152945656-3-0 .section-root path,#exp-1794152945656-3-0 .section-root circle{fill:hsl(240, 100%, 46.2745098039%);}#exp-1794152945656-3-0 .section-root text{fill:#ffffff;}#exp-1794152945656-3-0 .icon-container{height:100%;display:flex;justify-content:center;align-items:center;}#exp-1794152945656-3-0 .edge{fill:none;}#exp-1794152945656-3-0 .eventWrapper{filter:brightness(120%);}#exp-1794152945656-3-0 .node .neo-node{stroke:#667eea;}#exp-1794152945656-3-0 [data-look=\"neo\"].node rect,#exp-1794152945656-3-0 [data-look=\"neo\"].cluster rect,#exp-1794152945656-3-0 [data-look=\"neo\"].node polygon{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1794152945656-3-0 [data-look=\"neo\"].swimlane.cluster rect{filter:none;}#exp-1794152945656-3-0 [data-look=\"neo\"].node path{stroke:#667eea;stroke-width:1px;}#exp-1794152945656-3-0 [data-look=\"neo\"].node .outer-path{filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1794152945656-3-0 [data-look=\"neo\"].node .neo-line path{stroke:#667eea;filter:none;}#exp-1794152945656-3-0 [data-look=\"neo\"].node circle{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1794152945656-3-0 [data-look=\"neo\"].node circle .state-start{fill:#000000;}#exp-1794152945656-3-0 [data-look=\"neo\"].icon-shape .icon{fill:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1794152945656-3-0 [data-look=\"neo\"].icon-shape .icon-neo path{stroke:#667eea;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#exp-1794152945656-3-0 :root{--mermaid-font-family:\"trebuchet ms\",verdana,arial,sans-serif;}</style><g></g><g></g><defs><marker id=\"exp-1794152945656-3-0-arrowhead\" refX=\"5\" refY=\"2\" markerWidth=\"6\" markerHeight=\"4\" orient=\"auto\"><path d=\"M 0,0 V 4 L6,2 Z\"></path></marker></defs><g class=\"taskWrapper\" transform=\"translate(200, 50)\"><g class=\"timeline-node section--1\"><g><path id=\"exp-1794152945656-3-0-node-0\" class=\"node-bkg node-undefined\" d=\"M0 62.8 v-57.8 q0,-5,5,-5 h180 q5,0,5,5 v62.8 H0 Z\"></path><line class=\"node-line--1\" x1=\"0\" y1=\"67.8\" x2=\"190\" y2=\"67.8\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">1960-ті</tspan></text></g></g></g><g class=\"lineWrapper\"><line x1=\"295\" y1=\"117.8\" x2=\"295\" y2=\"476.19999542236326\" stroke-width=\"2\" stroke=\"black\" marker-end=\"url(#exp-1794152945656-3-0-arrowhead)\" stroke-dasharray=\"5,5\"></line></g><g class=\"eventWrapper\" transform=\"translate(200, 250)\"><g class=\"timeline-node section--1\"><g><path id=\"exp-1794152945656-3-0-node-1\" class=\"node-bkg node-undefined\" d=\"M0 60.39999847412109 v-55.39999847412109 q0,-5,5,-5 h180 q5,0,5,5 v60.39999847412109 H0 Z\"></path><line class=\"node-line--1\" x1=\"0\" y1=\"65.39999847412109\" x2=\"190\" y2=\"65.39999847412109\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">Проєкт   Mercury</tspan><tspan x=\"0\" dy=\"1.1em\">(NASA)</tspan></text></g></g></g><g class=\"eventWrapper\" transform=\"translate(200, 325.3999984741211)\"><g class=\"timeline-node section--1\"><g><path id=\"exp-1794152945656-3-0-node-2\" class=\"node-bkg node-undefined\" d=\"M0 60.39999847412109 v-55.39999847412109 q0,-5,5,-5 h180 q5,0,5,5 v60.39999847412109 H0 Z\"></path><line class=\"node-line--1\" x1=\"0\" y1=\"65.39999847412109\" x2=\"190\" y2=\"65.39999847412109\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">Тести   пишуться   до</tspan><tspan x=\"0\" dy=\"1.1em\">коду</tspan></text></g></g></g><g class=\"taskWrapper\" transform=\"translate(400, 50)\"><g class=\"timeline-node section-0\"><g><path id=\"exp-1794152945656-3-0-node-3\" class=\"node-bkg node-undefined\" d=\"M0 62.8 v-57.8 q0,-5,5,-5 h180 q5,0,5,5 v62.8 H0 Z\"></path><line class=\"node-line-0\" x1=\"0\" y1=\"67.8\" x2=\"190\" y2=\"67.8\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">1994</tspan></text></g></g></g><g class=\"lineWrapper\"><line x1=\"495\" y1=\"117.8\" x2=\"495\" y2=\"476.19999542236326\" stroke-width=\"2\" stroke=\"black\" marker-end=\"url(#exp-1794152945656-3-0-arrowhead)\" stroke-dasharray=\"5,5\"></line></g><g class=\"eventWrapper\" transform=\"translate(400, 250)\"><g class=\"timeline-node section-0\"><g><path id=\"exp-1794152945656-3-0-node-4\" class=\"node-bkg node-undefined\" d=\"M0 45 v-40 q0,-5,5,-5 h180 q5,0,5,5 v45 H0 Z\"></path><line class=\"node-line-0\" x1=\"0\" y1=\"50\" x2=\"190\" y2=\"50\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">SUnit   для   Smalltalk</tspan></text></g></g></g><g class=\"eventWrapper\" transform=\"translate(400, 310)\"><g class=\"timeline-node section-0\"><g><path id=\"exp-1794152945656-3-0-node-5\" class=\"node-bkg node-undefined\" d=\"M0 60.39999847412109 v-55.39999847412109 q0,-5,5,-5 h180 q5,0,5,5 v60.39999847412109 H0 Z\"></path><line class=\"node-line-0\" x1=\"0\" y1=\"65.39999847412109\" x2=\"190\" y2=\"65.39999847412109\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">Kent   Beck   створює</tspan><tspan x=\"0\" dy=\"1.1em\">перший   xUnit</tspan></text></g></g></g><g class=\"taskWrapper\" transform=\"translate(600, 50)\"><g class=\"timeline-node section-1\"><g><path id=\"exp-1794152945656-3-0-node-6\" class=\"node-bkg node-undefined\" d=\"M0 62.8 v-57.8 q0,-5,5,-5 h180 q5,0,5,5 v62.8 H0 Z\"></path><line class=\"node-line-1\" x1=\"0\" y1=\"67.8\" x2=\"190\" y2=\"67.8\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">1997</tspan></text></g></g></g><g class=\"lineWrapper\"><line x1=\"695\" y1=\"117.8\" x2=\"695\" y2=\"476.19999542236326\" stroke-width=\"2\" stroke=\"black\" marker-end=\"url(#exp-1794152945656-3-0-arrowhead)\" stroke-dasharray=\"5,5\"></line></g><g class=\"eventWrapper\" transform=\"translate(600, 250)\"><g class=\"timeline-node section-1\"><g><path id=\"exp-1794152945656-3-0-node-7\" class=\"node-bkg node-undefined\" d=\"M0 45 v-40 q0,-5,5,-5 h180 q5,0,5,5 v45 H0 Z\"></path><line class=\"node-line-1\" x1=\"0\" y1=\"50\" x2=\"190\" y2=\"50\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">JUnit   для   Java</tspan></text></g></g></g><g class=\"eventWrapper\" transform=\"translate(600, 310)\"><g class=\"timeline-node section-1\"><g><path id=\"exp-1794152945656-3-0-node-8\" class=\"node-bkg node-undefined\" d=\"M0 60.39999847412109 v-55.39999847412109 q0,-5,5,-5 h180 q5,0,5,5 v60.39999847412109 H0 Z\"></path><line class=\"node-line-1\" x1=\"0\" y1=\"65.39999847412109\" x2=\"190\" y2=\"65.39999847412109\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">Kent   Beck   та   Erich</tspan><tspan x=\"0\" dy=\"1.1em\">Gamma</tspan></text></g></g></g><g class=\"taskWrapper\" transform=\"translate(800, 50)\"><g class=\"timeline-node section-2\"><g><path id=\"exp-1794152945656-3-0-node-9\" class=\"node-bkg node-undefined\" d=\"M0 62.8 v-57.8 q0,-5,5,-5 h180 q5,0,5,5 v62.8 H0 Z\"></path><line class=\"node-line-2\" x1=\"0\" y1=\"67.8\" x2=\"190\" y2=\"67.8\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">1999</tspan></text></g></g></g><g class=\"lineWrapper\"><line x1=\"895\" y1=\"117.8\" x2=\"895\" y2=\"476.19999542236326\" stroke-width=\"2\" stroke=\"black\" marker-end=\"url(#exp-1794152945656-3-0-arrowhead)\" stroke-dasharray=\"5,5\"></line></g><g class=\"eventWrapper\" transform=\"translate(800, 250)\"><g class=\"timeline-node section-2\"><g><path id=\"exp-1794152945656-3-0-node-10\" class=\"node-bkg node-undefined\" d=\"M0 60.39999847412109 v-55.39999847412109 q0,-5,5,-5 h180 q5,0,5,5 v60.39999847412109 H0 Z\"></path><line class=\"node-line-2\" x1=\"0\" y1=\"65.39999847412109\" x2=\"190\" y2=\"65.39999847412109\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">Extreme</tspan><tspan x=\"0\" dy=\"1.1em\">Programming</tspan></text></g></g></g><g class=\"eventWrapper\" transform=\"translate(800, 325.3999984741211)\"><g class=\"timeline-node section-2\"><g><path id=\"exp-1794152945656-3-0-node-11\" class=\"node-bkg node-undefined\" d=\"M0 77.99999694824218 v-72.99999694824218 q0,-5,5,-5 h180 q5,0,5,5 v77.99999694824218 H0 Z\"></path><line class=\"node-line-2\" x1=\"0\" y1=\"82.99999694824218\" x2=\"190\" y2=\"82.99999694824218\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">TDD   стає</tspan><tspan x=\"0\" dy=\"1.1em\">ключовою</tspan><tspan x=\"0\" dy=\"1.1em\">практикою   XP</tspan></text></g></g></g><g class=\"taskWrapper\" transform=\"translate(1000, 50)\"><g class=\"timeline-node section-3\"><g><path id=\"exp-1794152945656-3-0-node-12\" class=\"node-bkg node-undefined\" d=\"M0 62.8 v-57.8 q0,-5,5,-5 h180 q5,0,5,5 v62.8 H0 Z\"></path><line class=\"node-line-3\" x1=\"0\" y1=\"67.8\" x2=\"190\" y2=\"67.8\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">2002</tspan></text></g></g></g><g class=\"lineWrapper\"><line x1=\"1095\" y1=\"117.8\" x2=\"1095\" y2=\"476.19999542236326\" stroke-width=\"2\" stroke=\"black\" marker-end=\"url(#exp-1794152945656-3-0-arrowhead)\" stroke-dasharray=\"5,5\"></line></g><g class=\"eventWrapper\" transform=\"translate(1000, 250)\"><g class=\"timeline-node section-3\"><g><path id=\"exp-1794152945656-3-0-node-13\" class=\"node-bkg node-undefined\" d=\"M0 45 v-40 q0,-5,5,-5 h180 q5,0,5,5 v45 H0 Z\"></path><line class=\"node-line-3\" x1=\"0\" y1=\"50\" x2=\"190\" y2=\"50\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">TDD   by   Example</tspan></text></g></g></g><g class=\"eventWrapper\" transform=\"translate(1000, 310)\"><g class=\"timeline-node section-3\"><g><path id=\"exp-1794152945656-3-0-node-14\" class=\"node-bkg node-undefined\" d=\"M0 60.39999847412109 v-55.39999847412109 q0,-5,5,-5 h180 q5,0,5,5 v60.39999847412109 H0 Z\"></path><line class=\"node-line-3\" x1=\"0\" y1=\"65.39999847412109\" x2=\"190\" y2=\"65.39999847412109\"></line></g><g transform=\"translate(95, 10)\"><text dy=\"1em\" alignment-baseline=\"middle\" dominant-baseline=\"middle\" text-anchor=\"middle\"><tspan x=\"0\" dy=\"1em\">Класична   книга</tspan><tspan x=\"0\" dy=\"1.1em\">Kent   Beck</tspan></text></g></g></g><text x=\"345\" font-size=\"4ex\" font-weight=\"bold\" y=\"20\">Еволюція підходу test-first</text><g class=\"lineWrapper\"><line x1=\"150\" y1=\"167.8\" x2=\"1440\" y2=\"167.8\" stroke-width=\"4\" stroke=\"black\" marker-end=\"url(#exp-1794152945656-3-0-arrowhead)\"></line></g></svg></div>\n<div class=\"note\"><strong>📝 Цікавий факт</strong> <p>Інженери NASA в проєкті Mercury на початку 1960-х готували тести до написання коду, бо ціна помилки у космічній місії була надто високою. Kent Beck сам казав, що \"перевідкрив\" цей підхід, а не винайшов його.</p>\n</div>\n\n","<h1>🔄 Цикл Red-Green-Refactor</h1>\n<p><strong>Головна ідея:</strong> серце TDD - короткий ітеративний цикл із трьох етапів, який повторюється для кожної нової одиниці поведінки. Один прохід циклу зазвичай триває хвилини, а не години.</p>\n\n<img src=\"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIGRhdGEtZGlhZ3JhbS10eXBlPSJBQ1RJVklUWSIgc3R5bGU9IndpZHRoOjg5M3B4O2hlaWdodDo2NzRweDtiYWNrZ3JvdW5kOiNGQUZBRkE7IiB3aWR0aD0iODkzcHgiIGhlaWdodD0iNjc0cHgiIHZpZXdCb3g9IjAgMCA4OTMgNjc0IiB6b29tQW5kUGFuPSJtYWduaWZ5IiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIiBjb250ZW50U3R5bGVUeXBlPSJ0ZXh0L2NzcyI+PD9wbGFudHVtbCAxLjIwMjYuOD8+PGRlZnMvPjxnIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBsZW5ndGhBZGp1c3Q9InNwYWNpbmciPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSI4OTMiIGhlaWdodD0iNjc0IiBmaWxsPSIjRkFGQUZBIiBzdHlsZT0ic3Ryb2tlOm5vbmU7Ii8+PHJlY3QgeD0iMTUiIHk9IjExLjgwMiIgd2lkdGg9Ijg1Ni42NTIiIGhlaWdodD0iMTYuMjk3IiBmaWxsPSIjRkZGIiBzdHlsZT0ic3Ryb2tlOiNGRkY7c3Ryb2tlLXdpZHRoOjE7Ii8+PHJlY3QgeD0iMTUiIHk9IjExLjgwMiIgd2lkdGg9IjI5Mi44NzYiIGhlaWdodD0iNjQ2LjI2NiIgZmlsbD0iI0ZGRUVGMCIgc3R5bGU9InN0cm9rZTojRkZFRUYwO3N0cm9rZS13aWR0aDoxOyIvPjxlbGxpcHNlIGN4PSIxNjIuNDM4IiBjeT0iNDMuMDk5IiByeD0iMTAiIHJ5PSIxMCIgZmlsbD0iI0ZGRiIgc3R5bGU9InN0cm9rZTojMDAwO3N0cm9rZS13aWR0aDoxOyIvPjxyZWN0IHg9IjIxIiB5PSI3My4wOTkiIHdpZHRoPSIyODIuODc2IiBoZWlnaHQ9IjM2LjI5NyIgZmlsbD0iI0Y4RjlGQSIgc3R5bGU9InN0cm9rZTojREVFMkU2O3N0cm9rZS13aWR0aDoxOyIgcng9IjEyLjUiIHJ5PSIxMi41Ii8+PHRleHQgeD0iMzEiIHk9Ijk2LjA5NCIgZmlsbD0iIzAwMCIgZm9udC1zaXplPSIxNCIgdGV4dExlbmd0aD0iMjYyLjg3NiIgZm9udC1mYW1pbHk9IlZlcmRhbmEiPvCfk50g0J3QsNC/0LjRiNC4INGC0LXRgdGCINC00LvRjyDQvdC+0LLQvtGXINC/0L7QstC10LTRltC90LrQuDwvdGV4dD48cmVjdCB4PSI5Ni4zMjIiIHk9IjEyOS4zOTYiIHdpZHRoPSIxMzIuMjMyIiBoZWlnaHQ9IjM2LjI5NyIgZmlsbD0iI0Y4RjlGQSIgc3R5bGU9InN0cm9rZTojREVFMkU2O3N0cm9rZS13aWR0aDoxOyIgcng9IjEyLjUiIHJ5PSIxMi41Ii8+PHRleHQgeD0iMTA2LjMyMiIgeT0iMTUyLjM5MSIgZmlsbD0iIzAwMCIgZm9udC1zaXplPSIxNCIgdGV4dExlbmd0aD0iMTEyLjIzMiIgZm9udC1mYW1pbHk9IlZlcmRhbmEiPuKWtu+4jyDQl9Cw0L/Rg9GB0YLQuCDRgtC10YHRgjwvdGV4dD48cmVjdCB4PSI0Ny42NDMiIHk9IjE4NS42OTIiIHdpZHRoPSIyMjkuNTkiIGhlaWdodD0iMzYuMjk3IiBmaWxsPSIjRjhGOUZBIiBzdHlsZT0ic3Ryb2tlOiNERUUyRTY7c3Ryb2tlLXdpZHRoOjE7IiByeD0iMTIuNSIgcnk9IjEyLjUiLz48dGV4dCB4PSI1Ny42NDMiIHk9IjIwOC42ODgiIGZpbGw9IiMwMDAiIGZvbnQtc2l6ZT0iMTQiIHRleHRMZW5ndGg9IjIwOS41OSIgZm9udC1mYW1pbHk9IlZlcmRhbmEiPuKdjCDQotC10YHRgiDQv9Cw0LTQsNGUICjRhtC1INC+0YfRltC60YPQstCw0L3QviEpPC90ZXh0PjxyZWN0IHg9IjIxLjA0MSIgeT0iNTc5Ljc3MSIgd2lkdGg9IjI4Mi43OTQiIGhlaWdodD0iMzYuMjk3IiBmaWxsPSIjRjhGOUZBIiBzdHlsZT0ic3Ryb2tlOiNERUUyRTY7c3Ryb2tlLXdpZHRoOjE7IiByeD0iMTIuNSIgcnk9IjEyLjUiLz48dGV4dCB4PSIzMS4wNDEiIHk9IjYwMi43NjYiIGZpbGw9IiMwMDAiIGZvbnQtc2l6ZT0iMTQiIHRleHRMZW5ndGg9IjI2Mi43OTQiIGZvbnQtZmFtaWx5PSJWZXJkYW5hIj7wn5SEINCf0L7QstGC0L7RgNC4INC00LvRjyDQvdCw0YHRgtGD0L/QvdC+0Zcg0L/QvtCy0LXQtNGW0L3QutC4PC90ZXh0PjxlbGxpcHNlIGN4PSIxNjIuNDM4IiBjeT0iNjQ3LjA2NyIgcng9IjExIiByeT0iMTEiIGZpbGw9Im5vbmUiIHN0eWxlPSJzdHJva2U6IzAwMDtzdHJva2Utd2lkdGg6MTsiLz48ZWxsaXBzZSBjeD0iMTYyLjQzOCIgY3k9IjY0Ny4wNjciIHJ4PSI2IiByeT0iNiIgZmlsbD0iI0ZGRiIgc3R5bGU9InN0cm9rZTojMDAwO3N0cm9rZS13aWR0aDoxOyIvPjxsaW5lIHgxPSIxNSIgeTE9IjExLjgwMiIgeDI9IjE1IiB5Mj0iNjU4LjA2NyIgc3R5bGU9InN0cm9rZTojMDAwO3N0cm9rZS13aWR0aDoxOyIvPjxyZWN0IHg9IjMwNy44NzYiIHk9IjExLjgwMiIgd2lkdGg9IjIyOC45MDUiIGhlaWdodD0iNjQ2LjI2NiIgZmlsbD0iI0U2RkZFRCIgc3R5bGU9InN0cm9rZTojRTZGRkVEO3N0cm9rZS13aWR0aDoxOyIvPjxyZWN0IHg9IjMxMy44NzYiIHk9IjI0MS45ODkiIHdpZHRoPSIyMTguOTA1IiBoZWlnaHQ9IjM2LjI5NyIgZmlsbD0iI0Y4RjlGQSIgc3R5bGU9InN0cm9rZTojREVFMkU2O3N0cm9rZS13aWR0aDoxOyIgcng9IjEyLjUiIHJ5PSIxMi41Ii8+PHRleHQgeD0iMzIzLjg3NiIgeT0iMjY0Ljk4NCIgZmlsbD0iIzAwMCIgZm9udC1zaXplPSIxNCIgdGV4dExlbmd0aD0iMTk4LjkwNSIgZm9udC1mYW1pbHk9IlZlcmRhbmEiPvCfkrsg0J3QsNC/0LjRiNC4INC80ZbQvdGW0LzQsNC70YzQvdC40Lkg0LrQvtC0PC90ZXh0PjxyZWN0IHg9IjM1Ny4yMTIiIHk9IjI5OC4yODYiIHdpZHRoPSIxMzIuMjMyIiBoZWlnaHQ9IjM2LjI5NyIgZmlsbD0iI0Y4RjlGQSIgc3R5bGU9InN0cm9rZTojREVFMkU2O3N0cm9rZS13aWR0aDoxOyIgcng9IjEyLjUiIHJ5PSIxMi41Ii8+PHRleHQgeD0iMzY3LjIxMiIgeT0iMzIxLjI4MSIgZmlsbD0iIzAwMCIgZm9udC1zaXplPSIxNCIgdGV4dExlbmd0aD0iMTEyLjIzMiIgZm9udC1mYW1pbHk9IlZlcmRhbmEiPuKWtu+4jyDQl9Cw0L/Rg9GB0YLQuCDRgtC10YHRgjwvdGV4dD48cmVjdCB4PSIzNDguODQ5IiB5PSIzNTQuNTgzIiB3aWR0aD0iMTQ4Ljk2IiBoZWlnaHQ9IjM2LjI5NyIgZmlsbD0iI0Y4RjlGQSIgc3R5bGU9InN0cm9rZTojREVFMkU2O3N0cm9rZS13aWR0aDoxOyIgcng9IjEyLjUiIHJ5PSIxMi41Ii8+PHRleHQgeD0iMzU4Ljg0OSIgeT0iMzc3LjU3OCIgZmlsbD0iIzAwMCIgZm9udC1zaXplPSIxNCIgdGV4dExlbmd0aD0iMTI4Ljk2IiBmb250LWZhbWlseT0iVmVyZGFuYSI+4pyFINCi0LXRgdGCINC/0YDQvtGF0L7QtNC40YLRjDwvdGV4dD48bGluZSB4MT0iMzA3Ljg3NiIgeTE9IjExLjgwMiIgeDI9IjMwNy44NzYiIHkyPSI2NTguMDY3IiBzdHlsZT0ic3Ryb2tlOiMwMDA7c3Ryb2tlLXdpZHRoOjE7Ii8+PHJlY3QgeD0iNTM2Ljc4MSIgeT0iMTEuODAyIiB3aWR0aD0iMzMzLjY0NiIgaGVpZ2h0PSI2NDYuMjY2IiBmaWxsPSIjRTBFN0ZGIiBzdHlsZT0ic3Ryb2tlOiNFMEU3RkY7c3Ryb2tlLXdpZHRoOjE7Ii8+PHJlY3QgeD0iNTU0LjY1OSIgeT0iNDEwLjg4IiB3aWR0aD0iMjk5Ljg5MSIgaGVpZ2h0PSIzNi4yOTciIGZpbGw9IiNGOEY5RkEiIHN0eWxlPSJzdHJva2U6I0RFRTJFNjtzdHJva2Utd2lkdGg6MTsiIHJ4PSIxMi41IiByeT0iMTIuNSIvPjx0ZXh0IHg9IjU2NC42NTkiIHk9IjQzMy44NzUiIGZpbGw9IiMwMDAiIGZvbnQtc2l6ZT0iMTQiIHRleHRMZW5ndGg9IjI3OS44OTEiIGZvbnQtZmFtaWx5PSJWZXJkYW5hIj7wn5SNINCX0L3QsNC50LTQuCDQtNGD0LHQu9GO0LLQsNC90L3RjyDRgtCwINC90LXRj9GB0L3RliDQvNGW0YHRhtGPPC90ZXh0PjxyZWN0IHg9IjU0Mi43ODEiIHk9IjQ2Ny4xNzciIHdpZHRoPSIzMjMuNjQ2IiBoZWlnaHQ9IjM2LjI5NyIgZmlsbD0iI0Y4RjlGQSIgc3R5bGU9InN0cm9rZTojREVFMkU2O3N0cm9rZS13aWR0aDoxOyIgcng9IjEyLjUiIHJ5PSIxMi41Ii8+PHRleHQgeD0iNTUyLjc4MSIgeT0iNDkwLjE3MiIgZmlsbD0iIzAwMCIgZm9udC1zaXplPSIxNCIgdGV4dExlbmd0aD0iMzAzLjY0NiIgZm9udC1mYW1pbHk9IlZlcmRhbmEiPuKcqCDQn9C+0LrRgNCw0Ykg0YHRgtGA0YPQutGC0YPRgNGDINCx0LXQtyDQt9C80ZbQvdC4INC/0L7QstC10LTRltC90LrQuDwvdGV4dD48cmVjdCB4PSI1NzcuMDEyIiB5PSI1MjMuNDc0IiB3aWR0aD0iMjU1LjE4NCIgaGVpZ2h0PSIzNi4yOTciIGZpbGw9IiNGOEY5RkEiIHN0eWxlPSJzdHJva2U6I0RFRTJFNjtzdHJva2Utd2lkdGg6MTsiIHJ4PSIxMi41IiByeT0iMTIuNSIvPjx0ZXh0IHg9IjU4Ny4wMTIiIHk9IjU0Ni40NjkiIGZpbGw9IiMwMDAiIGZvbnQtc2l6ZT0iMTQiIHRleHRMZW5ndGg9IjIzNS4xODQiIGZvbnQtZmFtaWx5PSJWZXJkYW5hIj7ilrbvuI8g0JfQsNC/0YPRgdGC0Lgg0LLRgdGWINGC0LXRgdGC0Lg6INCy0YHQtSDQt9C10LvQtdC90LU8L3RleHQ+PGxpbmUgeDE9IjUzNi43ODEiIHkxPSIxMS44MDIiIHgyPSI1MzYuNzgxIiB5Mj0iNjU4LjA2NyIgc3R5bGU9InN0cm9rZTojMDAwO3N0cm9rZS13aWR0aDoxOyIvPjxsaW5lIHgxPSI4NzAuNDI3IiB5MT0iMTEuODAyIiB4Mj0iODcwLjQyNyIgeTI9IjY1OC4wNjciIHN0eWxlPSJzdHJva2U6IzAwMDtzdHJva2Utd2lkdGg6MTsiLz48bGluZSB4MT0iMTYyLjQzOCIgeTE9IjUzLjA5OSIgeDI9IjE2Mi40MzgiIHkyPSI3My4wOTkiIHN0eWxlPSJzdHJva2U6IzAwMDtzdHJva2Utd2lkdGg6MTsiLz48cG9seWdvbiBwb2ludHM9IjE1OC40MzgsNjMuMDk5LDE2Mi40MzgsNzMuMDk5LDE2Ni40MzgsNjMuMDk5LDE2Mi40MzgsNjcuMDk5IiBmaWxsPSIjMDAwIiBzdHlsZT0ic3Ryb2tlOiMwMDA7c3Ryb2tlLXdpZHRoOjE7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1taXRlcmxpbWl0OjEwOyIvPjxsaW5lIHgxPSIxNjIuNDM4IiB5MT0iMTA5LjM5NiIgeDI9IjE2Mi40MzgiIHkyPSIxMjkuMzk2IiBzdHlsZT0ic3Ryb2tlOiMwMDA7c3Ryb2tlLXdpZHRoOjE7Ii8+PHBvbHlnb24gcG9pbnRzPSIxNTguNDM4LDExOS4zOTYsMTYyLjQzOCwxMjkuMzk2LDE2Ni40MzgsMTE5LjM5NiwxNjIuNDM4LDEyMy4zOTYiIGZpbGw9IiMwMDAiIHN0eWxlPSJzdHJva2U6IzAwMDtzdHJva2Utd2lkdGg6MTtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW1pdGVybGltaXQ6MTA7Ii8+PGxpbmUgeDE9IjE2Mi40MzgiIHkxPSIxNjUuNjkyIiB4Mj0iMTYyLjQzOCIgeTI9IjE4NS42OTIiIHN0eWxlPSJzdHJva2U6IzAwMDtzdHJva2Utd2lkdGg6MTsiLz48cG9seWdvbiBwb2ludHM9IjE1OC40MzgsMTc1LjY5MiwxNjIuNDM4LDE4NS42OTIsMTY2LjQzOCwxNzUuNjkyLDE2Mi40MzgsMTc5LjY5MiIgZmlsbD0iIzAwMCIgc3R5bGU9InN0cm9rZTojMDAwO3N0cm9rZS13aWR0aDoxO3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2UtbWl0ZXJsaW1pdDoxMDsiLz48bGluZSB4MT0iMTYyLjQzOCIgeTE9IjYxNi4wNjciIHgyPSIxNjIuNDM4IiB5Mj0iNjM2LjA2NyIgc3R5bGU9InN0cm9rZTojMDAwO3N0cm9rZS13aWR0aDoxOyIvPjxwb2x5Z29uIHBvaW50cz0iMTU4LjQzOCw2MjYuMDY3LDE2Mi40MzgsNjM2LjA2NywxNjYuNDM4LDYyNi4wNjcsMTYyLjQzOCw2MzAuMDY3IiBmaWxsPSIjMDAwIiBzdHlsZT0ic3Ryb2tlOiMwMDA7c3Ryb2tlLXdpZHRoOjE7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1taXRlcmxpbWl0OjEwOyIvPjxsaW5lIHgxPSI0MjMuMzI5IiB5MT0iMjc4LjI4NiIgeDI9IjQyMy4zMjkiIHkyPSIyOTguMjg2IiBzdHlsZT0ic3Ryb2tlOiMwMDA7c3Ryb2tlLXdpZHRoOjE7Ii8+PHBvbHlnb24gcG9pbnRzPSI0MTkuMzI5LDI4OC4yODYsNDIzLjMyOSwyOTguMjg2LDQyNy4zMjksMjg4LjI4Niw0MjMuMzI5LDI5Mi4yODYiIGZpbGw9IiMwMDAiIHN0eWxlPSJzdHJva2U6IzAwMDtzdHJva2Utd2lkdGg6MTtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW1pdGVybGltaXQ6MTA7Ii8+PGxpbmUgeDE9IjQyMy4zMjkiIHkxPSIzMzQuNTgzIiB4Mj0iNDIzLjMyOSIgeTI9IjM1NC41ODMiIHN0eWxlPSJzdHJva2U6IzAwMDtzdHJva2Utd2lkdGg6MTsiLz48cG9seWdvbiBwb2ludHM9IjQxOS4zMjksMzQ0LjU4Myw0MjMuMzI5LDM1NC41ODMsNDI3LjMyOSwzNDQuNTgzLDQyMy4zMjksMzQ4LjU4MyIgZmlsbD0iIzAwMCIgc3R5bGU9InN0cm9rZTojMDAwO3N0cm9rZS13aWR0aDoxO3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2UtbWl0ZXJsaW1pdDoxMDsiLz48bGluZSB4MT0iNzA0LjYwNCIgeTE9IjQ0Ny4xNzciIHgyPSI3MDQuNjA0IiB5Mj0iNDY3LjE3NyIgc3R5bGU9InN0cm9rZTojMDAwO3N0cm9rZS13aWR0aDoxOyIvPjxwb2x5Z29uIHBvaW50cz0iNzAwLjYwNCw0NTcuMTc3LDcwNC42MDQsNDY3LjE3Nyw3MDguNjA0LDQ1Ny4xNzcsNzA0LjYwNCw0NjEuMTc3IiBmaWxsPSIjMDAwIiBzdHlsZT0ic3Ryb2tlOiMwMDA7c3Ryb2tlLXdpZHRoOjE7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1taXRlcmxpbWl0OjEwOyIvPjxsaW5lIHgxPSI3MDQuNjA0IiB5MT0iNTAzLjQ3NCIgeDI9IjcwNC42MDQiIHkyPSI1MjMuNDc0IiBzdHlsZT0ic3Ryb2tlOiMwMDA7c3Ryb2tlLXdpZHRoOjE7Ii8+PHBvbHlnb24gcG9pbnRzPSI3MDAuNjA0LDUxMy40NzQsNzA0LjYwNCw1MjMuNDc0LDcwOC42MDQsNTEzLjQ3NCw3MDQuNjA0LDUxNy40NzQiIGZpbGw9IiMwMDAiIHN0eWxlPSJzdHJva2U6IzAwMDtzdHJva2Utd2lkdGg6MTtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW1pdGVybGltaXQ6MTA7Ii8+PGxpbmUgeDE9IjE2Mi40MzgiIHkxPSIyMjEuOTg5IiB4Mj0iMTYyLjQzOCIgeTI9IjIyNi45ODkiIHN0eWxlPSJzdHJva2U6IzAwMDtzdHJva2Utd2lkdGg6MTsiLz48bGluZSB4MT0iMTYyLjQzOCIgeTE9IjIyNi45ODkiIHgyPSI0MjMuMzI5IiB5Mj0iMjI2Ljk4OSIgc3R5bGU9InN0cm9rZTojMDAwO3N0cm9rZS13aWR0aDoxOyIvPjxsaW5lIHgxPSI0MjMuMzI5IiB5MT0iMjI2Ljk4OSIgeDI9IjQyMy4zMjkiIHkyPSIyNDEuOTg5IiBzdHlsZT0ic3Ryb2tlOiMwMDA7c3Ryb2tlLXdpZHRoOjE7Ii8+PHBvbHlnb24gcG9pbnRzPSI0MTkuMzI5LDIzMS45ODksNDIzLjMyOSwyNDEuOTg5LDQyNy4zMjksMjMxLjk4OSw0MjMuMzI5LDIzNS45ODkiIGZpbGw9IiMwMDAiIHN0eWxlPSJzdHJva2U6IzAwMDtzdHJva2Utd2lkdGg6MTtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW1pdGVybGltaXQ6MTA7Ii8+PGxpbmUgeDE9IjQyMy4zMjkiIHkxPSIzOTAuODgiIHgyPSI0MjMuMzI5IiB5Mj0iMzk1Ljg4IiBzdHlsZT0ic3Ryb2tlOiMwMDA7c3Ryb2tlLXdpZHRoOjE7Ii8+PGxpbmUgeDE9IjQyMy4zMjkiIHkxPSIzOTUuODgiIHgyPSI3MDQuNjA0IiB5Mj0iMzk1Ljg4IiBzdHlsZT0ic3Ryb2tlOiMwMDA7c3Ryb2tlLXdpZHRoOjE7Ii8+PGxpbmUgeDE9IjcwNC42MDQiIHkxPSIzOTUuODgiIHgyPSI3MDQuNjA0IiB5Mj0iNDEwLjg4IiBzdHlsZT0ic3Ryb2tlOiMwMDA7c3Ryb2tlLXdpZHRoOjE7Ii8+PHBvbHlnb24gcG9pbnRzPSI3MDAuNjA0LDQwMC44OCw3MDQuNjA0LDQxMC44OCw3MDguNjA0LDQwMC44OCw3MDQuNjA0LDQwNC44OCIgZmlsbD0iIzAwMCIgc3R5bGU9InN0cm9rZTojMDAwO3N0cm9rZS13aWR0aDoxO3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2UtbWl0ZXJsaW1pdDoxMDsiLz48bGluZSB4MT0iNzA0LjYwNCIgeTE9IjU1OS43NzEiIHgyPSI3MDQuNjA0IiB5Mj0iNTY0Ljc3MSIgc3R5bGU9InN0cm9rZTojMDAwO3N0cm9rZS13aWR0aDoxOyIvPjxsaW5lIHgxPSI3MDQuNjA0IiB5MT0iNTY0Ljc3MSIgeDI9IjE2Mi40MzgiIHkyPSI1NjQuNzcxIiBzdHlsZT0ic3Ryb2tlOiMwMDA7c3Ryb2tlLXdpZHRoOjE7Ii8+PGxpbmUgeDE9IjE2Mi40MzgiIHkxPSI1NjQuNzcxIiB4Mj0iMTYyLjQzOCIgeTI9IjU3OS43NzEiIHN0eWxlPSJzdHJva2U6IzAwMDtzdHJva2Utd2lkdGg6MTsiLz48cG9seWdvbiBwb2ludHM9IjE1OC40MzgsNTY5Ljc3MSwxNjIuNDM4LDU3OS43NzEsMTY2LjQzOCw1NjkuNzcxLDE2Mi40MzgsNTczLjc3MSIgZmlsbD0iIzAwMCIgc3R5bGU9InN0cm9rZTojMDAwO3N0cm9rZS13aWR0aDoxO3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2UtbWl0ZXJsaW1pdDoxMDsiLz48dGV4dCB4PSIxNDAuMzM1IiB5PSIyNC43OTciIGZpbGw9IiMwMDAiIGZvbnQtc2l6ZT0iMTQiIHRleHRMZW5ndGg9IjQyLjIwNSIgZm9udC1mYW1pbHk9IlZlcmRhbmEiPvCflLQgUkVEPC90ZXh0Pjx0ZXh0IHg9IjM5MS41MzMiIHk9IjI0Ljc5NyIgZmlsbD0iIzAwMCIgZm9udC1zaXplPSIxNCIgdGV4dExlbmd0aD0iNjEuNTkyIiBmb250LWZhbWlseT0iVmVyZGFuYSI+8J+foiBHUkVFTjwvdGV4dD48dGV4dCB4PSI2NTkuNTQiIHk9IjI0Ljc5NyIgZmlsbD0iIzAwMCIgZm9udC1zaXplPSIxNCIgdGV4dExlbmd0aD0iODguMTI5IiBmb250LWZhbWlseT0iVmVyZGFuYSI+8J+UtSBSRUZBQ1RPUjwvdGV4dD48P3BsYW50dW1sLXNyYyBaUDkxUmpERzQ4UnRGaUxLdFMya0hRWDBpWWZqb1d3YW0wTENfTG9pZmQ3YWs0WDBhRGc0NWYxSThqNGV0SDE1d2VnYllVcDZKUGhxMlpETnUwQnEyRnBaNTZJNEFqTk1hdl9jcFZwX0QtRXQ0QnVvRXVQZzVUa2hNbExqaHJncDB0azdOamdSc3JrMWxyanJybG9BN3oyWVEta1JvdDJDUS16TW1Xc182Wnh0dFhmUWxjX2JKa3REcTdsalhNX2VkS0x1N2x5ZHp6MXoxQmRpcDB5UzRycDc3TUZrY1BLaWRiVC1ScmNESFRTcm5icmdxRE1XNnJFdmo0dURnbnhRR01XTGhXUjdWVTgtSHRwOWdOcFliQUo5WVVuQmFwWmNZTkk4ZnBwWjhTX2FYOTJac3VIWndJNHl2aEhlNU54c3Bkd2JJM2pIM01iZlFLdjU0X2ZqdWpDX2VmVDhZcGNJQmpzSEdxdThtWC1YRGZPTWIyQ3JNeFhSTDZRcDBjZjdjR1VkekFIU0FacTVETllfSmx4YnZHazVtUmYwUzI5aklBSHlKZzJSU05taGxjeTdVSnhQMHpBMTVpRVdBVXF2cDk5dnVCaFAwMUNDUzZEcnhTTXB5Zm9kVXdKUUt3WVZRbWQ2WGJQLVdFSkJUS0RKMzE1c2FLdW9hT3hpQXNzNjNTVDN3TUc4dHVhN3kxcDNGUEJGZjJvbzF3NG5sWXRUNEpHSjdYNkZ2V3NocS1yXzFtLW53VnRqY2pEMjVqQnZabzBtbUc5U3lPUXhlYnItYzBDRUtKbTNQOWd4N2I1NnNtQkV6Q1BoS1dfenNjeTA/PjwvZz48L3N2Zz4=\" alt=\"PlantUML diagram\" class=\"plantuml-diagram\">\n<table>\n<thead>\n<tr>\n<th>Етап</th>\n<th>Мета</th>\n<th>Результат</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🔴 <strong>RED</strong></td>\n<td>Описати, <em>що</em> має робити код</td>\n<td>Падаючий тест</td>\n</tr>\n<tr>\n<td>🟢 <strong>GREEN</strong></td>\n<td>Змусити тест пройти найпростіше</td>\n<td>Працюючий код</td>\n</tr>\n<tr>\n<td>🔵 <strong>REFACTOR</strong></td>\n<td>Покращити, <em>як</em> написаний код</td>\n<td>Чистий код</td>\n</tr>\n</tbody></table>\n<div class=\"warning\"><strong>⚠️ Важливо</strong> <p>Кожен етап має <strong>одну чітку мету</strong>. Писати \"красивий\" код на етапі GREEN або додавати нову логіку на етапі REFACTOR означає змішувати етапи, а це порушує саму суть методології.</p>\n</div>\n\n","<h1>🔴 Фаза RED: напиши падаючий тест</h1>\n<p><strong>Головна ідея:</strong> написати <strong>мінімальний тест</strong>, який описує бажану поведінку та <strong>падає на перевірці результату</strong> (assertion), а не на помилці компіляції.</p>\n<h2>✅ Що робимо на цьому етапі</h2>\n<ol>\n<li>🤔 <strong>Визначаємо</strong> одну конкретну поведінку, яку хочемо отримати</li>\n<li>📝 <strong>Створюємо заглушку</strong> методу, якщо його ще немає (щоб код компілювався)</li>\n<li>✍️ <strong>Пишемо тест</strong> з очікуваним результатом</li>\n<li>▶️ <strong>Запускаємо</strong> тест</li>\n<li>❌ <strong>Переконуємось</strong>, що він падає саме на assertion</li>\n</ol>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-comment\">// 1️⃣ Заглушка: метод існує, але нічого корисного не робить</span>\n<span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Calculator</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-type\">int</span> <span class=\"hljs-title function_\">add</span><span class=\"hljs-params\">(<span class=\"hljs-type\">int</span> a, <span class=\"hljs-type\">int</span> b)</span> {\n        <span class=\"hljs-keyword\">return</span> <span class=\"hljs-number\">0</span>; <span class=\"hljs-comment\">// <span class=\"hljs-doctag\">TODO:</span> implement</span>\n    }\n}\n\n<span class=\"hljs-comment\">// 2️⃣ Тест описує очікувану поведінку</span>\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">CalculatorTest</span> {\n    <span class=\"hljs-meta\">@Test</span>\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">shouldAddTwoNumbers</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-type\">Calculator</span> <span class=\"hljs-variable\">calculator</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Calculator</span>();\n        assertEquals(<span class=\"hljs-number\">5</span>, calculator.add(<span class=\"hljs-number\">2</span>, <span class=\"hljs-number\">3</span>));\n        <span class=\"hljs-comment\">// ❌ AssertionFailedError: expected: &lt;5&gt; but was: &lt;0&gt;</span>\n    }\n}</code></pre><div class=\"info\"><strong>ℹ️ Правило</strong> <p>Тест <strong>повинен</strong> впасти на логіці. Якщо тест проходить без реалізації, він або нічого не перевіряє, або перевіряє вже наявну поведінку. Падіння доводить, що тест справді чутливий до поведінки коду.</p>\n</div>\n\n","<h1>🟢 Фаза GREEN: напиши мінімальний код</h1>\n<p><strong>Головна ідея:</strong> написати <strong>найменшу кількість коду</strong>, достатню для того, щоб тест пройшов. Нічого більше.</p>\n<h2>✅ Що робимо на цьому етапі</h2>\n<ol>\n<li>💻 <strong>Пишемо</strong> найпростіше рішення, яке спадає на думку</li>\n<li>▶️ <strong>Запускаємо</strong> тест</li>\n<li>✅ <strong>Переконуємось</strong>, що тест проходить, і зупиняємось</li>\n</ol>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">Calculator</span> {\n    <span class=\"hljs-keyword\">public</span> <span class=\"hljs-type\">int</span> <span class=\"hljs-title function_\">add</span><span class=\"hljs-params\">(<span class=\"hljs-type\">int</span> a, <span class=\"hljs-type\">int</span> b)</span> {\n        <span class=\"hljs-keyword\">return</span> a + b; <span class=\"hljs-comment\">// ✅ рівно стільки, скільки вимагає тест</span>\n    }\n}</code></pre><pre><code class=\"language-plaintext hljs\" data-highlighted=\"yes\">✅ CalculatorTest &gt; shouldAddTwoNumbers() PASSED</code></pre><div class=\"warning\"><strong>⚠️ Типова помилка</strong> <p>Спокуса одразу написати \"правильну\" архітектуру, передбачити майбутні вимоги або оптимізувати продуктивність. На етапі GREEN це заборонено: ми ще не маємо тестів для тих вимог, отже не маємо й права писати для них код.</p>\n</div>\n\n\n\n\n\n<div class=\"success\"><strong>✅ Принцип KISS</strong> <p><strong>KISS (Keep It Simple, Stupid)</strong>: на етапі GREEN ми думаємо лише про проходження тесту. Якість коду буде предметом наступного етапу, і саме це робить GREEN швидким та безпечним.</p>\n</div>\n\n","<h1>🔵 Фаза REFACTOR: покращ код</h1>\n<div class=\"info\"><strong>ℹ️ Визначення</strong> <p><strong>Рефакторинг (Refactoring)</strong> - зміна внутрішньої структури коду без зміни його зовнішньої, спостережуваної поведінки. Коректність рефакторингу гарантують тести: якщо після кожної зміни вони залишаються зеленими, поведінка збережена.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> тепер, коли тест зелений, можна безпечно покращувати код. Тести виступають страховкою від випадкових регресій.</p>\n<h2>✅ Що робимо на цьому етапі</h2>\n<ol>\n<li>🔍 <strong>Аналізуємо</strong> код: дублювання, магічні числа, довгі методи, неясні імена</li>\n<li>✨ <strong>Рефакторимо</strong> малими кроками</li>\n<li>▶️ <strong>Запускаємо тести</strong> після кожної зміни</li>\n<li>✅ <strong>Переконуємось</strong>, що все лишилося зеленим</li>\n</ol>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-comment\">// 🔴🟢 Після кількох ітерацій у тестах накопичилось дублювання:</span>\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">CalculatorTest</span> {\n    <span class=\"hljs-meta\">@Test</span>\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">shouldAddTwoNumbers</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-type\">Calculator</span> <span class=\"hljs-variable\">calculator</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Calculator</span>();   <span class=\"hljs-comment\">// 🔁 повтор</span>\n        assertEquals(<span class=\"hljs-number\">5</span>, calculator.add(<span class=\"hljs-number\">2</span>, <span class=\"hljs-number\">3</span>));\n    }\n\n    <span class=\"hljs-meta\">@Test</span>\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">shouldSubtractTwoNumbers</span><span class=\"hljs-params\">()</span> {\n        <span class=\"hljs-type\">Calculator</span> <span class=\"hljs-variable\">calculator</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Calculator</span>();   <span class=\"hljs-comment\">// 🔁 повтор</span>\n        assertEquals(<span class=\"hljs-number\">1</span>, calculator.subtract(<span class=\"hljs-number\">3</span>, <span class=\"hljs-number\">2</span>));\n    }\n}\n\n<span class=\"hljs-comment\">// 🔵 Рефакторинг: спільний об'єкт винесено у fixture</span>\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">CalculatorTest</span> {\n    <span class=\"hljs-keyword\">private</span> <span class=\"hljs-keyword\">final</span> <span class=\"hljs-type\">Calculator</span> <span class=\"hljs-variable\">calculator</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Calculator</span>();\n\n    <span class=\"hljs-meta\">@Test</span>\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">shouldAddTwoNumbers</span><span class=\"hljs-params\">()</span> {\n        assertEquals(<span class=\"hljs-number\">5</span>, calculator.add(<span class=\"hljs-number\">2</span>, <span class=\"hljs-number\">3</span>));\n    }\n\n    <span class=\"hljs-meta\">@Test</span>\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">shouldSubtractTwoNumbers</span><span class=\"hljs-params\">()</span> {\n        assertEquals(<span class=\"hljs-number\">1</span>, calculator.subtract(<span class=\"hljs-number\">3</span>, <span class=\"hljs-number\">2</span>));\n    }\n}</code></pre><div class=\"note\"><strong>📝 Рефакторимо і тести</strong> <p>Тестовий код - такий самий код, і на нього поширюються ті самі вимоги до чистоти. Дублювання у тестах усувається так само, як і в продакшен-коді.</p>\n</div>\n\n\n\n\n\n<div class=\"tip\"><strong>💡 Коли зупинитися</strong> <p>Рефакторинг завершено, коли код зрозумілий, без дублювання і всі тести зелені. Після цього цикл починається знову: пишемо наступний падаючий тест.</p>\n</div>\n\n","<h1>⚖️ Три закони TDD</h1>\n<div class=\"success\"><strong>✅ Robert C. Martin (Uncle Bob)</strong> <p>Автор книги \"Clean Code\" формалізував дисципліну TDD у вигляді <strong>трьох законів</strong>. Дотримання цих правил автоматично породжує цикл Red-Green-Refactor у вигляді дуже коротких ітерацій.</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> закони визначають, що <strong>заборонено</strong> робити, і саме заборони формують правильний ритм роботи.</p>\n<table>\n<thead>\n<tr>\n<th>#</th>\n<th>🇬🇧 Англійською</th>\n<th>🇺🇦 Українською</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>1️⃣</td>\n<td>You can't write production code until you have a failing test</td>\n<td>Не пиши продакшен-код, поки немає падаючого тесту</td>\n</tr>\n<tr>\n<td>2️⃣</td>\n<td>You can't write more of a test than is sufficient to fail</td>\n<td>Не пиши більше тесту, ніж потрібно для його падіння</td>\n</tr>\n<tr>\n<td>3️⃣</td>\n<td>You can't write more production code than is sufficient to pass</td>\n<td>Не пиши більше коду, ніж потрібно для проходження тесту</td>\n</tr>\n</tbody></table>\n<h2>💡 Що саме забороняє кожен закон</h2>\n<table>\n<thead>\n<tr>\n<th>Закон</th>\n<th>Що забороняє</th>\n<th>Навіщо</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>1️⃣</td>\n<td>Код без тесту</td>\n<td>Гарантує, що кожен рядок коду покритий тестом</td>\n</tr>\n<tr>\n<td>2️⃣</td>\n<td>Великі тести \"на все одразу\"</td>\n<td>Тримає фокус на одній вимозі за раз</td>\n</tr>\n<tr>\n<td>3️⃣</td>\n<td>Код \"на майбутнє\"</td>\n<td>Запобігає over-engineering та зайвій складності</td>\n</tr>\n</tbody></table>\n<div class=\"tip\"><strong>💡 Мнемоніка</strong> <p><strong>\"Тільки необхідне, нічого зайвого\"</strong> - і для тестів, і для коду. Другий і третій закони дзеркальні: мінімум тесту для падіння, мінімум коду для проходження.</p>\n</div>\n\n","<h1>💻 Практичний приклад: FizzBuzz</h1>\n<div class=\"info\"><strong>ℹ️ Постановка задачі</strong> <p>Написати метод, який для цілого числа <code>n</code> повертає:</p>\n<ul>\n<li><strong>\"Fizz\"</strong>, якщо число ділиться на 3</li>\n<li><strong>\"Buzz\"</strong>, якщо число ділиться на 5</li>\n<li><strong>\"FizzBuzz\"</strong>, якщо число ділиться і на 3, і на 5</li>\n<li><strong>саме число у вигляді рядка</strong> в усіх інших випадках</li>\n</ul>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> задача навмисно проста, щоб уся увага була на <strong>процесі</strong>, а не на алгоритмі. Розв'язуємо її за чотири ітерації циклу та фінальний рефакторинг.</p>\n\n<div class=\"mermaid\" data-source=\"%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#f8f9fa'}}}%%\ngraph LR\n    subgraph i1 [Ітерація 1: число]\n        R1[🔴] --&gt; G1[🟢]\n    end\n    subgraph i2 [Ітерація 2: Fizz]\n        R2[🔴] --&gt; G2[🟢]\n    end\n    subgraph i3 [Ітерація 3: Buzz]\n        R3[🔴] --&gt; G3[🟢]\n    end\n    subgraph i4 [Ітерація 4: FizzBuzz]\n        R4[🔴] --&gt; G4[🟢]\n    end\n    subgraph rf [Фінал]\n        RF[🔵 Refactor]\n    end\n    i1 --&gt; i2 --&gt; i3 --&gt; i4 --&gt; rf\n    style R1 fill:#ffeef0,stroke:#d73a49\n    style R2 fill:#ffeef0,stroke:#d73a49\n    style R3 fill:#ffeef0,stroke:#d73a49\n    style R4 fill:#ffeef0,stroke:#d73a49\n    style G1 fill:#e6ffed,stroke:#28a745\n    style G2 fill:#e6ffed,stroke:#28a745\n    style G3 fill:#e6ffed,stroke:#28a745\n    style G4 fill:#e6ffed,stroke:#28a745\n    style RF fill:#e0e7ff,stroke:#6366f1\"><svg id=\"exp-1794152945686-9-0\" width=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" class=\"flowchart\" style=\"max-width: 973.9609375px;\" viewBox=\"0 0 973.9609375 262\" role=\"graphics-document document\" aria-roledescription=\"flowchart-v2\"><style>#exp-1794152945686-9-0{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;fill:#2d3748;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#exp-1794152945686-9-0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#exp-1794152945686-9-0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#exp-1794152945686-9-0 .error-icon{fill:hsl(30, 16.6666666667%, 100%);}#exp-1794152945686-9-0 .error-text{fill:#000000;stroke:#000000;}#exp-1794152945686-9-0 .edge-thickness-normal{stroke-width:1px;}#exp-1794152945686-9-0 .edge-thickness-thick{stroke-width:3.5px;}#exp-1794152945686-9-0 .edge-pattern-solid{stroke-dasharray:0;}#exp-1794152945686-9-0 .edge-thickness-invisible{stroke-width:0;fill:none;}#exp-1794152945686-9-0 .edge-pattern-dashed{stroke-dasharray:3;}#exp-1794152945686-9-0 .edge-pattern-dotted{stroke-dasharray:2;}#exp-1794152945686-9-0 .marker{fill:#0b0b0b;stroke:#0b0b0b;}#exp-1794152945686-9-0 .marker.cross{stroke:#0b0b0b;}#exp-1794152945686-9-0 svg{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:16px;}#exp-1794152945686-9-0 p{margin:0;}#exp-1794152945686-9-0 .label{font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;color:#2d3748;}#exp-1794152945686-9-0 .cluster-label text{fill:#000000;}#exp-1794152945686-9-0 .cluster-label span{color:#000000;}#exp-1794152945686-9-0 .cluster-label span p{background-color:transparent;}#exp-1794152945686-9-0 .label text,#exp-1794152945686-9-0 span{fill:#2d3748;color:#2d3748;}#exp-1794152945686-9-0 .node rect,#exp-1794152945686-9-0 .node circle,#exp-1794152945686-9-0 .node ellipse,#exp-1794152945686-9-0 .node polygon,#exp-1794152945686-9-0 .node path{fill:#f8f9fa;stroke:#667eea;stroke-width:1px;}#exp-1794152945686-9-0 .rough-node .label text,#exp-1794152945686-9-0 .node .label text,#exp-1794152945686-9-0 .image-shape .label,#exp-1794152945686-9-0 .icon-shape .label{text-anchor:middle;}#exp-1794152945686-9-0 .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#exp-1794152945686-9-0 .rough-node .label,#exp-1794152945686-9-0 .node .label,#exp-1794152945686-9-0 .image-shape .label,#exp-1794152945686-9-0 .icon-shape .label{text-align:center;}#exp-1794152945686-9-0 .node.clickable{cursor:pointer;}#exp-1794152945686-9-0 .root .anchor path{fill:#0b0b0b!important;stroke-width:0;stroke:#0b0b0b;}#exp-1794152945686-9-0 .arrowheadPath{fill:#0b0b0b;}#exp-1794152945686-9-0 .edgePaths .path{stroke:#0b0b0b;stroke-width:1px;}#exp-1794152945686-9-0 .flowchart-link{stroke:#0b0b0b;fill:none;}#exp-1794152945686-9-0 .edgeLabel{background-color:hsl(90, 16.6666666667%, 97.6470588235%);text-align:center;}#exp-1794152945686-9-0 .edgeLabel p{background-color:hsl(90, 16.6666666667%, 97.6470588235%);}#exp-1794152945686-9-0 .edgeLabel rect{opacity:0.5;background-color:hsl(90, 16.6666666667%, 97.6470588235%);fill:hsl(90, 16.6666666667%, 97.6470588235%);}#exp-1794152945686-9-0 .labelBkg{background-color:rgba(248.9999999999, 249.9999999999, 247.9999999999, 0.5);}#exp-1794152945686-9-0 .cluster rect{fill:hsl(30, 16.6666666667%, 100%);stroke:hsl(30, 0%, 90%);stroke-width:1px;}#exp-1794152945686-9-0 .cluster text{fill:#000000;}#exp-1794152945686-9-0 .cluster span{color:#000000;}#exp-1794152945686-9-0 .node .collapsed-indicator{fill:hsl(30, 0%, 90%);stroke:none;opacity:0.6;}#exp-1794152945686-9-0 .node .collapsed-separator{stroke:hsl(30, 0%, 90%);stroke-width:0.75px;}#exp-1794152945686-9-0 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Arial,sans-serif;font-size:12px;background:hsl(30, 16.6666666667%, 100%);border:1px solid hsl(30, 0%, 90%);border-radius:2px;pointer-events:none;z-index:100;}#exp-1794152945686-9-0 .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#2d3748;}#exp-1794152945686-9-0 rect.text{fill:none;stroke-width:0;}#exp-1794152945686-9-0 .icon-shape,#exp-1794152945686-9-0 .image-shape{background-color:hsl(90, 16.6666666667%, 97.6470588235%);text-align:center;}#exp-1794152945686-9-0 .icon-shape p,#exp-1794152945686-9-0 .image-shape p{background-color:hsl(90, 16.6666666667%, 97.6470588235%);padding:2px;}#exp-1794152945686-9-0 .icon-shape .label rect,#exp-1794152945686-9-0 .image-shape .label rect{opacity:0.5;background-color:hsl(90, 16.6666666667%, 97.6470588235%);fill:hsl(90, 16.6666666667%, 97.6470588235%);}#exp-1794152945686-9-0 .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#exp-1794152945686-9-0 .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#exp-1794152945686-9-0 .node .neo-node{stroke:#667eea;}#exp-1794152945686-9-0 [data-look=\"neo\"].node rect,#exp-1794152945686-9-0 [data-look=\"neo\"].cluster rect,#exp-1794152945686-9-0 [data-look=\"neo\"].node polygon{stroke:url(#exp-1794152945686-9-0-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#exp-1794152945686-9-0 [data-look=\"neo\"].swimlane.cluster rect{filter:none;}#exp-1794152945686-9-0 [data-look=\"neo\"].node path{stroke:url(#exp-1794152945686-9-0-gradient);stroke-width:1px;}#exp-1794152945686-9-0 [data-look=\"neo\"].node .outer-path{filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#exp-1794152945686-9-0 [data-look=\"neo\"].node .neo-line path{stroke:#667eea;filter:none;}#exp-1794152945686-9-0 [data-look=\"neo\"].node circle{stroke:url(#exp-1794152945686-9-0-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#exp-1794152945686-9-0 [data-look=\"neo\"].node circle .state-start{fill:#000000;}#exp-1794152945686-9-0 [data-look=\"neo\"].icon-shape .icon{fill:url(#exp-1794152945686-9-0-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#exp-1794152945686-9-0 [data-look=\"neo\"].icon-shape .icon-neo path{stroke:url(#exp-1794152945686-9-0-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#exp-1794152945686-9-0 :root{--mermaid-font-family:\"trebuchet ms\",verdana,arial,sans-serif;}</style><g><marker id=\"exp-1794152945686-9-0_flowchart-v2-pointEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 0 L 10 5 L 0 10 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1794152945686-9-0_flowchart-v2-pointStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"4.5\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"8\" markerHeight=\"8\" orient=\"auto\"><path d=\"M 0 5 L 10 10 L 10 0 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1794152945686-9-0_flowchart-v2-pointEnd-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 11.5 14\" refX=\"11.5\" refY=\"7\" markerUnits=\"userSpaceOnUse\" markerWidth=\"10.5\" markerHeight=\"14\" orient=\"auto\"><path d=\"M 0 0 L 11.5 7 L 0 14 z\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1794152945686-9-0_flowchart-v2-pointStart-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 11.5 14\" refX=\"1\" refY=\"7\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11.5\" markerHeight=\"14\" orient=\"auto\"><polygon points=\"0,7 11.5,14 11.5,0\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></polygon></marker><marker id=\"exp-1794152945686-9-0_flowchart-v2-circleEnd\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"11\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1794152945686-9-0_flowchart-v2-circleStart\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-1\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 1; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1794152945686-9-0_flowchart-v2-circleEnd-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refY=\"5\" refX=\"12.25\" markerUnits=\"userSpaceOnUse\" markerWidth=\"14\" markerHeight=\"14\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1794152945686-9-0_flowchart-v2-circleStart-margin\" class=\"marker flowchart-v2\" viewBox=\"0 0 10 10\" refX=\"-2\" refY=\"5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"14\" markerHeight=\"14\" orient=\"auto\"><circle cx=\"5\" cy=\"5\" r=\"5\" class=\"arrowMarkerPath\" style=\"stroke-width: 0; stroke-dasharray: 1, 0;\"></circle></marker><marker id=\"exp-1794152945686-9-0_flowchart-v2-crossEnd\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"12\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1794152945686-9-0_flowchart-v2-crossStart\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 11 11\" refX=\"-1\" refY=\"5.2\" markerUnits=\"userSpaceOnUse\" markerWidth=\"11\" markerHeight=\"11\" orient=\"auto\"><path d=\"M 1,1 l 9,9 M 10,1 l -9,9\" class=\"arrowMarkerPath\" style=\"stroke-width: 2; stroke-dasharray: 1, 0;\"></path></marker><marker id=\"exp-1794152945686-9-0_flowchart-v2-crossEnd-margin\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 15 15\" refX=\"17.7\" refY=\"7.5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"12\" markerHeight=\"12\" orient=\"auto\"><path d=\"M 1,1 L 14,14 M 1,14 L 14,1\" class=\"arrowMarkerPath\" style=\"stroke-width: 2.5;\"></path></marker><marker id=\"exp-1794152945686-9-0_flowchart-v2-crossStart-margin\" class=\"marker cross flowchart-v2\" viewBox=\"0 0 15 15\" refX=\"-3.5\" refY=\"7.5\" markerUnits=\"userSpaceOnUse\" markerWidth=\"12\" markerHeight=\"12\" orient=\"auto\"><path d=\"M 1,1 L 14,14 M 1,14 L 14,1\" class=\"arrowMarkerPath\" style=\"stroke-width: 2.5; stroke-dasharray: 1, 0;\"></path></marker><g class=\"root\"><g class=\"clusters\"></g><g class=\"edgePaths\"><path d=\"M142,131L146.167,131C150.333,131,158.667,131,166.333,131C174,131,181,131,184.5,131L188,131\" id=\"exp-1794152945686-9-0-L_i1_i2_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_i1_i2_0\" data-points=\"W3sieCI6MTQyLCJ5IjoxMzF9LHsieCI6MTY3LCJ5IjoxMzF9LHsieCI6MTkyLCJ5IjoxMzF9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1794152945686-9-0_flowchart-v2-pointEnd)\"></path><path d=\"M326,131L330.167,131C334.333,131,342.667,131,350.333,131C358,131,365,131,368.5,131L372,131\" id=\"exp-1794152945686-9-0-L_i2_i3_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_i2_i3_0\" data-points=\"W3sieCI6MzI2LCJ5IjoxMzF9LHsieCI6MzUxLCJ5IjoxMzF9LHsieCI6Mzc2LCJ5IjoxMzF9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1794152945686-9-0_flowchart-v2-pointEnd)\"></path><path d=\"M510,131L514.167,131C518.333,131,526.667,131,534.333,131C542,131,549,131,552.5,131L556,131\" id=\"exp-1794152945686-9-0-L_i3_i4_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_i3_i4_0\" data-points=\"W3sieCI6NTEwLCJ5IjoxMzF9LHsieCI6NTM1LCJ5IjoxMzF9LHsieCI6NTYwLCJ5IjoxMzF9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1794152945686-9-0_flowchart-v2-pointEnd)\"></path><path d=\"M716.18,131L720.346,131C724.513,131,732.846,131,740.513,131C748.18,131,755.18,131,758.68,131L762.18,131\" id=\"exp-1794152945686-9-0-L_i4_rf_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_i4_rf_0\" data-points=\"W3sieCI6NzE2LjE3OTY4NzUsInkiOjEzMX0seyJ4Ijo3NDEuMTc5Njg3NSwieSI6MTMxfSx7IngiOjc2Ni4xNzk2ODc1LCJ5IjoxMzF9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1794152945686-9-0_flowchart-v2-pointEnd)\"></path></g><g class=\"edgeLabels\"><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_i1_i2_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_i2_i3_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_i3_i4_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_i4_rf_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g></g><g class=\"nodes\"><g class=\"root\" transform=\"translate(758.1796875, 61.5)\"><g class=\"clusters\"><g class=\"cluster \" id=\"exp-1794152945686-9-0-rf\" data-look=\"classic\"><rect style=\"\" x=\"8\" y=\"8\" width=\"199.78125\" height=\"123\"></rect><g class=\"cluster-label \" transform=\"translate(86.078125, 8)\"><foreignObject width=\"43.625\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5;\"><span class=\"nodeLabel \"><p>Фінал</p></span></div></foreignObject></g></g></g><g class=\"edgePaths\"></g><g class=\"edgeLabels\"></g><g class=\"nodes\"><g class=\"node default  \" id=\"exp-1794152945686-9-0-flowchart-RF-8\" data-look=\"classic\" transform=\"translate(107.890625, 69.5)\"><rect class=\"basic label-container\" style=\"fill:#e0e7ff !important;stroke:#6366f1 !important\" x=\"-64.890625\" y=\"-24\" width=\"129.78125\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-40.890625, -12)\"><rect></rect><foreignObject width=\"81.78125\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🔵 Refactor</p></span></div></foreignObject></g></g></g></g><g class=\"root\" transform=\"translate(563.08984375, 0)\"><g class=\"clusters\"><g class=\"cluster \" id=\"exp-1794152945686-9-0-i4\" data-look=\"classic\"><rect style=\"\" x=\"-3.08984375\" y=\"8\" width=\"156.1796875\" height=\"246\"></rect><g class=\"cluster-label \" transform=\"translate(0.91015625, 8)\"><foreignObject width=\"148.1796875\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5;\"><span class=\"nodeLabel \"><p>Ітерація 4: FizzBuzz</p></span></div></foreignObject></g></g></g><g class=\"edgePaths\"><path d=\"M75,93.5L75,99.75C75,106,75,118.5,75,130.333C75,142.167,75,153.333,75,158.917L75,164.5\" id=\"exp-1794152945686-9-0-L_R4_G4_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_R4_G4_0\" data-points=\"W3sieCI6NzUsInkiOjkzLjV9LHsieCI6NzUsInkiOjEzMX0seyJ4Ijo3NSwieSI6MTY4LjV9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1794152945686-9-0_flowchart-v2-pointEnd)\"></path></g><g class=\"edgeLabels\"><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_R4_G4_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g></g><g class=\"nodes\"><g class=\"node default  \" id=\"exp-1794152945686-9-0-flowchart-R4-6\" data-look=\"classic\" transform=\"translate(75, 69.5)\"><rect class=\"basic label-container\" style=\"fill:#ffeef0 !important;stroke:#d73a49 !important\" x=\"-32\" y=\"-24\" width=\"64\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-8, -12)\"><rect></rect><foreignObject width=\"16\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🔴</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1794152945686-9-0-flowchart-G4-7\" data-look=\"classic\" transform=\"translate(75, 192.5)\"><rect class=\"basic label-container\" style=\"fill:#e6ffed !important;stroke:#28a745 !important\" x=\"-32\" y=\"-24\" width=\"64\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-8, -12)\"><rect></rect><foreignObject width=\"16\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🟢</p></span></div></foreignObject></g></g></g></g><g class=\"root\" transform=\"translate(368, 0)\"><g class=\"clusters\"><g class=\"cluster \" id=\"exp-1794152945686-9-0-i3\" data-look=\"classic\"><rect style=\"\" x=\"8\" y=\"8\" width=\"134\" height=\"246\"></rect><g class=\"cluster-label \" transform=\"translate(15.59765625, 8)\"><foreignObject width=\"118.8046875\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5;\"><span class=\"nodeLabel \"><p>Ітерація 3: Buzz</p></span></div></foreignObject></g></g></g><g class=\"edgePaths\"><path d=\"M75,93.5L75,99.75C75,106,75,118.5,75,130.333C75,142.167,75,153.333,75,158.917L75,164.5\" id=\"exp-1794152945686-9-0-L_R3_G3_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_R3_G3_0\" data-points=\"W3sieCI6NzUsInkiOjkzLjV9LHsieCI6NzUsInkiOjEzMX0seyJ4Ijo3NSwieSI6MTY4LjV9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1794152945686-9-0_flowchart-v2-pointEnd)\"></path></g><g class=\"edgeLabels\"><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_R3_G3_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g></g><g class=\"nodes\"><g class=\"node default  \" id=\"exp-1794152945686-9-0-flowchart-R3-4\" data-look=\"classic\" transform=\"translate(75, 69.5)\"><rect class=\"basic label-container\" style=\"fill:#ffeef0 !important;stroke:#d73a49 !important\" x=\"-32\" y=\"-24\" width=\"64\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-8, -12)\"><rect></rect><foreignObject width=\"16\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🔴</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1794152945686-9-0-flowchart-G3-5\" data-look=\"classic\" transform=\"translate(75, 192.5)\"><rect class=\"basic label-container\" style=\"fill:#e6ffed !important;stroke:#28a745 !important\" x=\"-32\" y=\"-24\" width=\"64\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-8, -12)\"><rect></rect><foreignObject width=\"16\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🟢</p></span></div></foreignObject></g></g></g></g><g class=\"root\" transform=\"translate(184, 0)\"><g class=\"clusters\"><g class=\"cluster \" id=\"exp-1794152945686-9-0-i2\" data-look=\"classic\"><rect style=\"\" x=\"8\" y=\"8\" width=\"134\" height=\"246\"></rect><g class=\"cluster-label \" transform=\"translate(19.15625, 8)\"><foreignObject width=\"111.6875\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5;\"><span class=\"nodeLabel \"><p>Ітерація 2: Fizz</p></span></div></foreignObject></g></g></g><g class=\"edgePaths\"><path d=\"M75,93.5L75,99.75C75,106,75,118.5,75,130.333C75,142.167,75,153.333,75,158.917L75,164.5\" id=\"exp-1794152945686-9-0-L_R2_G2_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_R2_G2_0\" data-points=\"W3sieCI6NzUsInkiOjkzLjV9LHsieCI6NzUsInkiOjEzMX0seyJ4Ijo3NSwieSI6MTY4LjV9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1794152945686-9-0_flowchart-v2-pointEnd)\"></path></g><g class=\"edgeLabels\"><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_R2_G2_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g></g><g class=\"nodes\"><g class=\"node default  \" id=\"exp-1794152945686-9-0-flowchart-R2-2\" data-look=\"classic\" transform=\"translate(75, 69.5)\"><rect class=\"basic label-container\" style=\"fill:#ffeef0 !important;stroke:#d73a49 !important\" x=\"-32\" y=\"-24\" width=\"64\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-8, -12)\"><rect></rect><foreignObject width=\"16\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🔴</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1794152945686-9-0-flowchart-G2-3\" data-look=\"classic\" transform=\"translate(75, 192.5)\"><rect class=\"basic label-container\" style=\"fill:#e6ffed !important;stroke:#28a745 !important\" x=\"-32\" y=\"-24\" width=\"64\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-8, -12)\"><rect></rect><foreignObject width=\"16\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🟢</p></span></div></foreignObject></g></g></g></g><g class=\"root\" transform=\"translate(0, 0)\"><g class=\"clusters\"><g class=\"cluster \" id=\"exp-1794152945686-9-0-i1\" data-look=\"classic\"><rect style=\"\" x=\"8\" y=\"8\" width=\"134\" height=\"246\"></rect><g class=\"cluster-label \" transform=\"translate(12.23828125, 8)\"><foreignObject width=\"125.5234375\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5;\"><span class=\"nodeLabel \"><p>Ітерація 1: число</p></span></div></foreignObject></g></g></g><g class=\"edgePaths\"><path d=\"M75,93.5L75,99.75C75,106,75,118.5,75,130.333C75,142.167,75,153.333,75,158.917L75,164.5\" id=\"exp-1794152945686-9-0-L_R1_G1_0\" class=\" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link\" style=\";\" data-edge=\"true\" data-et=\"edge\" data-id=\"L_R1_G1_0\" data-points=\"W3sieCI6NzUsInkiOjkzLjV9LHsieCI6NzUsInkiOjEzMX0seyJ4Ijo3NSwieSI6MTY4LjV9XQ==\" data-look=\"classic\" marker-end=\"url(#exp-1794152945686-9-0_flowchart-v2-pointEnd)\"></path></g><g class=\"edgeLabels\"><g class=\"edgeLabel\"><g class=\"label\" data-id=\"L_R1_G1_0\" transform=\"translate(0, 0)\"><foreignObject width=\"0\" height=\"0\"><div xmlns=\"http://www.w3.org/1999/xhtml\" class=\"labelBkg\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"edgeLabel \"></span></div></foreignObject></g></g></g><g class=\"nodes\"><g class=\"node default  \" id=\"exp-1794152945686-9-0-flowchart-R1-0\" data-look=\"classic\" transform=\"translate(75, 69.5)\"><rect class=\"basic label-container\" style=\"fill:#ffeef0 !important;stroke:#d73a49 !important\" x=\"-32\" y=\"-24\" width=\"64\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-8, -12)\"><rect></rect><foreignObject width=\"16\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🔴</p></span></div></foreignObject></g></g><g class=\"node default  \" id=\"exp-1794152945686-9-0-flowchart-G1-1\" data-look=\"classic\" transform=\"translate(75, 192.5)\"><rect class=\"basic label-container\" style=\"fill:#e6ffed !important;stroke:#28a745 !important\" x=\"-32\" y=\"-24\" width=\"64\" height=\"48\"></rect><g class=\"label\" style=\"\" transform=\"translate(-8, -12)\"><rect></rect><foreignObject width=\"16\" height=\"24\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;\"><span class=\"nodeLabel \"><p>🟢</p></span></div></foreignObject></g></g></g></g></g></g></g><defs><filter id=\"exp-1794152945686-9-0-drop-shadow\" height=\"130%\" width=\"130%\"><feDropShadow dx=\"4\" dy=\"4\" stdDeviation=\"0\" flood-opacity=\"0.06\" flood-color=\"#000000\"></feDropShadow></filter></defs><defs><filter id=\"exp-1794152945686-9-0-drop-shadow-small\" height=\"150%\" width=\"150%\"><feDropShadow dx=\"2\" dy=\"2\" stdDeviation=\"0\" flood-opacity=\"0.06\" flood-color=\"#000000\"></feDropShadow></filter></defs><linearGradient id=\"exp-1794152945686-9-0-gradient\" gradientUnits=\"objectBoundingBox\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\"><stop offset=\"0%\" stop-color=\"hsl(210, 0%, 87.6470588235%)\" stop-opacity=\"1\"></stop><stop offset=\"100%\" stop-color=\"hsl(90, 0%, 87.6470588235%)\" stop-opacity=\"1\"></stop></linearGradient></svg></div>\n<div class=\"tip\"><strong>💡 Baby Steps</strong> <p><strong>Baby Steps</strong> - принцип маленьких кроків: один цикл TDD охоплює рівно <strong>одну</strong> поведінку. Якщо після великого кроку тест падає, причину треба шукати серед десятків змін; після маленького кроку причина завжди в останніх кількох рядках. Не знаєте, з чого почати? Починайте з найпростішого випадку, який можете придумати.</p>\n</div>\n\n","<h1>🔴🟢 FizzBuzz, ітерація 1: звичайне число</h1>\n<p><strong>Головна ідея:</strong> починаємо з найпростішого випадку. Числа 1 і 2 не діляться ні на 3, ні на 5, тому мають повертатися як рядки.</p>\n<h2>🔴 RED: заглушка та перший тест</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">FizzBuzz</span> {\n    <span class=\"hljs-keyword\">public</span> String <span class=\"hljs-title function_\">of</span><span class=\"hljs-params\">(<span class=\"hljs-type\">int</span> n)</span> {\n        <span class=\"hljs-keyword\">return</span> <span class=\"hljs-literal\">null</span>; <span class=\"hljs-comment\">// заглушка</span>\n    }\n}\n\n<span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">FizzBuzzTest</span> {\n    <span class=\"hljs-keyword\">private</span> <span class=\"hljs-keyword\">final</span> <span class=\"hljs-type\">FizzBuzz</span> <span class=\"hljs-variable\">fizzBuzz</span> <span class=\"hljs-operator\">=</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">FizzBuzz</span>();\n\n    <span class=\"hljs-meta\">@Test</span>\n    <span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">shouldReturnNumberAsStringForRegularNumbers</span><span class=\"hljs-params\">()</span> {\n        assertEquals(<span class=\"hljs-string\">\"1\"</span>, fizzBuzz.of(<span class=\"hljs-number\">1</span>));\n        assertEquals(<span class=\"hljs-string\">\"2\"</span>, fizzBuzz.of(<span class=\"hljs-number\">2</span>));\n    }\n}</code></pre><pre><code class=\"language-plaintext hljs\" data-highlighted=\"yes\">❌ FAILED: expected: &lt;1&gt; but was: &lt;null&gt;</code></pre><h2>🟢 GREEN: мінімальна реалізація</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> String <span class=\"hljs-title function_\">of</span><span class=\"hljs-params\">(<span class=\"hljs-type\">int</span> n)</span> {\n    <span class=\"hljs-keyword\">return</span> String.valueOf(n);\n}</code></pre><pre><code class=\"language-plaintext hljs\" data-highlighted=\"yes\">✅ 1 test passed</code></pre><div class=\"note\"><strong>📝 Зверніть увагу</strong> <p>Ми не додали жодної перевірки на 3 чи 5, хоча вже знаємо, що вони знадобляться. Третій закон TDD: не більше коду, ніж вимагає поточний тест.</p>\n</div>\n\n","<h1>🔴🟢 FizzBuzz, ітерації 2 і 3: Fizz та Buzz</h1>\n<p><strong>Головна ідея:</strong> додаємо по одній поведінці за раз. Спочатку числа, кратні 3, повертають \"Fizz\"; потім числа, кратні 5, повертають \"Buzz\". Попередні тести залишаються і захищають вже реалізовану логіку.</p>\n<h2>🔴 RED: тест для кратних 3</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-meta\">@Test</span>\n<span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">shouldReturnFizzForMultiplesOfThree</span><span class=\"hljs-params\">()</span> {\n    assertEquals(<span class=\"hljs-string\">\"Fizz\"</span>, fizzBuzz.of(<span class=\"hljs-number\">3</span>));\n    assertEquals(<span class=\"hljs-string\">\"Fizz\"</span>, fizzBuzz.of(<span class=\"hljs-number\">6</span>));\n}</code></pre><pre><code class=\"language-plaintext hljs\" data-highlighted=\"yes\">❌ FAILED: expected: &lt;Fizz&gt; but was: &lt;3&gt;</code></pre><h2>🟢 GREEN: перша умова, потім ще один цикл для Buzz</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> String <span class=\"hljs-title function_\">of</span><span class=\"hljs-params\">(<span class=\"hljs-type\">int</span> n)</span> {\n    <span class=\"hljs-keyword\">if</span> (n % <span class=\"hljs-number\">3</span> == <span class=\"hljs-number\">0</span>) {\n        <span class=\"hljs-keyword\">return</span> <span class=\"hljs-string\">\"Fizz\"</span>;\n    }\n    <span class=\"hljs-keyword\">if</span> (n % <span class=\"hljs-number\">5</span> == <span class=\"hljs-number\">0</span>) {      <span class=\"hljs-comment\">// 🔴🟢 додано в ітерації 3 після тесту</span>\n        <span class=\"hljs-keyword\">return</span> <span class=\"hljs-string\">\"Buzz\"</span>;     <span class=\"hljs-comment\">// shouldReturnBuzzForMultiplesOfFive()</span>\n    }\n    <span class=\"hljs-keyword\">return</span> String.valueOf(n);\n}</code></pre><pre><code class=\"language-plaintext hljs\" data-highlighted=\"yes\">✅ 3 tests passed</code></pre><div class=\"tip\"><strong>💡 Регресійна перевірка</strong> <p>Після кожної зміни запускаємо <strong>всі</strong> тести, а не лише новий. Так одразу видно, чи не зламала нова гілка поведінку, реалізовану раніше. Кожна така ітерація в реальній практиці триває кілька хвилин.</p>\n</div>\n\n","<h1>🔴🟢 FizzBuzz, ітерація 4: FizzBuzz</h1>\n<p><strong>Головна ідея:</strong> найцікавіша ітерація. Тест виявляє помилку в <strong>порядку умов</strong>, яку легко пропустити без тесту.</p>\n<h2>🔴 RED: тест для кратних і 3, і 5</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-meta\">@Test</span>\n<span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">shouldReturnFizzBuzzForMultiplesOfThreeAndFive</span><span class=\"hljs-params\">()</span> {\n    assertEquals(<span class=\"hljs-string\">\"FizzBuzz\"</span>, fizzBuzz.of(<span class=\"hljs-number\">15</span>));\n    assertEquals(<span class=\"hljs-string\">\"FizzBuzz\"</span>, fizzBuzz.of(<span class=\"hljs-number\">30</span>));\n}</code></pre><pre><code class=\"language-plaintext hljs\" data-highlighted=\"yes\">❌ FAILED: expected: &lt;FizzBuzz&gt; but was: &lt;Fizz&gt;</code></pre><div class=\"warning\"><strong>⚠️ Чому \"Fizz\", а не \"FizzBuzz\"?</strong> <p>Число 15 ділиться на 3, тому спрацьовує <strong>перша</strong> умова і метод повертає \"Fizz\", не дійшовши до інших перевірок. Якщо просто дописати третю умову в кінець, тест усе одно впаде. Перевірку на кратність і 3, і 5 потрібно поставити <strong>першою</strong>.</p>\n</div>\n\n\n\n<h2>🟢 GREEN: виправляємо порядок умов</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> String <span class=\"hljs-title function_\">of</span><span class=\"hljs-params\">(<span class=\"hljs-type\">int</span> n)</span> {\n    <span class=\"hljs-keyword\">if</span> (n % <span class=\"hljs-number\">3</span> == <span class=\"hljs-number\">0</span> &amp;&amp; n % <span class=\"hljs-number\">5</span> == <span class=\"hljs-number\">0</span>) {\n        <span class=\"hljs-keyword\">return</span> <span class=\"hljs-string\">\"FizzBuzz\"</span>;\n    }\n    <span class=\"hljs-keyword\">if</span> (n % <span class=\"hljs-number\">3</span> == <span class=\"hljs-number\">0</span>) {\n        <span class=\"hljs-keyword\">return</span> <span class=\"hljs-string\">\"Fizz\"</span>;\n    }\n    <span class=\"hljs-keyword\">if</span> (n % <span class=\"hljs-number\">5</span> == <span class=\"hljs-number\">0</span>) {\n        <span class=\"hljs-keyword\">return</span> <span class=\"hljs-string\">\"Buzz\"</span>;\n    }\n    <span class=\"hljs-keyword\">return</span> String.valueOf(n);\n}</code></pre><pre><code class=\"language-plaintext hljs\" data-highlighted=\"yes\">✅ 4 tests passed</code></pre><div class=\"success\"><strong>✅ Усі тести зелені</strong> <p>Функціонально задача розв'язана. Але код має дублювання, тож переходимо до рефакторингу.</p>\n</div>\n\n","<h1>🔵 FizzBuzz: рефакторинг</h1>\n<p><strong>Головна ідея:</strong> поведінка правильна, тепер покращуємо структуру. Чотири зелені тести дозволяють змінювати код без страху.</p>\n<h2>🔍 Що саме не так із поточним кодом</h2>\n<table>\n<thead>\n<tr>\n<th>Проблема</th>\n<th>Опис</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🔁 <strong>Дублювання</strong></td>\n<td><code>n % 3 == 0</code> обчислюється двічі</td>\n</tr>\n<tr>\n<td>🔁 <strong>Дублювання</strong></td>\n<td><code>n % 5 == 0</code> обчислюється двічі</td>\n</tr>\n<tr>\n<td>📖 <strong>Читабельність</strong></td>\n<td>Умова <code>n % 3 == 0 &amp;&amp; n % 5 == 0</code> потребує коментаря</td>\n</tr>\n</tbody></table>\n<h2>🔵 REFACTOR: іменовані умови</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-keyword\">public</span> <span class=\"hljs-keyword\">class</span> <span class=\"hljs-title class_\">FizzBuzz</span> {\n    <span class=\"hljs-keyword\">public</span> String <span class=\"hljs-title function_\">of</span><span class=\"hljs-params\">(<span class=\"hljs-type\">int</span> n)</span> {\n        <span class=\"hljs-type\">boolean</span> <span class=\"hljs-variable\">divisibleBy3</span> <span class=\"hljs-operator\">=</span> n % <span class=\"hljs-number\">3</span> == <span class=\"hljs-number\">0</span>;\n        <span class=\"hljs-type\">boolean</span> <span class=\"hljs-variable\">divisibleBy5</span> <span class=\"hljs-operator\">=</span> n % <span class=\"hljs-number\">5</span> == <span class=\"hljs-number\">0</span>;\n\n        <span class=\"hljs-keyword\">if</span> (divisibleBy3 &amp;&amp; divisibleBy5) <span class=\"hljs-keyword\">return</span> <span class=\"hljs-string\">\"FizzBuzz\"</span>;\n        <span class=\"hljs-keyword\">if</span> (divisibleBy3) <span class=\"hljs-keyword\">return</span> <span class=\"hljs-string\">\"Fizz\"</span>;\n        <span class=\"hljs-keyword\">if</span> (divisibleBy5) <span class=\"hljs-keyword\">return</span> <span class=\"hljs-string\">\"Buzz\"</span>;\n\n        <span class=\"hljs-keyword\">return</span> String.valueOf(n);\n    }\n}</code></pre><pre><code class=\"language-plaintext hljs\" data-highlighted=\"yes\">✅ 4 tests passed: поведінка не змінилась</code></pre><div class=\"success\"><strong>✅ Результат рефакторингу</strong> <ul>\n<li>✅ Усі тести зелені, отже <strong>поведінка збережена</strong></li>\n<li>✅ Кожна умова обчислюється один раз: <strong>DRY (Don't Repeat Yourself)</strong></li>\n<li>✅ Код читається як опис правил задачі, без коментарів</li>\n</ul>\n</div>\n\n","<h1>🎯 Принципи FIRST для якісних тестів</h1>\n<div class=\"info\"><strong>ℹ️ Джерело</strong> <p>Акронім <strong>FIRST</strong> описує п'ять властивостей хорошого модульного тесту. Його популяризував Robert C. Martin у книзі \"Clean Code\".</p>\n</div>\n\n\n\n<p><strong>Головна ідея:</strong> не будь-який тест корисний. Тест, який не відповідає FIRST, з часом перестають запускати, і він втрачає сенс.</p>\n<table>\n<thead>\n<tr>\n<th>Літера</th>\n<th>Принцип</th>\n<th>Опис</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>F</strong></td>\n<td><strong>Fast</strong></td>\n<td>Тести виконуються <strong>швидко</strong> (секунди, не хвилини), інакше їх не запускають часто</td>\n</tr>\n<tr>\n<td><strong>I</strong></td>\n<td><strong>Independent</strong></td>\n<td>Тести <strong>не залежать</strong> один від одного, порядок виконання не має значення</td>\n</tr>\n<tr>\n<td><strong>R</strong></td>\n<td><strong>Repeatable</strong></td>\n<td>Результат <strong>однаковий</strong> при кожному запуску й у будь-якому середовищі</td>\n</tr>\n<tr>\n<td><strong>S</strong></td>\n<td><strong>Self-validating</strong></td>\n<td>Тест сам визначає pass або fail, <strong>без ручного аналізу</strong> логів чи виводу</td>\n</tr>\n<tr>\n<td><strong>T</strong></td>\n<td><strong>Timely</strong></td>\n<td>Тести пишуться <strong>вчасно</strong>: до або разом із кодом, а не \"колись потім\"</td>\n</tr>\n</tbody></table>\n<div class=\"warning\"><strong>⚠️ Типові порушення</strong> <ul>\n<li><strong>Fast:</strong> тест звертається до реальної бази даних або мережі</li>\n<li><strong>Independent:</strong> другий тест працює лише тому, що перший створив запис</li>\n<li><strong>Repeatable:</strong> тест залежить від поточної дати або випадкового числа</li>\n<li><strong>Self-validating:</strong> тест друкує результат у консоль, а людина має його перевірити</li>\n</ul>\n</div>\n\n","<h1>🏷️ Зрозумілі назви тестів</h1>\n<p><strong>Головна ідея:</strong> назва тесту - це перше, що бачить розробник, коли тест падає. Вона має пояснювати <strong>очікувану поведінку</strong>, а не повторювати ім'я методу.</p>\n<h2>❌ Погано проти ✅ добре</h2>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-comment\">// ❌ Погано: незрозуміло, що саме перевіряється</span>\n<span class=\"hljs-meta\">@Test</span>\n<span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">test1</span><span class=\"hljs-params\">()</span> { ... }\n\n<span class=\"hljs-meta\">@Test</span>\n<span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">testOf</span><span class=\"hljs-params\">()</span> { ... }\n\n<span class=\"hljs-comment\">// ✅ Добре: назва описує поведінку та умову</span>\n<span class=\"hljs-meta\">@Test</span>\n<span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">shouldReturnFizzWhenNumberIsDivisibleByThree</span><span class=\"hljs-params\">()</span> { ... }\n\n<span class=\"hljs-comment\">// ✅ Ще краще для звіту: читабельний опис через @DisplayName</span>\n<span class=\"hljs-meta\">@Test</span>\n<span class=\"hljs-meta\">@DisplayName(\"should return Fizz when number is divisible by 3\")</span>\n<span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">fizzForMultiplesOfThree</span><span class=\"hljs-params\">()</span> { ... }</code></pre><div class=\"tip\"><strong>💡 Формула назви тесту</strong> <p><strong>should [очікуваний результат] when [умова]</strong>. Коли такий тест падає, звіт сам пояснює, яка саме вимога порушена: не потрібно відкривати код тесту.</p>\n</div>\n\n\n\n\n\n<div class=\"note\"><strong>📝 Тести як документація</strong> <p>Набір добре названих тестів читається як специфікація модуля: \"повертає Fizz, якщо ділиться на 3\", \"повертає Buzz, якщо ділиться на 5\". Це жива документація, яка ніколи не застаріває, бо перевіряється при кожному запуску.</p>\n</div>\n\n","<h1>🚫 Антипатерни тестування</h1>\n<p><strong>Головна ідея:</strong> поганий тест гірший за відсутній, бо створює <strong>хибне відчуття безпеки</strong>.</p>\n<div class=\"danger\"><strong>🚫 Типові помилки</strong> <p><strong>1. 🎭 The Liar (Брехун)</strong></p>\n<pre><code class=\"language-java hljs\" data-highlighted=\"yes\"><span class=\"hljs-meta\">@Test</span>\n<span class=\"hljs-keyword\">void</span> <span class=\"hljs-title function_\">shouldWork</span><span class=\"hljs-params\">()</span> {\n    assertTrue(<span class=\"hljs-literal\">true</span>); <span class=\"hljs-comment\">// 🚫 проходить завжди, не перевіряє нічого</span>\n}</code></pre><p><strong>2. 🐢 The Slow Poke (Повільний)</strong></p>\n<ul>\n<li>Тести, що виконуються хвилинами замість секунд</li>\n<li>Типова причина: реальні звернення до БД чи мережі</li>\n<li>Рішення: mock-об'єкти та заглушки для зовнішніх залежностей</li>\n</ul>\n<p><strong>3. 🔗 The Chain Gang (Ланцюгова залежність)</strong></p>\n<ul>\n<li>Тест B проходить лише після тесту A</li>\n<li>Порушує принцип Independent із FIRST</li>\n<li>Рішення: кожен тест сам готує потрібні дані</li>\n</ul>\n<p><strong>4. 🧊 The Frozen Test (Заморожений)</strong></p>\n<ul>\n<li>Тест упав після зміни коду, і його \"тимчасово\" закоментували</li>\n<li>Закоментований тест перестає бути тестом, а \"тимчасово\" триває роками</li>\n</ul>\n</div>\n\n\n\n\n\n<div class=\"warning\"><strong>⚠️ Золоте правило</strong> <p>Якщо тест падає, це <strong>добре</strong>: він працює і захищає вас від регресії. Червоний тест - привід для аналізу, а не для приховування.</p>\n</div>\n\n","<h1>✨ Переваги TDD</h1>\n<p><strong>Головна ідея:</strong> TDD дає виграш не лише у кількості дефектів, а й у якості дизайну та впевненості команди.</p>\n<table>\n<thead>\n<tr>\n<th>Перевага</th>\n<th>Як проявляється</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🐛 <strong>Менше дефектів</strong></td>\n<td>Помилки виявляються в момент написання коду, а не на етапі QA чи в продакшені</td>\n</tr>\n<tr>\n<td>📐 <strong>Кращий дизайн коду</strong></td>\n<td>Код, який легко тестувати, є модульним і слабко зв'язаним</td>\n</tr>\n<tr>\n<td>🛡️ <strong>Безпечний рефакторинг</strong></td>\n<td>Тести гарантують, що зміна структури не зламає існуючу функціональність</td>\n</tr>\n<tr>\n<td>📖 <strong>Тести як документація</strong></td>\n<td>Тести описують, <em>що</em> робить код, у вигляді живих прикладів використання</td>\n</tr>\n<tr>\n<td>⚡ <strong>Швидкий зворотний зв'язок</strong></td>\n<td>Розробник дізнається про регресію за секунди, а не через дні</td>\n</tr>\n<tr>\n<td>🎯 <strong>Фокус на вимогах</strong></td>\n<td>Спочатку думаємо, <em>що</em> потрібно, і лише потім, <em>як</em> це реалізувати</td>\n</tr>\n</tbody></table>\n<h2>📊 Емпіричні дані: дослідження Nagappan et al. (2008)</h2>\n<div class=\"info\"><strong>ℹ️ Умови дослідження</strong> <p>Дослідники порівняли команди, що працювали за TDD, з командами без TDD у проєктах <strong>Windows</strong>, <strong>MSN</strong> та <strong>Visual Studio</strong> (Microsoft), а також у розробці <strong>драйверів пристроїв</strong> (IBM).</p>\n</div>\n\n\n\n<table>\n<thead>\n<tr>\n<th>Показник</th>\n<th>Результат</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>📉 <strong>Дефекти до релізу</strong></td>\n<td>На 40-90% менше у командах з TDD</td>\n</tr>\n<tr>\n<td>⏱️ <strong>Час розробки</strong></td>\n<td>Збільшення на 15-35% за оцінкою менеджменту</td>\n</tr>\n<tr>\n<td>💰 <strong>Підтримка</strong></td>\n<td>Команди відзначили зменшення витрат на супровід</td>\n</tr>\n</tbody></table>\n<div class=\"success\"><strong>✅ Висновок дослідження</strong> <p>Додатковий час на старті <strong>окупається</strong> меншими витратами на виправлення багів і підтримку протягом життя проєкту.</p>\n</div>\n\n","<h1>⚠️ Виклики, обмеження та сфера застосування</h1>\n<p><strong>Головна ідея:</strong> TDD - це інструмент, а не догма. Його цінність залежить від контексту задачі.</p>\n<h2>🚧 Основні виклики</h2>\n<table>\n<thead>\n<tr>\n<th>Виклик</th>\n<th>Опис</th>\n<th>Як справлятися</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>📚 <strong>Крива навчання</strong></td>\n<td>Потрібен час, щоб навчитися \"думати тестами\"</td>\n<td>Практика на простих задачах, code kata</td>\n</tr>\n<tr>\n<td>⏱️ <strong>Більше часу на старті</strong></td>\n<td>Тест + код пишеться довше, ніж просто код</td>\n<td>Інвестиція окупається на етапі підтримки</td>\n</tr>\n<tr>\n<td>🔗 <strong>Зовнішні залежності</strong></td>\n<td>БД, API, файлова система важко тестуються</td>\n<td>Mocks, stubs, fakes; ізоляція логіки</td>\n</tr>\n<tr>\n<td>🎨 <strong>UI та візуальна частина</strong></td>\n<td>Складно описати тестом \"як це виглядає\"</td>\n<td>Відокремлювати логіку від представлення</td>\n</tr>\n<tr>\n<td>🏚️ <strong>Legacy-код</strong></td>\n<td>Існуючий код без тестів важко покрити</td>\n<td>Додавати тест перед кожною зміною</td>\n</tr>\n</tbody></table>\n<h2>🤔 Де TDD доречний, а де надмірний</h2>\n<table>\n<thead>\n<tr>\n<th>✅ Добре підходить</th>\n<th>⚠️ Може бути надмірним</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🔷 Бізнес-логіка з чіткими правилами</td>\n<td>🔸 Прототипи та MVP, де вимоги змінюються щодня</td>\n</tr>\n<tr>\n<td>🔷 API та сервіси, де важливі контракти</td>\n<td>🔸 Суто візуальні зміни у верстці</td>\n</tr>\n<tr>\n<td>🔷 Алгоритми з багатьма граничними випадками</td>\n<td>🔸 Одноразові скрипти</td>\n</tr>\n<tr>\n<td>🔷 Рефакторинг legacy-коду (тести як страховка)</td>\n<td>🔸 Дослідницький код у Data Science та ML</td>\n</tr>\n<tr>\n<td>🔷 Критичні системи з високою ціною дефекту</td>\n<td>🔸 Експерименти, де результат заздалегідь невідомий</td>\n</tr>\n</tbody></table>\n<div class=\"tip\"><strong>💡 Практичний підхід</strong> <p>Застосовуйте TDD там, де він <strong>приносить цінність</strong>: де є логіка, яку можна описати перевіркою очікуваного результату.</p>\n</div>\n\n","<h1>🛠️ Інструменти для TDD</h1>\n<p><strong>Головна ідея:</strong> для TDD потрібен швидкий тестовий фреймворк і спосіб автоматично перезапускати тести після кожної зміни, щоб цикл тривав секунди.</p>\n<h2>☕ Екосистема Java</h2>\n<table>\n<thead>\n<tr>\n<th>Інструмент</th>\n<th>Призначення</th>\n<th>Особливості</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🧪 <strong>JUnit 5</strong></td>\n<td>Основний тестовий фреймворк</td>\n<td>Стандарт де-факто, анотації <code>@Test</code>, <code>@DisplayName</code>, параметризовані тести</td>\n</tr>\n<tr>\n<td>🧪 <strong>TestNG</strong></td>\n<td>Альтернативний фреймворк</td>\n<td>Гнучка конфігурація, групи тестів, залежності</td>\n</tr>\n<tr>\n<td>✅ <strong>AssertJ</strong></td>\n<td>Бібліотека assertions</td>\n<td>Читабельні fluent-перевірки: <code>assertThat(x).isEqualTo(5)</code></td>\n</tr>\n<tr>\n<td>🎭 <strong>Mockito</strong></td>\n<td>Створення mock-об'єктів</td>\n<td>Ізоляція від БД, мережі та інших залежностей</td>\n</tr>\n</tbody></table>\n<h2>🌍 Інші мови</h2>\n<table>\n<thead>\n<tr>\n<th>Мова</th>\n<th>Інструменти</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🐍 Python</td>\n<td>pytest, unittest</td>\n</tr>\n<tr>\n<td>🟨 JavaScript</td>\n<td>Jest, Vitest, Mocha</td>\n</tr>\n<tr>\n<td>💎 Ruby</td>\n<td>RSpec, Minitest</td>\n</tr>\n<tr>\n<td>#️⃣ C#</td>\n<td>NUnit, xUnit</td>\n</tr>\n</tbody></table>\n<div class=\"note\"><strong>📝 Сімейство xUnit</strong> <p>Усі ці фреймворки походять від SUnit Кента Бека і поділяють спільні поняття: <strong>test fixture</strong>, <strong>assertion</strong>, <strong>test runner</strong>, <strong>test suite</strong>.</p>\n</div>\n\n\n\n\n\n<div class=\"tip\"><strong>💡 Рекомендація</strong> <p>Налаштуйте автоматичний перезапуск тестів при збереженні файлу: у IntelliJ IDEA це режим auto-test, у Gradle це прапорець <code>--continuous</code>. Чим коротший цикл зворотного зв'язку, тим природнішою стає звичка TDD. 🔄</p>\n</div>\n\n","<h1>📝 Ключові висновки</h1>\n<div class=\"success\"><strong>✅ Головне з лекції</strong> </div>\n\n\n\n<table>\n<thead>\n<tr>\n<th>Концепція</th>\n<th>Суть</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>🔴🟢🔵 <strong>Red-Green-Refactor</strong></td>\n<td>Напиши падаючий тест → напиши мінімальний код → покращ структуру</td>\n</tr>\n<tr>\n<td>⚖️ <strong>Три закони TDD</strong></td>\n<td>Код лише за наявності падаючого тесту; мінімум тесту; мінімум коду</td>\n</tr>\n<tr>\n<td>🐣 <strong>Baby Steps</strong></td>\n<td>Один тест = одна поведінка; маленькі кроки дають швидкий зворотний зв'язок</td>\n</tr>\n<tr>\n<td>🎯 <strong>FIRST</strong></td>\n<td>Fast, Independent, Repeatable, Self-validating, Timely</td>\n</tr>\n<tr>\n<td>🏷️ <strong>Назви тестів</strong></td>\n<td>should [результат] when [умова]: тести як жива документація</td>\n</tr>\n</tbody></table>\n<h2>💡 Головна ідея</h2>\n<div class=\"info\"><strong>ℹ️ Запам'ятайте</strong> <p>TDD - це не про тестування, а про <strong>спосіб проєктування коду</strong>. Тест, написаний першим, змушує продумати інтерфейс і поведінку до реалізації, а набір тестів стає страховкою для рефакторингу.</p>\n</div>\n\n\n\n<h2>✅ Що дає TDD на практиці</h2>\n<ul>\n<li>🐛 Менше дефектів (за дослідженням Nagappan et al., на 40-90%)</li>\n<li>🛡️ Безпечний рефакторинг під захистом регресійних тестів</li>\n<li>📖 Тести як документація поведінки</li>\n<li>📐 Модульний дизайн зі слабкою зв'язаністю</li>\n</ul>\n<div class=\"tip\"><strong>💡 Практика - ключ до успіху</strong> <p>Почніть із простих функцій у власних проєктах і поступово переходьте до складніших сценаріїв.</p>\n</div>\n\n","<h1>❓ Контрольні питання</h1>\n<ol>\n<li><p>У чому полягає принципова відмінність TDD від традиційного підходу? Чому TDD називають дизайн-методологією, а не лише технікою тестування?</p>\n</li>\n<li><p>Опишіть три етапи циклу Red-Green-Refactor. Яка мета та які обмеження кожного з них?</p>\n</li>\n<li><p>Сформулюйте три закони TDD за Robert C. Martin. Які небажані практики вони забороняють?</p>\n</li>\n<li><p>Що означає кожна літера в принципі FIRST? Наведіть приклад порушення кожного принципу.</p>\n</li>\n<li><p>Що таке Baby Steps і чому маленькі кроки кращі за великі?</p>\n</li>\n<li><p>Поясніть на прикладі FizzBuzz, як саме тест виявив проблему з порядком умов для числа 15.</p>\n</li>\n<li><p>Опишіть антипатерни Liar, Slow Poke, Chain Gang і Frozen Test.</p>\n</li>\n<li><p><strong>Практичне завдання:</strong> напишіть метод <code>isLeapYear(int year)</code> за принципами TDD: спочатку тести для базових випадків (звичайний рік, рік ділиться на 4, на 100, на 400), потім мінімальна реалізація, нарешті рефакторинг.</p>\n</li>\n</ol>\n","<h1>📚 Глосарій термінів</h1>\n<table>\n<thead>\n<tr>\n<th>Термін</th>\n<th>Пояснення</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>Test-Driven Development</strong></td>\n<td>Розробка через тестування: тести пишуться до продакшен-коду</td>\n</tr>\n<tr>\n<td><strong>Red-Green-Refactor</strong></td>\n<td>Цикл TDD: тест падає → тест проходить → покращення коду</td>\n</tr>\n<tr>\n<td><strong>Unit Test</strong></td>\n<td>Модульний тест: перевірка окремого методу або класу в ізоляції</td>\n</tr>\n<tr>\n<td><strong>Refactoring</strong></td>\n<td>Рефакторинг: зміна структури коду без зміни його спостережуваної поведінки</td>\n</tr>\n<tr>\n<td><strong>Assertion</strong></td>\n<td>Твердження: перевірка очікуваного результату в тесті</td>\n</tr>\n<tr>\n<td><strong>Mock / Stub</strong></td>\n<td>Імітація залежності для ізольованого тестування</td>\n</tr>\n<tr>\n<td><strong>Test Fixture</strong></td>\n<td>Підготовлений стан (дані, об'єкти), необхідний для виконання тесту</td>\n</tr>\n<tr>\n<td><strong>Test Suite</strong></td>\n<td>Набір тестів, що виконуються разом</td>\n</tr>\n<tr>\n<td><strong>Test Runner</strong></td>\n<td>Інструмент, який запускає тести та формує звіт</td>\n</tr>\n<tr>\n<td><strong>Regression Test</strong></td>\n<td>Регресійний тест: перевірка, що раніше працюючий код не зламався</td>\n</tr>\n<tr>\n<td><strong>Baby Steps</strong></td>\n<td>Принцип маленьких кроків: одна ітерація = одна поведінка</td>\n</tr>\n<tr>\n<td><strong>Legacy Code</strong></td>\n<td>Успадкований код без тестів, який важко змінювати</td>\n</tr>\n<tr>\n<td><strong>Code Kata</strong></td>\n<td>Невелика тренувальна задача для відпрацювання навичок (наприклад, FizzBuzz)</td>\n</tr>\n</tbody></table>\n","<h1>🔤 Глосарій абревіатур</h1>\n<table>\n<thead>\n<tr>\n<th>Абревіатура</th>\n<th>Розшифровка</th>\n</tr>\n</thead>\n<tbody><tr>\n<td><strong>TDD</strong></td>\n<td>Test-Driven Development / Розробка через тестування</td>\n</tr>\n<tr>\n<td><strong>XP</strong></td>\n<td>Extreme Programming / Екстремальне програмування</td>\n</tr>\n<tr>\n<td><strong>KISS</strong></td>\n<td>Keep It Simple, Stupid / Роби простіше</td>\n</tr>\n<tr>\n<td><strong>DRY</strong></td>\n<td>Don't Repeat Yourself / Не повторюйся</td>\n</tr>\n<tr>\n<td><strong>FIRST</strong></td>\n<td>Fast, Independent, Repeatable, Self-validating, Timely</td>\n</tr>\n<tr>\n<td><strong>QA</strong></td>\n<td>Quality Assurance / Забезпечення якості</td>\n</tr>\n<tr>\n<td><strong>API</strong></td>\n<td>Application Programming Interface / Програмний інтерфейс застосунку</td>\n</tr>\n<tr>\n<td><strong>MVP</strong></td>\n<td>Minimum Viable Product / Мінімально життєздатний продукт</td>\n</tr>\n<tr>\n<td><strong>UI</strong></td>\n<td>User Interface / Інтерфейс користувача</td>\n</tr>\n<tr>\n<td><strong>ML</strong></td>\n<td>Machine Learning / Машинне навчання</td>\n</tr>\n<tr>\n<td><strong>IDE</strong></td>\n<td>Integrated Development Environment / Інтегроване середовище розробки</td>\n</tr>\n</tbody></table>\n"];let currentSlideIndex=0;
+function renderMath(root){if(typeof renderMathInElement!=="function"||!root)return;try{renderMathInElement(root,{delimiters:[{left:"$$",right:"$$",display:true},{left:"\\[",right:"\\]",display:true},{left:"$",right:"$",display:false},{left:"\\(",right:"\\)",display:false}],throwOnError:false,strict:"ignore",ignoredTags:["script","noscript","style","textarea","pre","code"]});}catch(e){console.warn("Math render error:",e);}}
+function showSlide(i){if(i<0||i>=slides.length)return;currentSlideIndex=i;const el=document.getElementById("current-slide");el.innerHTML=slides[i];el.scrollTop=0;renderMath(el);document.getElementById("progress-bar").style.width=((i+1)/slides.length*100)+"%";document.getElementById("slide-number").textContent=(i+1)+" / "+slides.length;updateSidebarActive();}
+function nextSlide(){if(currentSlideIndex<slides.length-1)showSlide(currentSlideIndex+1);}
+function previousSlide(){if(currentSlideIndex>0)showSlide(currentSlideIndex-1);}
+function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open");}
+function toggleHelp(){document.getElementById("help-overlay").classList.toggle("hidden");}
+function toggleFullscreen(){if(!document.fullscreenElement){const pc=document.getElementById("presentation-container");if(pc.requestFullscreen)pc.requestFullscreen();else if(pc.webkitRequestFullscreen)pc.webkitRequestFullscreen();else if(pc.msRequestFullscreen)pc.msRequestFullscreen();else if(pc.mozRequestFullScreen)pc.mozRequestFullScreen();}else{if(document.exitFullscreen)document.exitFullscreen();else if(document.webkitExitFullscreen)document.webkitExitFullscreen();else if(document.msExitFullscreen)document.msExitFullscreen();else if(document.mozCancelFullScreen)document.mozCancelFullScreen();}}
+function generateSidebar(){const sc=document.getElementById("sidebar-content");sc.innerHTML="";slides.forEach((html,idx)=>{const t=document.createElement("div");t.className="slide-thumbnail";if(idx===0)t.classList.add("active");const tmp=document.createElement("div");tmp.innerHTML=html;const title=tmp.querySelector("h1,h2");const titleText=title?title.textContent:("Слайд "+(idx+1));const textContent=tmp.textContent.replace(/s+/g," ").trim();const preview=textContent.substring(0,100)+(textContent.length>100?"...":"");t.innerHTML="<div class=\"slide-thumbnail-number\">"+(idx+1)+"</div><div class=\"slide-thumbnail-title\">"+titleText+"</div><div class=\"slide-thumbnail-content\">"+preview+"</div>";t.onclick=()=>{showSlide(idx);if(window.innerWidth<1024)toggleSidebar();};sc.appendChild(t);});}
+function updateSidebarActive(){document.querySelectorAll(".slide-thumbnail").forEach((th,idx)=>{if(idx===currentSlideIndex){th.classList.add("active");th.scrollIntoView({behavior:"smooth",block:"nearest"});}else th.classList.remove("active");});}
+document.addEventListener("keydown",e=>{switch(e.key){case"ArrowLeft":previousSlide();break;case"ArrowRight":case" ":e.preventDefault();nextSlide();break;case"f":case"F":toggleFullscreen();break;case"s":case"S":toggleSidebar();break;case"?":toggleHelp();break;case"Escape":const sb=document.getElementById("sidebar");const ho=document.getElementById("help-overlay");if(sb.classList.contains("open"))toggleSidebar();else if(!ho.classList.contains("hidden"))ho.classList.add("hidden");break;}});
+generateSidebar();showSlide(0);</script></body></html>
